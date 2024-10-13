@@ -11,9 +11,8 @@
             margin: 0;
             padding: 0;
             background-color: black;
-            color: white;
             overflow: hidden;
-            font-family: 'Quicksand', sans-serif; /* Nicer, rounded font */
+            font-family: 'Quicksand', sans-serif;
         }
 
         /* Title bar styles */
@@ -25,25 +24,26 @@
             display: flex;
             background-color: rgba(255, 255, 255, 0.15);
             border-radius: 50px;
-            padding: 10px 20px;
-            backdrop-filter: blur(5px); /* Gaussian blur effect */
+            padding: 5px 15px; /* Reduced padding for thinner look */
+            backdrop-filter: blur(5px);
             z-index: 10;
         }
 
         nav a {
             text-decoration: none;
             color: white;
-            padding: 10px 20px;
+            padding: 8px 15px; /* Reduced spacing */
             border-radius: 50px;
-            margin: 0 10px;
+            margin: 0 5px; /* Less spacing between tabs */
             font-weight: 400;
             transition: background-color 0.3s, font-weight 0.3s;
         }
 
         nav a.active {
-            font-weight: 700; /* Bold for active tab */
-            background-color: #ff0077; /* Solid chip depending on theme */
+            font-weight: 700;
+            background-color: #ff0077;
             color: white;
+            box-shadow: 0px 4px 10px rgba(255, 0, 119, 0.7); /* Downwards glow */
         }
 
         /* Centered image with circular mask */
@@ -57,6 +57,7 @@
             border-radius: 50%;
             overflow: hidden;
             box-shadow: 0 0 30px rgba(255, 0, 119, 0.7); /* Glow based on theme */
+            z-index: 5; /* Ensure image is above the text */
         }
 
         .center-image img {
@@ -72,7 +73,21 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 0; /* Behind the content */
+            z-index: 1; /* Text is behind the profile image */
+        }
+
+        /* SLVRR mask */
+        .slvrr-mask {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 200px;
+            font-weight: 700;
+            color: transparent;
+            z-index: 0;
+            -webkit-text-stroke: 2px white;
+            letter-spacing: 20px;
         }
     </style>
 </head>
@@ -88,8 +103,11 @@
 
     <!-- Centered circular image -->
     <div class="center-image">
-        <img src="https://cdn.discordapp.com/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=670d4bc7&is=670bfa47&hm=b934f1bfc6f99a44850c1589a7a2b88d4c0d48a72df3d10e45ac7f9eeb5ed599&" alt="Profile Picture">
+        <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=670d4bc7&is=670bfa47&hm=b934f1bfc6f99a44850c1589a7a2b88d4c0d48a72df3d10e45ac7f9eeb5ed599&=&format=webp&width=1214&height=1214" alt="Profile Picture">
     </div>
+
+    <!-- SLVRR mask in the background -->
+    <div class="slvrr-mask">SLVRR</div>
 
     <!-- Background canvas for randomizing characters -->
     <canvas id="backgroundText"></canvas>
@@ -102,7 +120,7 @@
         canvas.height = window.innerHeight;
 
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const fontSize = 20; // Larger, more rounded font
+        const fontSize = 20; // Font size for the text
         const columns = Math.floor(canvas.width / fontSize);
         const rows = Math.floor(canvas.height / fontSize);
 
@@ -111,14 +129,19 @@
         // Themes with vibrant colors and gradients
         const themes = {
             default: {
-                textColor: '#666666',  // Dark grey (for outside the gradient)
-                gradientColor: '#ff0077',  // Pink (close to cursor)
-                glowColor: 'rgba(255, 0, 119, 0.7)',  // Pink glow
-                gradientEndColor: '#333333' // Darker grey (farthest)
+                lightColor: '#ff0077', // Brightest color for close to cursor
+                darkColor: '#333333',  // Darkest color for far away text
+                glowColor: 'rgba(255, 0, 119, 0.7)', // Glow for active elements
+            },
+            blue: {
+                lightColor: '#0077ff',
+                darkColor: '#222233',
+                glowColor: 'rgba(0, 119, 255, 0.7)',
             }
+            // Add more themes here
         };
 
-        let activeTheme = themes.default;  // Active theme is default for now
+        let activeTheme = themes.default;  // Select active theme
 
         // Function to generate random letters/numbers
         function getRandomChar() {
@@ -136,36 +159,40 @@
 
         generateRandomText();
 
-        // Function to draw the background text with gradient effect
+        // Function to draw background text
         function drawBackgroundText(cursorX, cursorY) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw dark text first (for areas outside the gradient effect)
             for (let col = 0; col < columns; col++) {
                 for (let row = 0; row < rows; row++) {
                     let x = col * fontSize;
                     let y = row * fontSize;
 
-                    let dx = cursorX - x;
-                    let dy = cursorY - y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-
-                    let maxDistance = 300; // Radius for the gradient effect
-                    let brightness = Math.max(0, 1 - distance / maxDistance);  // 0 to 1
-
-                    // Inside the gradient area, text goes from vibrant to dark
-                    if (distance <= maxDistance) {
-                        ctx.fillStyle = `rgba(${parseInt(activeTheme.gradientColor.slice(1, 3), 16)}, 
-                                            ${parseInt(activeTheme.gradientColor.slice(3, 5), 16)}, 
-                                            ${parseInt(activeTheme.gradientColor.slice(5, 7), 16)}, 
-                                            ${brightness})`;
-                    } else {
-                        // Outside the gradient, use the darkest color
-                        ctx.fillStyle = activeTheme.gradientEndColor;
-                    }
-
+                    ctx.fillStyle = activeTheme.darkColor;
                     ctx.font = `${fontSize}px 'Quicksand', monospace`;
                     ctx.fillText(textArray[col][row], x, y);
                 }
             }
+
+            // Create gradient mask for brighter text
+            ctx.save();
+            let gradient = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, 300);
+            gradient.addColorStop(0, activeTheme.lightColor);
+            gradient.addColorStop(1, activeTheme.darkColor);
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.fillStyle = gradient;
+
+            // Draw light text with gradient
+            for (let col = 0; col < columns; col++) {
+                for (let row = 0; row < rows; row++) {
+                    let x = col * fontSize;
+                    let y = row * fontSize;
+
+                    ctx.fillText(textArray[col][row], x, y);
+                }
+            }
+            ctx.restore();
         }
 
         let cursorX = canvas.width / 2;
