@@ -22,28 +22,33 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: rgba(0, 0, 0, 0.25);
             border-radius: 50px;
-            padding: 5px 15px; /* Reduced padding for thinner look */
+            padding: 5px 15px;
             backdrop-filter: blur(5px);
+            box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 0, 119, 0.5); /* Opacity outline */
             z-index: 10;
         }
 
         nav a {
             text-decoration: none;
             color: white;
-            padding: 8px 15px; /* Reduced spacing */
+            padding: 8px 15px;
             border-radius: 50px;
-            margin: 0 5px; /* Less spacing between tabs */
+            margin: 0 5px;
             font-weight: 400;
             transition: background-color 0.3s, font-weight 0.3s;
         }
 
         nav a.active {
             font-weight: 700;
-            background-color: #ff0077;
-            color: white;
-            box-shadow: 0px 4px 10px rgba(255, 0, 119, 0.7); /* Downwards glow */
+            background-color: rgba(255, 0, 119, 0.25);
+            box-shadow: 0px 4px 10px rgba(255, 0, 119, 0.7);
+        }
+
+        nav a:hover {
+            background-color: rgba(255, 0, 119, 0.15); /* Hover effect */
         }
 
         /* Centered image with circular mask */
@@ -56,8 +61,8 @@
             height: 200px;
             border-radius: 50%;
             overflow: hidden;
-            box-shadow: 0 0 30px rgba(255, 0, 119, 0.7); /* Glow based on theme */
-            z-index: 5; /* Ensure image is above the text */
+            box-shadow: 0 0 30px rgba(255, 0, 119, 0.7);
+            z-index: 5;
         }
 
         .center-image img {
@@ -73,22 +78,94 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 1; /* Text is behind the profile image */
+            z-index: 1;
         }
 
-        /* SLVRR mask */
+        /* SLVRR mask that changes background text color */
         .slvrr-mask {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 200px;
+            font-size: 800px; /* Bigger SLVRR text */
             font-weight: 700;
             color: transparent;
             z-index: 0;
-            -webkit-text-stroke: 2px white;
-            letter-spacing: 20px;
+            text-align: center;
         }
+
+        /* Themes button */
+        .theme-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.25);
+            border-radius: 50px;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 0, 119, 0.5);
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-button:hover {
+            background-color: rgba(255, 0, 119, 0.15); /* Hover effect */
+        }
+
+        /* Theme dropdown menu */
+        .theme-menu {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.25);
+            border-radius: 15px; /* Rounded rectangle */
+            padding: 10px;
+            max-height: 300px;
+            width: 200px;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+            box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 0, 119, 0.5);
+            display: none; /* Hidden by default */
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .theme-menu.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-option:hover {
+            background-color: rgba(255, 0, 119, 0.15); /* Hover effect */
+        }
+
+        .theme-option.selected {
+            background-color: rgba(255, 0, 119, 0.25); /* Selected theme */
+        }
+
+        .theme-option .theme-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7);
+        }
+
+        .theme-option + .theme-option {
+            border-top: 1px solid rgba(255, 255, 255, 0.2); /* Divider line */
+        }
+
     </style>
 </head>
 <body>
@@ -106,11 +183,35 @@
         <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=670d4bc7&is=670bfa47&hm=b934f1bfc6f99a44850c1589a7a2b88d4c0d48a72df3d10e45ac7f9eeb5ed599&=&format=webp&width=1214&height=1214" alt="Profile Picture">
     </div>
 
-    <!-- SLVRR mask in the background -->
+    <!-- SLVRR mask for background text -->
     <div class="slvrr-mask">SLVRR</div>
 
     <!-- Background canvas for randomizing characters -->
     <canvas id="backgroundText"></canvas>
+
+    <!-- Themes button -->
+    <div class="theme-button">Themes</div>
+
+    <!-- Theme dropdown menu -->
+    <div class="theme-menu" id="themeMenu">
+        <div class="theme-option" data-theme="default">
+            <div class="theme-circle" style="background-color: #ff0077;"></div>
+            Default
+        </div>
+        <div class="theme-option" data-theme="blue">
+            <div class="theme-circle" style="background-color: #0077ff;"></div>
+            Deep Sea
+        </div>
+        <div class="theme-option" data-theme="green">
+            <div class="theme-circle" style="background-color: #00ff77;"></div>
+            Forest Walk
+        </div>
+        <div class="theme-option" data-theme="rgb">
+            <div class="theme-circle" style="background-image: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);"></div>
+            Chroma
+        </div>
+        <!-- Add more themes as needed -->
+    </div>
 
     <script>
         const canvas = document.getElementById('backgroundText');
@@ -120,35 +221,25 @@
         canvas.height = window.innerHeight;
 
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const fontSize = 20; // Font size for the text
+        const fontSize = 20;
         const columns = Math.floor(canvas.width / fontSize);
         const rows = Math.floor(canvas.height / fontSize);
 
         let textArray = Array(columns).fill().map(() => Array(rows).fill(null));
 
-        // Themes with vibrant colors and gradients
         const themes = {
-            default: {
-                lightColor: '#ff0077', // Brightest color for close to cursor
-                darkColor: '#333333',  // Darkest color for far away text
-                glowColor: 'rgba(255, 0, 119, 0.7)', // Glow for active elements
-            },
-            blue: {
-                lightColor: '#0077ff',
-                darkColor: '#222233',
-                glowColor: 'rgba(0, 119, 255, 0.7)',
-            }
-            // Add more themes here
+            default: { lightColor: '#ff0077', darkColor: '#333333', glowColor: 'rgba(255, 0, 119, 0.7)' },
+            blue: { lightColor: '#0077ff', darkColor: '#222233', glowColor: 'rgba(0, 119, 255, 0.7)' },
+            green: { lightColor: '#00ff77', darkColor: '#223322', glowColor: 'rgba(0, 255, 119, 0.7)' },
+            rgb: { lightColor: 'rainbow', darkColor: '#333', glowColor: 'rainbow' },
         };
 
-        let activeTheme = themes.default;  // Select active theme
+        let activeTheme = themes.default;
 
-        // Function to generate random letters/numbers
         function getRandomChar() {
             return letters[Math.floor(Math.random() * letters.length)];
         }
 
-        // Function to fill textArray with random characters
         function generateRandomText() {
             for (let col = 0; col < columns; col++) {
                 for (let row = 0; row < rows; row++) {
@@ -157,13 +248,9 @@
             }
         }
 
-        generateRandomText();
-
-        // Function to draw background text
         function drawBackgroundText(cursorX, cursorY) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw dark text first (for areas outside the gradient effect)
             for (let col = 0; col < columns; col++) {
                 for (let row = 0; row < rows; row++) {
                     let x = col * fontSize;
@@ -175,7 +262,6 @@
                 }
             }
 
-            // Create gradient mask for brighter text
             ctx.save();
             let gradient = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, 300);
             gradient.addColorStop(0, activeTheme.lightColor);
@@ -183,7 +269,6 @@
             ctx.globalCompositeOperation = 'source-atop';
             ctx.fillStyle = gradient;
 
-            // Draw light text with gradient
             for (let col = 0; col < columns; col++) {
                 for (let row = 0; row < rows; row++) {
                     let x = col * fontSize;
@@ -214,6 +299,34 @@
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+        });
+
+        // Toggle theme menu visibility
+        const themeButton = document.querySelector('.theme-button');
+        const themeMenu = document.getElementById('themeMenu');
+
+        themeButton.addEventListener('click', () => {
+            themeMenu.classList.toggle('open');
+        });
+
+        // Close theme menu if clicked outside
+        document.addEventListener('click', (e) => {
+            if (!themeButton.contains(e.target) && !themeMenu.contains(e.target)) {
+                themeMenu.classList.remove('open');
+            }
+        });
+
+        // Switch themes when an option is clicked
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', function () {
+                const selectedTheme = this.getAttribute('data-theme');
+                activeTheme = themes[selectedTheme];
+
+                document.querySelectorAll('.theme-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                this.classList.add('selected');
+            });
         });
     </script>
 </body>
