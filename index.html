@@ -3,106 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Me</title>
+    <title>SLVRRMAFIA</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap');
-
         body {
             margin: 0;
-            padding: 0;
-            background-color: black;
-            overflow: hidden;
             font-family: 'Quicksand', sans-serif;
+            overflow: hidden;
+            background-color: black;
+            color: white;
         }
 
-        /* Title bar styles */
         nav {
             position: fixed;
-            top: 20px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            background-color: rgba(0, 0, 0, 0.25);
+            background: rgba(0, 0, 0, 0.25);
+            border: 2px solid;
             border-radius: 50px;
-            padding: 5px 15px;
+            padding: 5px 20px;
+            display: flex;
+            gap: 20px;
             backdrop-filter: blur(5px);
-            box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
-            border: 2px solid rgba(255, 0, 119, 0.5);
-            z-index: 10;
         }
 
         nav a {
-            text-decoration: none;
             color: white;
-            padding: 8px 15px;
-            border-radius: 50px;
-            margin: 0 5px;
-            font-weight: 400;
-            transition: background-color 0.3s, font-weight 0.3s;
-        }
-
-        nav a.active {
-            font-weight: 700;
-            background-color: rgba(255, 0, 119, 0.25);
-            box-shadow: 0px 4px 10px rgba(255, 0, 119, 0.7);
-            opacity: 1; /* 100% opacity when selected */
-        }
-
-        nav a.active:hover {
-            background-color: rgba(255, 0, 119, 0.25); /* Disable hover effect on selected */
+            text-decoration: none;
+            position: relative;
         }
 
         nav a:hover {
-            background-color: rgba(255, 0, 119, 0.15);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
         }
 
-        /* Centered image with circular mask */
+        nav a.selected {
+            font-weight: bold;
+            box-shadow: 0px 0px 5px;
+        }
+
         .center-image {
             position: absolute;
-            top: 40%;
+            top: 50%;
             left: 50%;
-            transform: translate(-50%, calc(-50% - 20px));
-            width: 200px;
-            height: 200px;
+            transform: translate(-50%, -60%);
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(255, 0, 119, 0.7);
-            z-index: 5;
+            box-shadow: 0 0 30px;
         }
 
-        .center-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* SLVRR Text */
-        .slvrr-text {
+        .typewriter, .slvrr-text {
             position: absolute;
-            top: calc(40% + 220px); /* Just under profile picture */
             left: 50%;
             transform: translateX(-50%);
-            font-size: 60px; /* Double the size */
-            font-weight: bold;
-            color: white;
-            text-align: center;
-            text-shadow: 0 0 20px rgba(255, 0, 119, 0.7); /* Theme-colored glow */
-        }
-
-        /* Typewriter effect */
-        .typewriter {
-            position: absolute;
-            top: calc(40% + 320px); /* Closer to SLVRR text */
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 40px; /* Double the size */
-            color: white;
-            text-align: center;
             white-space: nowrap;
             overflow: hidden;
-            border-right: 2px solid white;
-            width: 0;
-            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+            border-right: 0.15em solid white;
+            animation: typing 3s steps(30, end), blink-caret 0.75s step-end infinite;
+        }
+
+        .typewriter {
+            top: 60%;
+            font-size: 1.5em;
+        }
+
+        .slvrr-text {
+            top: 45%;
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 0 0 20px;
         }
 
         @keyframes typing {
@@ -115,135 +86,98 @@
             50% { border-color: white; }
         }
 
-        /* Remove the caret after 3 seconds */
-        .typewriter.completed {
-            animation: none;
-            border-right: none;
-        }
-
-        /* Canvas for background text */
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-        }
-
-        /* Themes button */
         .theme-button {
             position: fixed;
-            top: 20px;
             right: 20px;
-            background-color: rgba(0, 0, 0, 0.25);
+            top: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 2px solid;
             border-radius: 50px;
             padding: 10px 20px;
-            color: white;
-            cursor: pointer;
             backdrop-filter: blur(5px);
-            box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
-            border: 2px solid rgba(255, 0, 119, 0.5);
-            transition: background-color 0.3s ease;
-            z-index: 10;
+            cursor: pointer;
         }
 
-        .theme-button:hover {
-            background-color: rgba(255, 0, 119, 0.15);
-        }
-
-        /* Theme dropdown menu */
         .theme-menu {
             position: fixed;
-            top: 80px;
             right: 20px;
-            background-color: rgba(0, 0, 0, 0.25); /* Same background effect */
-            border-radius: 15px;
+            top: 60px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 2px solid;
+            border-radius: 20px;
             padding: 10px;
-            max-height: 300px;
-            width: 200px;
+            display: none;
+            max-height: 200px;
             overflow-y: auto;
             backdrop-filter: blur(5px);
-            box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
-            border: 2px solid rgba(255, 0, 119, 0.5);
-            display: none;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            opacity: 0;
-            transform: translateY(-20px);
-            z-index: 20;
         }
 
         .theme-menu.open {
             display: block;
-            opacity: 1;
-            transform: translateY(0);
-            animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            animation: bounceIn 0.3s forwards;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: translateY(-10px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes bounceOut {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-10px); opacity: 0; }
         }
 
         .theme-option {
             display: flex;
             align-items: center;
-            padding: 10px;
-            color: white;
+            padding: 5px 10px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
         }
 
         .theme-option:hover {
-            background-color: rgba(255, 0, 119, 0.15);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
         }
 
         .theme-option.selected {
-            background-color: rgba(255, 0, 119, 0.25);
-            border-radius: 15px; /* Same rounding as the container */
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
         }
 
         .theme-option .theme-circle {
-            width: 20px;
-            height: 20px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             margin-right: 10px;
-            box-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7); /* Glow matches theme color */
+            box-shadow: 0 0 10px;
         }
 
         .theme-separator {
-            height: 1px;
-            width: 90%;
-            background-color: rgba(255, 255, 255, 0.5); /* White at 50% opacity */
-            margin: 5px auto; /* Space above and below */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            margin: 5px 0;
         }
 
-        @keyframes bounce-in {
-            0% { opacity: 0; transform: translateY(-20px); }
-            60% { opacity: 1; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
 <body>
-
-    <!-- Title bar navigation -->
     <nav>
-        <a href="#" class="active">Home</a>
-        <a href="#">Portfolio</a>
+        <a href="#" class="selected">Home</a>
+        <a href="#">About Me</a>
+        <a href="#">Projects</a>
         <a href="#">Contact</a>
     </nav>
 
-    <!-- Profile image in center -->
-    <div class="center-image">
-        <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=670d4bc7&is=670bfa47&hm=b934f1bfc6f99a44850c1589a7a2b88d4c0d48a72df3d10e45ac7f9eeb5ed599&=&format=webp&width=1214&height=1214" alt="Profile Image">
-    </div>
+    <img src="your-image-url-here.jpg" alt="Profile Picture" class="center-image">
+    <div class="slvrr-text">SLVRRMAFIA</div>
+    <div class="typewriter">"Exploring new possibilities"</div>
 
-    <!-- SLVRR Text -->
-    <div class="slvrr-text">SLVRR</div>
-
-    <!-- Typewriter effect -->
-    <div class="typewriter" id="typewriter">"i love manu pandit"</div>
-
-    <!-- Theme button -->
     <div class="theme-button">Themes</div>
 
-    <!-- Dropdown theme menu -->
     <div id="themeMenu" class="theme-menu">
         <div class="theme-option selected" data-theme="sakura">
             <div class="theme-circle" style="background-color: #ffb7c5;"></div>
@@ -321,97 +255,77 @@
 
             for (let col = 0; col < columns; col++) {
                 for (let row = 0; row < rows; row++) {
-                    let x = col * fontSize;
-                    let y = row * fontSize;
+                    const x = col * fontSize;
+                    const y = row * fontSize;
 
-                    ctx.fillStyle = activeTheme.darkColor;
-                    ctx.font = `${fontSize}px 'Quicksand', monospace`;
+                    const dist = Math.hypot(cursorX - x, cursorY - y);
+                    const maxDist = 150;
+                    const lerpFactor = Math.min(dist / maxDist, 1);
+
+                    const color = lerpFactor < 1
+                        ? interpolateColor(activeTheme.lightColor, activeTheme.darkColor, lerpFactor)
+                        : activeTheme.darkColor;
+
+                    ctx.fillStyle = color;
                     ctx.fillText(textArray[col][row], x, y);
                 }
             }
-
-            ctx.save();
-            let gradient = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, 300);
-            gradient.addColorStop(0, activeTheme.lightColor);
-            gradient.addColorStop(1, activeTheme.darkColor);
-            ctx.globalCompositeOperation = 'source-atop';
-            ctx.fillStyle = gradient;
-
-            for (let col = 0; col < columns; col++) {
-                for (let row = 0; row < rows; row++) {
-                    let x = col * fontSize;
-                    let y = row * fontSize;
-
-                    ctx.fillText(textArray[col][row], x, y);
-                }
-            }
-            ctx.restore();
         }
 
-        let cursorX = canvas.width / 2;
-        let cursorY = canvas.height / 2;
+        function interpolateColor(color1, color2, factor) {
+            const c1 = hexToRgb(color1);
+            const c2 = hexToRgb(color2);
+            const r = Math.round(c1.r + factor * (c2.r - c1.r));
+            const g = Math.round(c1.g + factor * (c2.g - c1.g));
+            const b = Math.round(c1.b + factor * (c2.b - c1.b));
+            return `rgb(${r},${g},${b})`;
+        }
 
-        document.addEventListener('mousemove', (e) => {
-            cursorX = e.clientX;
-            cursorY = e.clientY;
+        function hexToRgb(hex) {
+            const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+            hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        generateRandomText();
+
+        window.addEventListener('mousemove', (e) => {
+            drawBackgroundText(e.clientX, e.clientY);
         });
-
-        function animate() {
-            generateRandomText();
-            drawBackgroundText(cursorX, cursorY);
-            requestAnimationFrame(animate);
-        }
-
-        animate();
 
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            generateRandomText();
         });
 
-        // Typewriter effect completion handling
-        const typewriterElement = document.getElementById('typewriter');
-        setTimeout(() => {
-            typewriterElement.classList.add('completed'); // Stops caret blink after text is typed
-        }, 3000); // Remove the blinking caret after 3 seconds
-
-        // Toggle theme menu visibility
-        const themeButton = document.querySelector('.theme-button');
-        const themeMenu = document.getElementById('themeMenu');
-
-        themeButton.addEventListener('click', () => {
+        // Theme handling
+        document.querySelector('.theme-button').addEventListener('click', () => {
+            const themeMenu = document.getElementById('themeMenu');
             themeMenu.classList.toggle('open');
         });
 
-        // Close theme menu if clicked outside
-        document.addEventListener('click', (e) => {
-            if (!themeButton.contains(e.target) && !themeMenu.contains(e.target)) {
-                themeMenu.classList.remove('open');
-            }
-        });
-
-        // Switch themes when an option is clicked
         document.querySelectorAll('.theme-option').forEach(option => {
             option.addEventListener('click', function () {
-                const selectedTheme = this.getAttribute('data-theme');
-                activeTheme = themes[selectedTheme];
-
-                // Apply the selected theme to various elements
-                document.querySelectorAll('.theme-option').forEach(option => {
-                    option.classList.remove('selected');
-                });
+                document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
-
-                // Update other theme-dependent elements
-                document.querySelector('nav').style.border = `2px solid ${activeTheme.glowColor}`;
-                document.querySelectorAll('nav a').forEach(link => {
-                    link.style.boxShadow = `0px 0px 5px ${activeTheme.glowColor}`;
-                });
-                document.querySelector('.theme-button').style.border = `2px solid ${activeTheme.glowColor}`;
-                document.querySelector('.center-image').style.boxShadow = `0 0 30px ${activeTheme.glowColor}`;
-                document.querySelector('.slvrr-text').style.textShadow = `0 0 20px ${activeTheme.glowColor}`;
+                const themeName = this.getAttribute('data-theme');
+                activeTheme = themes[themeName];
             });
         });
+
+        // Title rotation effect
+        const slvrrmafia = document.querySelector('.slvrr-text');
+        let titleText = 'SLVRRMAFIA';
+        setInterval(() => {
+            titleText = titleText.slice(1) + titleText[0];
+            slvrrmafia.textContent = titleText;
+        }, 250);
     </script>
 </body>
 </html>
