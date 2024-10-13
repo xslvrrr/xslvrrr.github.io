@@ -43,8 +43,9 @@
 
         nav a.active {
             font-weight: 700;
-            background-color: rgba(255, 0, 119, 1); /* Fixed 100% opacity for selected chip */
+            background-color: rgba(255, 0, 119, 0.25);
             box-shadow: 0px 4px 10px rgba(255, 0, 119, 0.7);
+            opacity: 1; /* 100% opacity when selected */
         }
 
         nav a:hover {
@@ -54,9 +55,9 @@
         /* Centered image with circular mask */
         .center-image {
             position: absolute;
-            top: 35%; /* Adjusted to make room for SLVRR text */
+            top: 40%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, calc(-50% - 20px));
             width: 200px;
             height: 200px;
             border-radius: 50%;
@@ -71,10 +72,23 @@
             object-fit: cover;
         }
 
+        /* SLVRR Text */
+        .slvrr-text {
+            position: absolute;
+            top: calc(40% + 250px); /* Just under profile picture */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: white;
+            text-align: center;
+            font-size: 30px; /* 50% bigger than quote text */
+            text-shadow: 0 0 10px rgba(255, 0, 119, 0.7); /* Theme-colored glow */
+        }
+
         /* Typewriter effect */
         .typewriter {
             position: absolute;
-            top: calc(50% + 160px); /* Adjusted for new layout */
+            top: calc(40% + 280px); /* Slightly below the SLVRR text */
             left: 50%;
             transform: translateX(-50%);
             font-size: 20px;
@@ -84,7 +98,7 @@
             overflow: hidden;
             border-right: 2px solid white;
             width: 0;
-            animation: typing 3s steps(40, end) forwards, blink-caret 0.75s step-end infinite;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
         }
 
         @keyframes typing {
@@ -97,18 +111,20 @@
             50% { border-color: white; }
         }
 
-        /* SLVRR text */
-        .slvrr-text {
-            position: absolute;
-            top: calc(50% + 230px); /* Placed below the profile picture */
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 50px; /* Larger size */
-            font-weight: 700;
-            color: white;
-            text-align: center;
-            text-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7); /* Glow effect */
-            z-index: 5;
+        /* Remove the caret after 3 seconds */
+        .typewriter.completed {
+            animation: none;
+            border-right: none;
+        }
+
+        /* Canvas for background text */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
         }
 
         /* Themes button */
@@ -135,9 +151,9 @@
         /* Theme dropdown menu */
         .theme-menu {
             position: fixed;
-            top: 80px; /* Further down */
+            top: 80px;
             right: 20px;
-            background-color: rgba(0, 0, 0, 0.25);
+            background-color: rgba(0, 0, 0, 0.25); /* Same background effect */
             border-radius: 15px;
             padding: 10px;
             max-height: 300px;
@@ -147,9 +163,10 @@
             box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
             border: 2px solid rgba(255, 0, 119, 0.5);
             display: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
             opacity: 0;
             transform: translateY(-20px);
-            z-index: 11; /* Above background text */
+            z-index: 20;
         }
 
         .theme-menu.open {
@@ -159,20 +176,13 @@
             animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        @keyframes bounce-in {
-            0% { transform: translateY(-20px); opacity: 0; }
-            50% { transform: translateY(10px); opacity: 0.7; }
-            100% { transform: translateY(0); opacity: 1; }
-        }
-
         .theme-option {
             display: flex;
             align-items: center;
             padding: 10px;
+            color: white;
             cursor: pointer;
-            color: white; /* Ensures white text */
             transition: background-color 0.3s ease;
-            border-radius: 15px; /* Matches menu rounding */
         }
 
         .theme-option:hover {
@@ -181,6 +191,7 @@
 
         .theme-option.selected {
             background-color: rgba(255, 0, 119, 0.25);
+            border-radius: 15px; /* Same rounding as the container */
         }
 
         .theme-option .theme-circle {
@@ -188,105 +199,179 @@
             height: 20px;
             border-radius: 50%;
             margin-right: 10px;
-            box-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7); /* Color matches theme */
+            box-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7); /* Glow matches theme color */
         }
 
         .theme-separator {
             height: 1px;
-            background-color: rgba(255, 255, 255, 0.5);
-            margin: 5px 0;
+            width: 90%;
+            background-color: rgba(255, 255, 255, 0.5); /* White at 50% opacity */
+            margin: 5px auto; /* Space above and below */
         }
 
-        /* Background text and cursor interaction */
-        .background-text {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            color: rgba(255, 255, 255, 0.05);
-            font-size: 100px;
-            font-weight: bold;
-            z-index: 1;
-            pointer-events: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        @keyframes cursor-fade {
-            0% { color: rgba(255, 255, 255, 0.1); }
-            50% { color: rgba(255, 0, 119, 1); }
-            100% { color: rgba(255, 255, 255, 0.1); }
-        }
-
-        .cursor-effect {
-            animation: cursor-fade 2s ease infinite;
+        @keyframes bounce-in {
+            0% { opacity: 0; transform: translateY(-20px); }
+            60% { opacity: 1; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <!-- Background text -->
-    <div class="background-text">SLVRR</div>
-
-    <!-- Navigation bar -->
+    <!-- Title bar navigation -->
     <nav>
         <a href="#" class="active">Home</a>
-        <a href="#">Projects</a>
+        <a href="#">Portfolio</a>
         <a href="#">Contact</a>
     </nav>
 
-    <!-- Profile picture -->
+    <!-- Profile image in center -->
     <div class="center-image">
-        <img src="profile.jpg" alt="Profile">
+        <img src="profile.jpg" alt="Profile Image">
     </div>
 
     <!-- SLVRR Text -->
     <div class="slvrr-text">SLVRR</div>
 
     <!-- Typewriter effect -->
-    <div class="typewriter">"Creating with purpose"</div>
+    <div class="typewriter" id="typewriter">"Exploring new possibilities"</div>
 
-    <!-- Themes button -->
+    <!-- Theme button -->
     <div class="theme-button">Themes</div>
 
     <!-- Dropdown theme menu -->
     <div id="themeMenu" class="theme-menu">
-        <div class="theme-option selected" data-theme="default">
-            <div class="theme-circle" style="background-color: #ff0077;"></div>
+        <div class="theme-option selected" data-theme="sakura">
+            <div class="theme-circle" style="background-color: #ffb7c5;"></div>
             Sakura Blossom
         </div>
         <div class="theme-separator"></div>
-        <div class="theme-option" data-theme="orange">
-            <div class="theme-circle" style="background-color: #FFA500;"></div>
-            Autumn Ember
+        <div class="theme-option" data-theme="sunrise">
+            <div class="theme-circle" style="background-color: #ffd27f;"></div>
+            Sunrise
         </div>
         <div class="theme-separator"></div>
-        <div class="theme-option" data-theme="yellow">
-            <div class="theme-circle" style="background-color: #FFD700;"></div>
-            Lemon Mist
+        <div class="theme-option" data-theme="lemonade">
+            <div class="theme-circle" style="background-color: #fdfd96;"></div>
+            Lemonade
         </div>
         <div class="theme-separator"></div>
-        <div class="theme-option" data-theme="green">
-            <div class="theme-circle" style="background-color: #98FB98;"></div>
-            Mint Whisper
+        <div class="theme-option" data-theme="minty">
+            <div class="theme-circle" style="background-color: #98ff98;"></div>
+            Minty Fresh
         </div>
         <div class="theme-separator"></div>
-        <div class="theme-option" data-theme="blue">
-            <div class="theme-circle" style="background-color: #ADD8E6;"></div>
+        <div class="theme-option" data-theme="blizzard">
+            <div class="theme-circle" style="background-color: #cce7ff;"></div>
             Blizzard
         </div>
         <div class="theme-separator"></div>
-        <div class="theme-option" data-theme="purple">
-            <div class="theme-circle" style="background-color: #9370DB;"></div>
+        <div class="theme-option" data-theme="midnight">
+            <div class="theme-circle" style="background-color: #dda0dd;"></div>
             Midnight
         </div>
     </div>
 
+    <canvas id="backgroundText"></canvas>
+
     <script>
-        // Toggle theme menu
+        // Background text generation and cursor effect
+        const canvas = document.getElementById('backgroundText');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const fontSize = 20;
+        const columns = Math.floor(canvas.width / fontSize);
+        const rows = Math.floor(canvas.height / fontSize);
+
+        let textArray = Array(columns).fill().map(() => Array(rows).fill(null));
+
+        const themes = {
+            sakura: { lightColor: '#ffb7c5', darkColor: '#333333', glowColor: 'rgba(255, 183, 197, 0.7)' },
+            sunrise: { lightColor: '#ffd27f', darkColor: '#332222', glowColor: 'rgba(255, 210, 127, 0.7)' },
+            lemonade: { lightColor: '#fdfd96', darkColor: '#333322', glowColor: 'rgba(253, 253, 150, 0.7)' },
+            minty: { lightColor: '#98ff98', darkColor: '#223322', glowColor: 'rgba(152, 255, 152, 0.7)' },
+            blizzard: { lightColor: '#cce7ff', darkColor: '#222233', glowColor: 'rgba(204, 231, 255, 0.7)' },
+            midnight: { lightColor: '#dda0dd', darkColor: '#332233', glowColor: 'rgba(221, 160, 221, 0.7)' }
+        };
+
+        let activeTheme = themes.sakura;
+
+        function getRandomChar() {
+            return letters[Math.floor(Math.random() * letters.length)];
+        }
+
+        function generateRandomText() {
+            for (let col = 0; col < columns; col++) {
+                for (let row = 0; row < rows; row++) {
+                    textArray[col][row] = getRandomChar();
+                }
+            }
+        }
+
+        function drawBackgroundText(cursorX, cursorY) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let col = 0; col < columns; col++) {
+                for (let row = 0; row < rows; row++) {
+                    let x = col * fontSize;
+                    let y = row * fontSize;
+
+                    ctx.fillStyle = activeTheme.darkColor;
+                    ctx.font = `${fontSize}px 'Quicksand', monospace`;
+                    ctx.fillText(textArray[col][row], x, y);
+                }
+            }
+
+            ctx.save();
+            let gradient = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, 300);
+            gradient.addColorStop(0, activeTheme.lightColor);
+            gradient.addColorStop(1, activeTheme.darkColor);
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.fillStyle = gradient;
+
+            for (let col = 0; col < columns; col++) {
+                for (let row = 0; row < rows; row++) {
+                    let x = col * fontSize;
+                    let y = row * fontSize;
+
+                    ctx.fillText(textArray[col][row], x, y);
+                }
+            }
+            ctx.restore();
+        }
+
+        let cursorX = canvas.width / 2;
+        let cursorY = canvas.height / 2;
+
+        document.addEventListener('mousemove', (e) => {
+            cursorX = e.clientX;
+            cursorY = e.clientY;
+        });
+
+        function animate() {
+            generateRandomText();
+            drawBackgroundText(cursorX, cursorY);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Typewriter effect completion handling
+        const typewriterElement = document.getElementById('typewriter');
+        setTimeout(() => {
+            typewriterElement.classList.add('completed');
+        }, 3000); // Remove the blinking caret after 3 seconds
+
+        // Toggle theme menu visibility
         const themeButton = document.querySelector('.theme-button');
         const themeMenu = document.getElementById('themeMenu');
 
@@ -301,18 +386,16 @@
             }
         });
 
-        // Change theme on selection
+        // Switch themes when an option is clicked
         document.querySelectorAll('.theme-option').forEach(option => {
             option.addEventListener('click', function () {
                 const selectedTheme = this.getAttribute('data-theme');
+                activeTheme = themes[selectedTheme];
 
-                // Set active theme and update UI accordingly
-                document.querySelectorAll('.theme-option').forEach(option => option.classList.remove('selected'));
+                document.querySelectorAll('.theme-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
                 this.classList.add('selected');
-                themeMenu.classList.remove('open');
-
-                // Apply theme (you can add more logic for color change)
-                // Example: document.body.style.backgroundColor = selectedTheme;
             });
         });
     </script>
