@@ -56,7 +56,7 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, calc(-50% - 20px)); /* Adjusted for glow padding */
             width: 200px;
             height: 200px;
             border-radius: 50%;
@@ -69,6 +69,32 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* Typewriter effect */
+        .typewriter {
+            position: absolute;
+            top: calc(50% + 130px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 2px solid white;
+            width: 0;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: white; }
         }
 
         /* Canvas for background text */
@@ -87,10 +113,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 800px; /* Bigger SLVRR text */
+            font-size: 500px; /* Bigger SLVRR text */
             font-weight: 700;
             color: transparent;
             z-index: 0;
+            background-clip: text;
             text-align: center;
         }
 
@@ -108,6 +135,7 @@
             box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
             border: 2px solid rgba(255, 0, 119, 0.5);
             transition: background-color 0.3s ease;
+            z-index: 10;
         }
 
         .theme-button:hover {
@@ -129,13 +157,22 @@
             box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
             border: 2px solid rgba(255, 0, 119, 0.5);
             display: none; /* Hidden by default */
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease;
             opacity: 0;
+            transform: translateY(-20px); /* Initial offset for bounce */
         }
 
         .theme-menu.open {
             display: block;
             opacity: 1;
+            transform: translateY(0); /* Bouncy effect */
+            animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Bouncy open */
+        }
+
+        @keyframes bounce-in {
+            0% { transform: translateY(-20px); opacity: 0; }
+            50% { transform: translateY(10px); opacity: 0.7; }
+            100% { transform: translateY(0); opacity: 1; }
         }
 
         .theme-option {
@@ -183,6 +220,9 @@
         <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=670d4bc7&is=670bfa47&hm=b934f1bfc6f99a44850c1589a7a2b88d4c0d48a72df3d10e45ac7f9eeb5ed599&=&format=webp&width=1214&height=1214" alt="Profile Picture">
     </div>
 
+    <!-- Typewriter effect -->
+    <div class="typewriter">"In quotation marks"</div>
+
     <!-- SLVRR mask for background text -->
     <div class="slvrr-mask">SLVRR</div>
 
@@ -192,25 +232,24 @@
     <!-- Themes button -->
     <div class="theme-button">Themes</div>
 
-    <!-- Theme dropdown menu -->
-    <div class="theme-menu" id="themeMenu">
-        <div class="theme-option" data-theme="default">
+    <!-- Dropdown theme menu -->
+    <div id="themeMenu" class="theme-menu">
+        <div class="theme-option selected" data-theme="default">
             <div class="theme-circle" style="background-color: #ff0077;"></div>
             Default
         </div>
         <div class="theme-option" data-theme="blue">
             <div class="theme-circle" style="background-color: #0077ff;"></div>
-            Deep Sea
+            Blue
         </div>
         <div class="theme-option" data-theme="green">
             <div class="theme-circle" style="background-color: #00ff77;"></div>
-            Forest Walk
+            Green
         </div>
         <div class="theme-option" data-theme="rgb">
-            <div class="theme-circle" style="background-image: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);"></div>
-            Chroma
+            <div class="theme-circle" style="background-color: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);"></div>
+            RGB Chroma
         </div>
-        <!-- Add more themes as needed -->
     </div>
 
     <script>
