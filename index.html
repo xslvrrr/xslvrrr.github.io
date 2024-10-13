@@ -73,12 +73,12 @@
 
     <!-- Main content -->
     <header>
-        <h1>slvrr</h1>
+        <h1>silvyuh</h1>
     </header>
 
     <section>
         <h2>About Me</h2>
-        <p>slvrr da man guy ting</p>
+        <p>AAAAAAAAAAA i hope i am slvrr man dem ting yes</p>
 
         <div class="social-links">
             <a href="https://github.com/yourprofile" target="_blank">GitHub</a>
@@ -100,7 +100,7 @@
         const columns = Math.floor(canvas.width / fontSize);
         const rows = Math.floor(canvas.height / fontSize);
 
-        // Store text positions
+        // Store text positions and content
         let textArray = Array(columns).fill().map(() => Array(rows).fill(null));
 
         // Default theme colors
@@ -152,6 +152,11 @@
                 }
             }
         }
+
+        // Continuously randomize the text every 500ms
+        setInterval(() => {
+            generateRandomText();
+        }, 15);
 
         // Event listener for mouse movement to dynamically update text brightness
         document.addEventListener('mousemove', (e) => {
