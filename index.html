@@ -73,12 +73,12 @@
 
     <!-- Main content -->
     <header>
-        <h1>silvyuh</h1>
+        <h1>silv</h1>
     </header>
 
     <section>
         <h2>About Me</h2>
-        <p>AAAAAAAAAAA i hope i am slvrr man dem ting yes</p>
+        <p>silb :thumbsup:</p>
 
         <div class="social-links">
             <a href="https://github.com/yourprofile" target="_blank">GitHub</a>
@@ -126,7 +126,7 @@
         // Initial randomization of the text
         generateRandomText();
 
-        // Function to draw the background text
+        // Function to draw the background text with the cursor gradient effect
         function drawBackgroundText(cursorX, cursorY) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let col = 0; col < columns; col++) {
@@ -146,6 +146,7 @@
                                       ${parseInt(theme.cursorColor.slice(5, 7), 16)}, 
                                       ${brightness})`;
 
+                    // Darkest color should match the theme's textColor
                     ctx.fillStyle = brightness > 0.1 ? color : theme.textColor;
                     ctx.font = `${fontSize}px monospace`;
                     ctx.fillText(textArray[col][row], x, y);
@@ -153,25 +154,29 @@
             }
         }
 
-        // Continuously randomize the text every 500ms
-        setInterval(() => {
-            generateRandomText();
-        }, 15);
-
         // Event listener for mouse movement to dynamically update text brightness
+        let cursorX = canvas.width / 2;
+        let cursorY = canvas.height / 2;
+
         document.addEventListener('mousemove', (e) => {
-            drawBackgroundText(e.clientX, e.clientY);
+            cursorX = e.clientX;
+            cursorY = e.clientY;
         });
 
-        // Default drawing (without cursor)
-        drawBackgroundText(canvas.width / 2, canvas.height / 2);
+        // Function to handle constant animation
+        function animate() {
+            generateRandomText();  // Randomize the text at 60fps
+            drawBackgroundText(cursorX, cursorY);
+            requestAnimationFrame(animate);  // 60fps update loop
+        }
+
+        // Start the animation loop
+        animate();
 
         // Update canvas size if window is resized
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            generateRandomText();  // Re-generate text after resizing
-            drawBackgroundText(canvas.width / 2, canvas.height / 2);  // Redraw
         });
     </script>
 
