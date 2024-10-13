@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Me</title>
     <style>
-        /* Set the background to black */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -13,34 +12,31 @@
             background-color: black;
             color: white;
             overflow: hidden; /* Prevent scrolling */
+            position: relative;
         }
 
-        /* Fixed header styling */
-        header {
+        /* Header and section with z-index for overlaying */
+        header, section {
             position: relative;
-            z-index: 1; /* Ensure it's above the background animation */
+            z-index: 1;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        header {
             text-align: center;
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
         }
         header h1 {
             margin: 0;
             font-size: 3em;
         }
 
-        /* Main section styling */
         section {
-            position: relative;
-            z-index: 1; /* Ensure content is above the background animation */
             max-width: 800px;
             margin: 30px auto;
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8); /* Slight transparency */
-            color: white;
             border-radius: 8px;
         }
 
-        /* Social Links */
         .social-links {
             display: flex;
             justify-content: center;
@@ -59,21 +55,21 @@
             background-color: #45a049;
         }
 
-        /* Style the canvas that will display the random characters */
+        /* Canvas for background text */
         canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 0; /* Place behind everything else */
+            z-index: 0; /* Behind the content */
         }
     </style>
 </head>
 <body>
 
-    <!-- Background canvas for dynamic characters -->
-    <canvas id="matrix"></canvas>
+    <!-- Background canvas for static, randomizing characters -->
+    <canvas id="backgroundText"></canvas>
 
     <!-- Main content -->
     <header>
@@ -82,7 +78,7 @@
 
     <section>
         <h2>About Me</h2>
-        <p>slvrr the man guy ting</p>
+        <p>slvrr da man guy ting</p>
 
         <div class="social-links">
             <a href="https://github.com/yourprofile" target="_blank">GitHub</a>
@@ -92,51 +88,85 @@
     </section>
 
     <script>
-        // Matrix-style animation
-        const canvas = document.getElementById('matrix');
+        const canvas = document.getElementById('backgroundText');
         const ctx = canvas.getContext('2d');
 
-        // Set canvas to the size of the window
+        // Set canvas size
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         const fontSize = 16;
-        const columns = canvas.width / fontSize;
+        const columns = Math.floor(canvas.width / fontSize);
+        const rows = Math.floor(canvas.height / fontSize);
 
-        // Create an array of y positions for each column
-        const drops = Array(Math.floor(columns)).fill(1);
+        // Store text positions
+        let textArray = Array(columns).fill().map(() => Array(rows).fill(null));
 
-        // Draw function
-        function draw() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; // Slightly clear screen on each frame
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Default theme colors
+        let theme = {
+            textColor: '#666',  // Dark grey
+            cursorColor: '#ffffff'  // Default bright color (white)
+        };
 
-            ctx.fillStyle = '#666'; // Dark grey for characters
-            ctx.font = fontSize + 'px monospace';
+        // Function to generate random letters/numbers
+        function getRandomChar() {
+            return letters[Math.floor(Math.random() * letters.length)];
+        }
 
-            // Loop over drops
-            for (let i = 0; i < drops.length; i++) {
-                const text = letters[Math.floor(Math.random() * letters.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                // Randomly reset drop to the top, after it goes down the screen
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
+        // Function to fill textArray with random characters
+        function generateRandomText() {
+            for (let col = 0; col < columns; col++) {
+                for (let row = 0; row < rows; row++) {
+                    textArray[col][row] = getRandomChar();
                 }
-
-                // Increment y position (drop down)
-                drops[i]++;
             }
         }
 
-        // Set an interval for animation
-        setInterval(draw, 33); // Draw every 33ms (~30fps)
+        // Initial randomization of the text
+        generateRandomText();
 
-        // Update canvas size if the window is resized
+        // Function to draw the background text
+        function drawBackgroundText(cursorX, cursorY) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let col = 0; col < columns; col++) {
+                for (let row = 0; row < rows; row++) {
+                    let x = col * fontSize;
+                    let y = row * fontSize;
+
+                    // Calculate distance from cursor to text
+                    let dx = cursorX - x;
+                    let dy = cursorY - y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // Set brightness based on distance from cursor
+                    let brightness = Math.max(0, 1 - distance / 300);  // Scale from 0 to 1
+                    let color = `rgba(${parseInt(theme.cursorColor.slice(1, 3), 16)}, 
+                                      ${parseInt(theme.cursorColor.slice(3, 5), 16)}, 
+                                      ${parseInt(theme.cursorColor.slice(5, 7), 16)}, 
+                                      ${brightness})`;
+
+                    ctx.fillStyle = brightness > 0.1 ? color : theme.textColor;
+                    ctx.font = `${fontSize}px monospace`;
+                    ctx.fillText(textArray[col][row], x, y);
+                }
+            }
+        }
+
+        // Event listener for mouse movement to dynamically update text brightness
+        document.addEventListener('mousemove', (e) => {
+            drawBackgroundText(e.clientX, e.clientY);
+        });
+
+        // Default drawing (without cursor)
+        drawBackgroundText(canvas.width / 2, canvas.height / 2);
+
+        // Update canvas size if window is resized
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            generateRandomText();  // Re-generate text after resizing
+            drawBackgroundText(canvas.width / 2, canvas.height / 2);  // Redraw
         });
     </script>
 
