@@ -27,7 +27,7 @@
             padding: 5px 15px;
             backdrop-filter: blur(5px);
             box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
-            border: 2px solid rgba(255, 0, 119, 0.5); /* Opacity outline */
+            border: 2px solid rgba(255, 0, 119, 0.5);
             z-index: 10;
         }
 
@@ -43,20 +43,20 @@
 
         nav a.active {
             font-weight: 700;
-            background-color: rgba(255, 0, 119, 0.25);
+            background-color: rgba(255, 0, 119, 1); /* Fixed 100% opacity for selected chip */
             box-shadow: 0px 4px 10px rgba(255, 0, 119, 0.7);
         }
 
         nav a:hover {
-            background-color: rgba(255, 0, 119, 0.15); /* Hover effect */
+            background-color: rgba(255, 0, 119, 0.15);
         }
 
         /* Centered image with circular mask */
         .center-image {
             position: absolute;
-            top: 50%;
+            top: 40%; /* Moved up to make space for SLVRR text */
             left: 50%;
-            transform: translate(-50%, calc(-50% - 20px)); /* Adjusted for glow padding */
+            transform: translate(-50%, -50%);
             width: 200px;
             height: 200px;
             border-radius: 50%;
@@ -74,7 +74,7 @@
         /* Typewriter effect */
         .typewriter {
             position: absolute;
-            top: calc(50% + 130px);
+            top: calc(50% + 150px); /* Adjusted for new layout */
             left: 50%;
             transform: translateX(-50%);
             font-size: 20px;
@@ -83,7 +83,7 @@
             white-space: nowrap;
             overflow: hidden;
             border-right: 2px solid white;
-            width: 0;
+            width: 100%; /* Now remains visible */
             animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
         }
 
@@ -97,28 +97,18 @@
             50% { border-color: white; }
         }
 
-        /* Canvas for background text */
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-        }
-
-        /* SLVRR mask that changes background text color */
-        .slvrr-mask {
+        /* SLVRR text */
+        .slvrr-text {
             position: absolute;
-            top: 50%;
+            top: 20%; /* Just above profile picture */
             left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 500px; /* Bigger SLVRR text */
+            transform: translateX(-50%);
+            font-size: 30px; /* Larger than quote text */
             font-weight: 700;
-            color: transparent;
-            z-index: 0;
-            background-clip: text;
+            color: white;
             text-align: center;
+            text-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7); /* Glow effect */
+            z-index: 5;
         }
 
         /* Themes button */
@@ -139,16 +129,16 @@
         }
 
         .theme-button:hover {
-            background-color: rgba(255, 0, 119, 0.15); /* Hover effect */
+            background-color: rgba(255, 0, 119, 0.15);
         }
 
         /* Theme dropdown menu */
         .theme-menu {
             position: fixed;
-            top: 60px;
+            top: 80px; /* Further down */
             right: 20px;
             background-color: rgba(0, 0, 0, 0.25);
-            border-radius: 15px; /* Rounded rectangle */
+            border-radius: 15px;
             padding: 10px;
             max-height: 300px;
             width: 200px;
@@ -156,17 +146,17 @@
             backdrop-filter: blur(5px);
             box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
             border: 2px solid rgba(255, 0, 119, 0.5);
-            display: none; /* Hidden by default */
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            display: none;
             opacity: 0;
-            transform: translateY(-20px); /* Initial offset for bounce */
+            transform: translateY(-20px);
+            z-index: 11; /* Above background text */
         }
 
         .theme-menu.open {
             display: block;
             opacity: 1;
-            transform: translateY(0); /* Bouncy effect */
-            animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Bouncy open */
+            transform: translateY(0);
+            animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
         @keyframes bounce-in {
@@ -180,15 +170,17 @@
             align-items: center;
             padding: 10px;
             cursor: pointer;
+            color: white; /* Ensures white text */
             transition: background-color 0.3s ease;
+            border-radius: 15px; /* Matches menu rounding */
         }
 
         .theme-option:hover {
-            background-color: rgba(255, 0, 119, 0.15); /* Hover effect */
+            background-color: rgba(255, 0, 119, 0.15);
         }
 
         .theme-option.selected {
-            background-color: rgba(255, 0, 119, 0.25); /* Selected theme */
+            background-color: rgba(255, 0, 119, 0.25);
         }
 
         .theme-option .theme-circle {
@@ -196,38 +188,35 @@
             height: 20px;
             border-radius: 50%;
             margin-right: 10px;
-            box-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7);
+            box-shadow: 0px 0px 10px rgba(255, 0, 119, 0.7); /* Color matches theme */
         }
 
-        .theme-option + .theme-option {
-            border-top: 1px solid rgba(255, 255, 255, 0.2); /* Divider line */
+        .theme-separator {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.5);
+            margin: 5px 0;
         }
-
     </style>
 </head>
 <body>
 
-    <!-- Title bar with tabs -->
+    <!-- Navigation bar -->
     <nav>
         <a href="#" class="active">Home</a>
-        <a href="#">About Me</a>
         <a href="#">Projects</a>
         <a href="#">Contact</a>
     </nav>
 
-    <!-- Centered circular image -->
+    <!-- Profile picture -->
     <div class="center-image">
-        <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=670d4bc7&is=670bfa47&hm=b934f1bfc6f99a44850c1589a7a2b88d4c0d48a72df3d10e45ac7f9eeb5ed599&=&format=webp&width=1214&height=1214" alt="Profile Picture">
+        <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=670d4bc7&is=670bfa47&hm=b934f1bfc6f99a44850c1589a7a2b88d4c0d48a72df3d10e45ac7f9eeb5ed599&=&format=webp&width=1214&height=1214" alt="Profile">
     </div>
 
+    <!-- SLVRR Text -->
+    <div class="slvrr-text">SLVRR</div>
+
     <!-- Typewriter effect -->
-    <div class="typewriter">"In quotation marks"</div>
-
-    <!-- SLVRR mask for background text -->
-    <div class="slvrr-mask">SLVRR</div>
-
-    <!-- Background canvas for randomizing characters -->
-    <canvas id="backgroundText"></canvas>
+    <div class="typewriter">"certified manu pandit admirer"</div>
 
     <!-- Themes button -->
     <div class="theme-button">Themes</div>
@@ -236,111 +225,37 @@
     <div id="themeMenu" class="theme-menu">
         <div class="theme-option selected" data-theme="default">
             <div class="theme-circle" style="background-color: #ff0077;"></div>
-            Default
+            Sakura Blossom
         </div>
-        <div class="theme-option" data-theme="blue">
-            <div class="theme-circle" style="background-color: #0077ff;"></div>
-            Blue
+        <div class="theme-separator"></div>
+        <div class="theme-option" data-theme="orange">
+            <div class="theme-circle" style="background-color: #FFA500;"></div>
+            Autumn Ember
         </div>
+        <div class="theme-separator"></div>
+        <div class="theme-option" data-theme="yellow">
+            <div class="theme-circle" style="background-color: #FFD700;"></div>
+            Lemon Mist
+        </div>
+        <div class="theme-separator"></div>
         <div class="theme-option" data-theme="green">
-            <div class="theme-circle" style="background-color: #00ff77;"></div>
-            Green
+            <div class="theme-circle" style="background-color: #98FB98;"></div>
+            Mint Whisper
         </div>
-        <div class="theme-option" data-theme="rgb">
-            <div class="theme-circle" style="background-color: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);"></div>
-            RGB Chroma
+        <div class="theme-separator"></div>
+        <div class="theme-option" data-theme="blue">
+            <div class="theme-circle" style="background-color: #ADD8E6;"></div>
+            Blizzard
+        </div>
+        <div class="theme-separator"></div>
+        <div class="theme-option" data-theme="purple">
+            <div class="theme-circle" style="background-color: #9370DB;"></div>
+            Midnight
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('backgroundText');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const fontSize = 20;
-        const columns = Math.floor(canvas.width / fontSize);
-        const rows = Math.floor(canvas.height / fontSize);
-
-        let textArray = Array(columns).fill().map(() => Array(rows).fill(null));
-
-        const themes = {
-            default: { lightColor: '#ff0077', darkColor: '#333333', glowColor: 'rgba(255, 0, 119, 0.7)' },
-            blue: { lightColor: '#0077ff', darkColor: '#222233', glowColor: 'rgba(0, 119, 255, 0.7)' },
-            green: { lightColor: '#00ff77', darkColor: '#223322', glowColor: 'rgba(0, 255, 119, 0.7)' },
-            rgb: { lightColor: 'rainbow', darkColor: '#333', glowColor: 'rainbow' },
-        };
-
-        let activeTheme = themes.default;
-
-        function getRandomChar() {
-            return letters[Math.floor(Math.random() * letters.length)];
-        }
-
-        function generateRandomText() {
-            for (let col = 0; col < columns; col++) {
-                for (let row = 0; row < rows; row++) {
-                    textArray[col][row] = getRandomChar();
-                }
-            }
-        }
-
-        function drawBackgroundText(cursorX, cursorY) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let col = 0; col < columns; col++) {
-                for (let row = 0; row < rows; row++) {
-                    let x = col * fontSize;
-                    let y = row * fontSize;
-
-                    ctx.fillStyle = activeTheme.darkColor;
-                    ctx.font = `${fontSize}px 'Quicksand', monospace`;
-                    ctx.fillText(textArray[col][row], x, y);
-                }
-            }
-
-            ctx.save();
-            let gradient = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, 300);
-            gradient.addColorStop(0, activeTheme.lightColor);
-            gradient.addColorStop(1, activeTheme.darkColor);
-            ctx.globalCompositeOperation = 'source-atop';
-            ctx.fillStyle = gradient;
-
-            for (let col = 0; col < columns; col++) {
-                for (let row = 0; row < rows; row++) {
-                    let x = col * fontSize;
-                    let y = row * fontSize;
-
-                    ctx.fillText(textArray[col][row], x, y);
-                }
-            }
-            ctx.restore();
-        }
-
-        let cursorX = canvas.width / 2;
-        let cursorY = canvas.height / 2;
-
-        document.addEventListener('mousemove', (e) => {
-            cursorX = e.clientX;
-            cursorY = e.clientY;
-        });
-
-        function animate() {
-            generateRandomText();
-            drawBackgroundText(cursorX, cursorY);
-            requestAnimationFrame(animate);
-        }
-
-        animate();
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        // Toggle theme menu visibility
+        // Toggle theme menu
         const themeButton = document.querySelector('.theme-button');
         const themeMenu = document.getElementById('themeMenu');
 
@@ -355,16 +270,18 @@
             }
         });
 
-        // Switch themes when an option is clicked
+        // Change theme on selection
         document.querySelectorAll('.theme-option').forEach(option => {
             option.addEventListener('click', function () {
                 const selectedTheme = this.getAttribute('data-theme');
-                activeTheme = themes[selectedTheme];
 
-                document.querySelectorAll('.theme-option').forEach(option => {
-                    option.classList.remove('selected');
-                });
+                // Set active theme and update UI accordingly
+                document.querySelectorAll('.theme-option').forEach(option => option.classList.remove('selected'));
                 this.classList.add('selected');
+                themeMenu.classList.remove('open');
+
+                // Apply theme (you can add more logic for color change)
+                // Example: document.body.style.backgroundColor = selectedTheme;
             });
         });
     </script>
