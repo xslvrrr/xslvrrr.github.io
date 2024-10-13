@@ -5,39 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Me</title>
     <style>
+        /* Set the background to black */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            background-color: #4CAF50;
+            background-color: black;
             color: white;
-            padding: 10px 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        /* Fixed header styling */
+        header {
+            position: relative;
+            z-index: 1; /* Ensure it's above the background animation */
             text-align: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
         }
         header h1 {
             margin: 0;
-            font-size: 2.5em;
+            font-size: 3em;
         }
+
+        /* Main section styling */
         section {
+            position: relative;
+            z-index: 1; /* Ensure content is above the background animation */
             max-width: 800px;
             margin: 30px auto;
             padding: 20px;
-            background-color: white;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.8); /* Slight transparency */
+            color: white;
             border-radius: 8px;
         }
-        section h2 {
-            font-size: 2em;
-            color: #4CAF50;
-        }
-        p {
-            font-size: 1.2em;
-            line-height: 1.6;
-        }
+
+        /* Social Links */
         .social-links {
             display: flex;
             justify-content: center;
@@ -55,16 +58,31 @@
         .social-links a:hover {
             background-color: #45a049;
         }
+
+        /* Style the canvas that will display the random characters */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0; /* Place behind everything else */
+        }
     </style>
 </head>
 <body>
+
+    <!-- Background canvas for dynamic characters -->
+    <canvas id="matrix"></canvas>
+
+    <!-- Main content -->
     <header>
-        <h1>Your Name</h1>
+        <h1>slvrr</h1>
     </header>
 
     <section>
         <h2>About Me</h2>
-        <p>slvrr the guy man thing</p>
+        <p>slvrr the man guy ting</p>
 
         <div class="social-links">
             <a href="https://github.com/yourprofile" target="_blank">GitHub</a>
@@ -72,5 +90,55 @@
             <a href="mailto:youremail@example.com">Email</a>
         </div>
     </section>
+
+    <script>
+        // Matrix-style animation
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas to the size of the window
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+
+        // Create an array of y positions for each column
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        // Draw function
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; // Slightly clear screen on each frame
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#666'; // Dark grey for characters
+            ctx.font = fontSize + 'px monospace';
+
+            // Loop over drops
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                // Randomly reset drop to the top, after it goes down the screen
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                // Increment y position (drop down)
+                drops[i]++;
+            }
+        }
+
+        // Set an interval for animation
+        setInterval(draw, 33); // Draw every 33ms (~30fps)
+
+        // Update canvas size if the window is resized
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+
 </body>
 </html>
