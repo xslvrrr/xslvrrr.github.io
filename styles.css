@@ -18,7 +18,7 @@ body {
 .sidebar {
     background-color: #1a1a1c; /* Navbar background */
     padding: 1rem;
-    width: 250px;
+    width: 300px; /* Widened navbar */
     height: 100vh; /* Full height */
     position: fixed; /* Fix the sidebar */
 }
@@ -32,13 +32,14 @@ body {
 }
 
 .sidebar ul li {
-    margin: 1.5rem 0; /* Space between options */
+    margin: 1rem 0; /* Space between options */
 }
 
 .sidebar ul li a {
     text-decoration: none;
     color: #f1f1f1;
     transition: color 0.3s;
+    font-size: 0.9rem; /* Reduced size */
 }
 
 .sidebar ul li a:hover {
@@ -47,50 +48,57 @@ body {
 
 .line {
     height: 1px;
-    background-color: #242424; /* Line color */
+    background-color: #454545; /* Updated line color */
     margin: 0.5rem 0; /* Space above and below the line */
 }
 
 .main-content {
-    margin-left: 250px; /* Space for sidebar */
+    margin-left: 300px; /* Adjust for widened navbar */
     padding: 2rem;
-    width: calc(100% - 250px); /* Adjust width */
+    width: calc(100% - 300px); /* Adjust width */
 }
 
 .grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 columns */
+    display: flex;
+    flex-wrap: wrap; /* Allow dynamic rows */
     gap: 1rem;
 }
 
 .card {
-    background-color: #191921; /* Box background */
+    background-color: #19191c; /* Updated box background */
     border-radius: 10px;
     padding: 1.5rem;
-    text-align: center;
-    border: 1px solid #242424; /* Subtle grey outline */
+    text-align: left; /* Left align text */
     transition: transform 0.3s, opacity 0.5s;
     opacity: 0; /* Start hidden for animation */
+    flex: 1 1 calc(33% - 1rem); /* Make boxes responsive */
+    min-width: 250px; /* Set minimum width */
+    max-width: 350px; /* Set maximum width */
 }
 
 /* Profile card styling */
 .profile-card {
     display: flex;
     align-items: center;
-    flex-direction: column; /* Stack items vertically */
 }
 
 .profile-pic {
-    border-radius: 50%;
-    width: 120px; /* Larger profile picture */
+    border-radius: 10px; /* Rounded square */
+    width: 120px; /* Adjust size */
     height: 120px; /* Maintain square aspect ratio */
-    margin-bottom: 1rem;
+    margin-right: 1rem; /* Space between image and text */
 }
 
 .name {
     color: #866eff; /* Accent color */
-    font-size: 2rem; /* Larger font for name */
-    margin-bottom: 0.5rem;
+    font-size: 1.5rem; /* Adjusted size */
+    font-weight: bold; /* Bold name */
+    margin-bottom: 0.2rem; /* Space below name */
+}
+
+.subtitle {
+    font-size: 0.8rem; /* Smaller subtitle */
+    color: #cccccc; /* Grey text */
 }
 
 .social-buttons {
@@ -106,7 +114,7 @@ body {
     margin: 0.2rem;
     display: inline-block;
     transition: background-color 0.3s;
-    font-size: 0.9rem; /* Smaller font size */
+    font-size: 0.8rem; /* Smaller font size */
 }
 
 .social-btn:hover {
@@ -119,9 +127,14 @@ body {
     width: 100%;
     left: 0;
     right: 0;
-    bottom: 100px; /* Distance from the middle box */
+    bottom: 120px; /* Distance from the middle box */
     font-size: 1.2rem;
     color: #f1f1f1;
+}
+
+.footer {
+    text-align: center; /* Center text */
+    margin-top: 1rem; /* Space above */
 }
 
 .accent-text {
@@ -129,77 +142,13 @@ body {
     text-shadow: 0 0 5px #866eff; /* Glowing effect */
 }
 
-/* Animation for boxes and navbar options */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+.typing-indicator {
+    border-right: 2px solid #866eff; /* Accent color typing indicator */
+    animation: blink 0.7s step-end infinite; /* Blink effect */
+}
+
+@keyframes blink {
+    50% {
+        border-color: transparent; /* Hide cursor during blink */
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(-100%);
-    }
-    to {
-        transform: translateX(0);
-    }
-}
-
-/* Apply animation to cards */
-.card {
-    animation: fadeInUp 0.5s forwards; /* Fade-in animation */
-}
-
-.sidebar ul li {
-    opacity: 0; /* Start hidden for animation */
-}
-
-.sidebar ul li {
-    animation: slideIn 0.5s forwards; /* Slide-in animation */
-}
-
-.sidebar ul li:nth-child(1) {
-    animation-delay: 0.2s; /* Delay for first option */
-}
-
-.sidebar ul li:nth-child(2) {
-    animation-delay: 0.4s; /* Delay for second option */
-}
-
-.sidebar ul li:nth-child(3) {
-    animation-delay: 0.6s; /* Delay for third option */
-}
-
-.grid .card {
-    animation: fadeInUp 0.5s forwards; /* Fade-in animation */
-}
-
-/* Apply staggered animation for grid items */
-.grid .card:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.grid .card:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.grid .card:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-.grid .card:nth-child(4) {
-    animation-delay: 0.4s;
-}
-
-.grid .card:nth-child(5) {
-    animation-delay: 0.5s;
-}
-
-.grid .card:nth-child(6) {
-    animation-delay: 0.6s;
 }
