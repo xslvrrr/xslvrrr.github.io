@@ -18,21 +18,24 @@
         </nav>
         
         <main class="main-content">
-            <header>
-                <h1>Welcome to SLVRRMAFIA</h1>
-                <p>Your one-stop destination for everything awesome!</p>
-            </header>
-            
             <section class="grid">
-                <div class="card" id="about">
-                    <h2>About Me</h2>
-                    <p>Hi! I'm SLVRR, a passionate developer and creator.</p>
+                <div class="card profile-card">
+                    <img src="your-profile-picture-url.jpg" alt="Profile Picture" class="profile-pic">
+                    <div class="profile-info">
+                        <h1 class="name">SLVRR</h1>
+                        <p>I'm a <span id="dynamic-text"></span></p>
+                        <div class="social-buttons">
+                            <a href="https://twitter.com/yourprofile" class="social-btn">Twitter</a>
+                            <a href="https://github.com/yourprofile" class="social-btn">GitHub</a>
+                            <a href="https://linkedin.com/in/yourprofile" class="social-btn">LinkedIn</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card" id="projects">
+                <div class="card">
                     <h2>Projects</h2>
                     <p>Check out my latest projects and contributions!</p>
                 </div>
-                <div class="card" id="contact">
+                <div class="card">
                     <h2>Contact</h2>
                     <p>Feel free to reach out to me via social media or email.</p>
                 </div>
@@ -51,9 +54,26 @@
             </section>
         </main>
     </div>
-    
+
     <footer>
+        <p>Made with ❤️ by <span class="accent-text">SLVRR</span></p>
         <p>&copy; 2024 SLVRRMAFIA. All rights reserved.</p>
     </footer>
+
+    <script>
+        const roles = ['Student', 'Web Developer', 'Tech Enthusiast'];
+        let index = 0;
+        const dynamicText = document.getElementById('dynamic-text');
+
+        function typingEffect() {
+            dynamicText.innerText = roles[index];
+            index = (index + 1) % roles.length;
+            setTimeout(() => {
+                typingEffect();
+            }, 3000); // Change role every 3 seconds
+        }
+
+        typingEffect(); // Start the typing effect
+    </script>
 </body>
 </html>
