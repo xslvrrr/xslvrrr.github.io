@@ -1,166 +1,130 @@
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
 body {
-    font-family: 'Montserrat', sans-serif; /* Updated font */
-    background-color: #151517; /* Main background */
-    color: #f1f1f1;
-    line-height: 1.6;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #151517; /* Main Background */
+    color: #f5f5f5; /* Default text color */
+}
+
+.navbar {
+    position: fixed;
+    width: 250px;
+    background-color: #1a1a1c; /* Navbar Background */
+    height: 100%;
+    padding: 20px;
+    border-right: 1px solid #454545; /* Line Color */
+}
+
+.navbar h2 {
+    color: #866eff; /* Accent Color */
+}
+
+.navbar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.navbar li {
+    margin: 10px 0;
+    padding: 10px;
+    color: #f5f5f5;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.navbar li:hover {
+    background: #242424; /* Line Color */
 }
 
 .container {
-    display: flex;
-}
-
-.sidebar {
-    background-color: #1a1a1c; /* Navbar background */
-    padding: 1rem;
-    width: 300px; /* Widened navbar */
-    height: 100vh; /* Full height */
-    position: fixed; /* Fix the sidebar */
-}
-
-.sidebar h2 {
-    color: #866eff; /* Accent color */
-}
-
-.sidebar ul {
-    list-style-type: none;
-}
-
-.sidebar ul li {
-    margin: 0.5rem 0; /* Reduced space between options */
-}
-
-.sidebar ul li a {
-    text-decoration: none;
-    color: #f1f1f1;
-    transition: color 0.3s;
-    font-size: 0.9rem; /* Reduced size */
-}
-
-.sidebar ul li a:hover {
-    color: #866eff; /* Accent color on hover */
-}
-
-.line {
-    height: 1px;
-    background-color: #454545; /* Updated line color */
-    margin: 0.3rem 0; /* Space above and below the line */
-}
-
-.main-content {
-    margin-left: 300px; /* Adjust for widened navbar */
-    padding: 2rem;
-    width: calc(100% - 300px); /* Adjust width */
-}
-
-.grid {
-    display: flex;
-    flex-wrap: wrap; /* Allow dynamic rows */
-    gap: 1rem; /* Spacing between boxes */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-left: 270px; /* Leave space for navbar */
+    padding: 20px;
 }
 
 .card {
-    background-color: #19191c; /* Updated box background */
+    background-color: #19191c; /* Box Background */
+    border: 1px solid #454545; /* Box Outline Color */
     border-radius: 10px;
-    padding: 1.5rem;
-    text-align: left; /* Left align text */
-    transition: transform 0.3s, opacity 0.5s;
-    opacity: 0; /* Start hidden for animation */
-    flex: 1 1 calc(33% - 1rem); /* Make boxes responsive */
-    min-width: 250px; /* Set minimum width */
-    max-width: 350px; /* Set maximum width */
+    padding: 20px;
+    opacity: 0;
+    animation: fadeInUp 0.5s forwards;
 }
 
-/* Profile card styling */
-.profile-card {
+.profile {
     display: flex;
     align-items: center;
 }
 
-.profile-pic {
-    border-radius: 10px; /* Rounded square */
-    width: 120px; /* Adjust size */
-    height: 120px; /* Maintain square aspect ratio */
-    margin-right: 1rem; /* Space between image and text */
+.profile img {
+    width: 80px; /* Larger profile picture */
+    height: 80px;
+    border-radius: 10px; /* Square with rounded corners */
+    margin-right: 10px;
 }
 
 .name {
-    color: #866eff; /* Accent color */
-    font-size: 1.5rem; /* Adjusted size */
-    font-weight: bold; /* Bold name */
-    margin-bottom: 0.2rem; /* Space below name */
-}
-
-.subtitle {
-    font-size: 0.8rem; /* Smaller subtitle */
-    color: #cccccc; /* Grey text */
-    margin: 0; /* No margin for subtitles */
-}
-
-.social-buttons {
-    margin-top: 0.5rem;
-}
-
-.social-btn {
-    background-color: #2b2b2b; /* Button background */
-    color: #f1f1f1;
-    padding: 0.4rem 0.8rem; /* Smaller padding */
-    border-radius: 5px;
-    text-decoration: none;
-    margin: 0.2rem;
-    display: inline-block;
-    transition: background-color 0.3s;
-    font-size: 0.8rem; /* Smaller font size */
-}
-
-.social-btn:hover {
-    background-color: #866eff; /* Accent color on hover */
-}
-
-.floating-heart {
-    text-align: center;
-    position: absolute;
-    width: 100%;
-    left: 0;
-    right: 0;
-    bottom: 120px; /* Distance from the middle box */
-    font-size: 1.2rem;
-    color: #f1f1f1;
-}
-
-.footer {
-    text-align: center; /* Center text */
-    margin-top: 1rem; /* Space above */
-    font-weight: normal; /* Normal font weight */
-}
-
-.accent-text {
-    color: #866eff; /* Accent color */
-    text-shadow: 0 0 5px #866eff; /* Glowing effect */
+    font-size: 24px; /* Name Font Size */
+    color: #866eff; /* Accent Color */
+    font-weight: 700; /* Bold */
 }
 
 .typing-indicator {
-    border-right: 2px solid #866eff; /* Accent color typing indicator */
-    animation: blink 0.7s step-end infinite; /* Blink effect */
+    font-size: 16px; /* Smaller than name */
+    color: white; /* Default text color */
+    font-weight: 600; /* Semi-Bold */
 }
 
-@keyframes blink {
-    50% {
-        border-color: transparent; /* Hide cursor during blink */
-    }
+.social-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
 }
 
+.social-buttons button {
+    background-color: #242424; /* Background for buttons */
+    border: none;
+    color: white; /* Text color for buttons */
+    padding: 8px 12px;
+    border-radius: 5px; /* Slightly rounded */
+    cursor: pointer;
+    flex: 1; /* Equal width */
+    margin-right: 5px;
+}
+
+.social-buttons button:last-child {
+    margin-right: 0; /* Remove margin for last button */
+}
+
+.subtitle {
+    color: white; /* White for subtitles */
+    font-weight: 600; /* Semi-Bold */
+    margin-top: 10px; /* Spacing */
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.accent {
+    color: #866eff; /* Accent Color */
+    text-shadow: 0 0 5px #866eff; /* Glowing effect */
+}
+
+/* Animation */
 @keyframes fadeInUp {
-    0% {
+    from {
         opacity: 0;
         transform: translateY(20px);
     }
-    100% {
+    to {
         opacity: 1;
         transform: translateY(0);
     }
