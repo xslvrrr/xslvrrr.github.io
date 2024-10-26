@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #1c1c1c;
+    background-color: #101010; /* Darkened midnight blue */
     color: #f1f1f1;
     line-height: 1.6;
 }
@@ -51,15 +51,6 @@ body {
     width: calc(100% - 250px); /* Adjust width */
 }
 
-header {
-    text-align: center;
-    padding-bottom: 2rem;
-}
-
-h1 {
-    font-size: 2.5rem;
-}
-
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -67,19 +58,49 @@ h1 {
 }
 
 .card {
-    background-color: #383838;
+    background-color: #383838; /* Slightly lighter than background */
     border-radius: 10px;
     padding: 1.5rem;
     text-align: center;
+    border: 1px solid #444; /* Subtle grey outline */
     transition: transform 0.3s;
 }
 
-.card h2 {
-    color: #f39c12; /* Accent color */
+.profile-card {
+    display: flex;
+    align-items: center;
 }
 
-.card:hover {
-    transform: translateY(-5px);
+.profile-pic {
+    border-radius: 50%;
+    width: 80px; /* Adjust size as needed */
+    height: 80px; /* Maintain square aspect ratio */
+    margin-right: 1rem;
+}
+
+.name {
+    color: #f39c12; /* Accent color */
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.social-buttons {
+    margin-top: 0.5rem;
+}
+
+.social-btn {
+    background-color: #484848; /* Button background */
+    color: #f1f1f1;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    margin: 0.2rem;
+    display: inline-block;
+    transition: background-color 0.3s;
+}
+
+.social-btn:hover {
+    background-color: #f39c12; /* Accent color on hover */
 }
 
 footer {
@@ -89,4 +110,9 @@ footer {
     position: relative;
     bottom: 0;
     width: 100%;
+}
+
+.accent-text {
+    color: #f39c12; /* Accent color */
+    text-shadow: 0 0 5px #f39c12; /* Glowing effect */
 }
