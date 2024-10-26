@@ -3,77 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <title>About Me</title>
 </head>
 <body>
+    <div class="navbar">
+        <h2>Menu</h2>
+        <ul>
+            <li>Home</li>
+            <li>About</li>
+            <li>Projects</li>
+            <li>Contact</li>
+        </ul>
+    </div>
     <div class="container">
-        <div class="sidebar">
-            <h2>Navigation</h2>
-            <ul>
-                <li><a href="#box1">Box 1</a></li>
-                <div class="line"></div>
-                <li><a href="#box2">Box 2</a></li>
-                <div class="line"></div>
-                <li><a href="#box3">Box 3</a></li>
-                <div class="line"></div>
-                <li><a href="#box4">Box 4</a></li>
-                <div class="line"></div>
-                <li><a href="#box5">Box 5</a></li>
-                <div class="line"></div>
-                <li><a href="#box6">Box 6</a></li>
-            </ul>
+        <div class="card">
+            <div class="profile">
+                <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=671dc687&is=671c7507&hm=20e29735b1bfcd04de989bfd3c52cd014cbbbaa83d3999410dac793decf8c562&=&format=webp&width=629&height=629" alt="Profile Picture">
+                <div class="profile-text">
+                    <h3 class="name">SLVRR</h3>
+                    <span class="typing-indicator">I'm a <span class="typing-text"></span></span>
+                </div>
+            </div>
+            <div class="social-buttons">
+                <button>Twitter</button>
+                <button>GitHub</button>
+                <button>LinkedIn</button>
+            </div>
         </div>
-
-        <div class="main-content">
-            <div class="grid">
-                <div class="card profile-card" id="box1">
-                    <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=671dc687&is=671c7507&hm=20e29735b1bfcd04de989bfd3c52cd014cbbbaa83d3999410dac793decf8c562&=&format=webp&width=629&height=629" class="profile-pic" alt="Profile Picture">
-                    <div>
-                        <div class="name">SLVRR</div>
-                        <div class="subtitle">I'm a</div>
-                        <div class="typing-indicator" id="typing"></div>
-                        <div class="social-buttons">
-                            <a href="#" class="social-btn">GitHub</a>
-                            <a href="#" class="social-btn">LinkedIn</a>
-                            <a href="#" class="social-btn">Twitter</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card" id="box2">
-                    <h3 class="name">Box Title 2</h3>
-                    <p>Content for box 2.</p>
-                </div>
-
-                <div class="card" id="box3">
-                    <h3 class="name">Box Title 3</h3>
-                    <p>Content for box 3.</p>
-                </div>
-
-                <div class="card" id="box4">
-                    <h3 class="name">Box Title 4</h3>
-                    <p>Content for box 4.</p>
-                </div>
-
-                <div class="card" id="box5">
-                    <h3 class="name">Box Title 5</h3>
-                    <p>Content for box 5.</p>
-                </div>
-
-                <div class="card" id="box6">
-                    <h3 class="name">Box Title 6</h3>
-                    <p>Content for box 6.</p>
-                </div>
-            </div>
-
-            <div class="floating-heart">
-                Made with ❤️ by <span class="accent-text">SLVRR</span>
-            </div>
+        <div class="card">
+            <h4 class="subtitle">About Me</h4>
+            <p>Content for box 2</p>
+        </div>
+        <div class="card">
+            <h4 class="subtitle">My Projects</h4>
+            <p>Content for box 3</p>
+        </div>
+        <div class="card">
+            <h4 class="subtitle">Hobbies</h4>
+            <p>Content for box 4</p>
+        </div>
+        <div class="card">
+            <h4 class="subtitle">Skills</h4>
+            <p>Content for box 5</p>
+        </div>
+        <div class="card">
+            <h4 class="subtitle">Contact</h4>
+            <p>Content for box 6</p>
         </div>
     </div>
-
+    <footer>
+        <p>Made with ❤️ by <span class="accent">SLVRR</span></p>
+        <p>&copy; 2024</p>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>
