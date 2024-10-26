@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Montserrat', sans-serif; /* Updated font */
     background-color: #151517; /* Main background */
     color: #f1f1f1;
     line-height: 1.6;
@@ -32,7 +32,7 @@ body {
 }
 
 .sidebar ul li {
-    margin: 1rem 0; /* Space between options */
+    margin: 0.5rem 0; /* Reduced space between options */
 }
 
 .sidebar ul li a {
@@ -49,7 +49,7 @@ body {
 .line {
     height: 1px;
     background-color: #454545; /* Updated line color */
-    margin: 0.5rem 0; /* Space above and below the line */
+    margin: 0.3rem 0; /* Space above and below the line */
 }
 
 .main-content {
@@ -61,7 +61,7 @@ body {
 .grid {
     display: flex;
     flex-wrap: wrap; /* Allow dynamic rows */
-    gap: 1rem;
+    gap: 1rem; /* Spacing between boxes */
 }
 
 .card {
@@ -99,6 +99,7 @@ body {
 .subtitle {
     font-size: 0.8rem; /* Smaller subtitle */
     color: #cccccc; /* Grey text */
+    margin: 0; /* No margin for subtitles */
 }
 
 .social-buttons {
@@ -135,6 +136,7 @@ body {
 .footer {
     text-align: center; /* Center text */
     margin-top: 1rem; /* Space above */
+    font-weight: normal; /* Normal font weight */
 }
 
 .accent-text {
@@ -150,5 +152,16 @@ body {
 @keyframes blink {
     50% {
         border-color: transparent; /* Hide cursor during blink */
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
