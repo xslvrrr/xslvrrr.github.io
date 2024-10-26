@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> <!-- Nice font -->
     <title>SLVRRMAFIA</title>
 </head>
 <body>
@@ -55,8 +54,11 @@
                     <p>View my projects and achievements visually.</p>
                 </div>
             </section>
-            <div class="heart-message" id="heart-message"></div>
         </main>
+    </div>
+
+    <div class="floating-heart">
+        <p>Made with <span id="heart"></span> by <span class="accent-text">SLVRR</span></p>
     </div>
 
     <script>
@@ -66,38 +68,41 @@
 
         function typingEffect() {
             dynamicText.innerText = '';
-            let role = roles[index];
-            let i = 0;
+            let currentRole = roles[index];
+            let charIndex = 0;
 
-            function type() {
-                if (i < role.length) {
-                    dynamicText.innerText += role.charAt(i);
-                    i++;
-                    setTimeout(type, 150); // Typing speed
+            const type = () => {
+                if (charIndex < currentRole.length) {
+                    dynamicText.innerText += currentRole.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(type, 100); // Typing speed
                 } else {
-                    setTimeout(deleteText, 1500); // Wait before deleting
+                    setTimeout(deleteText, 1000); // Wait before deleting
                 }
-            }
+            };
 
-            function deleteText() {
-                if (dynamicText.innerText.length > 0) {
-                    dynamicText.innerText = dynamicText.innerText.slice(0, -1);
+            const deleteText = () => {
+                if (charIndex > 0) {
+                    dynamicText.innerText = currentRole.substring(0, charIndex - 1);
+                    charIndex--;
                     setTimeout(deleteText, 100); // Deleting speed
                 } else {
                     index = (index + 1) % roles.length;
-                    type();
+                    setTimeout(typingEffect, 500); // Wait before typing next role
                 }
-            }
+            };
 
             type();
         }
 
-        typingEffect(); // Start the typing effect
+        function randomHeart() {
+            const hearts = ['❤️', '💖', '💓', '💘', '💙', '💚', '💛', '🧡', '💜', '💗'];
+            return hearts[Math.floor(Math.random() * hearts.length)];
+        }
 
-        // Random heart emoji
-        const heartEmojis = ['❤️', '💖', '💙', '💚', '💛', '🧡', '💜'];
-        const heartMessage = document.getElementById('heart-message');
-        heartMessage.innerHTML = `Made with ${heartEmojis[Math.floor(Math.random() * heartEmojis.length)]} by <span class="accent-text">SLVRR</span>`;
+        document.getElementById('heart').innerHTML = randomHeart();
+
+        typingEffect(); // Start the typing effect
     </script>
 </body>
 </html>
