@@ -3,109 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My About Me Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>About Me</title>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
             <h2>Navigation</h2>
             <ul>
-                <li><a href="#">Home</a></li>
+                <li><a href="#box1">Box 1</a></li>
                 <div class="line"></div>
-                <li><a href="#">About</a></li>
+                <li><a href="#box2">Box 2</a></li>
                 <div class="line"></div>
-                <li><a href="#">Projects</a></li>
+                <li><a href="#box3">Box 3</a></li>
                 <div class="line"></div>
-                <li><a href="#">Contact</a></li>
+                <li><a href="#box4">Box 4</a></li>
+                <div class="line"></div>
+                <li><a href="#box5">Box 5</a></li>
+                <div class="line"></div>
+                <li><a href="#box6">Box 6</a></li>
             </ul>
         </div>
+
         <div class="main-content">
             <div class="grid">
-                <div class="card profile-card">
-                    <img class="profile-pic" src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=671dc687&is=671c7507&hm=20e29735b1bfcd04de989bfd3c52cd014cbbbaa83d3999410dac793decf8c562&=&format=webp&width=629&height=629" alt="Profile Picture">
-                    <div class="name">SLVRR</div>
-                    <div class="subtitle">I'm a <span id="typing"></span></div>
-                    <div class="social-buttons">
-                        <a class="social-btn" href="#">GitHub</a>
-                        <a class="social-btn" href="#">Twitter</a>
-                        <a class="social-btn" href="#">LinkedIn</a>
+                <div class="card profile-card" id="box1">
+                    <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=671dc687&is=671c7507&hm=20e29735b1bfcd04de989bfd3c52cd014cbbbaa83d3999410dac793decf8c562&=&format=webp&width=629&height=629" class="profile-pic" alt="Profile Picture">
+                    <div>
+                        <div class="name">SLVRR</div>
+                        <div class="subtitle">I'm a</div>
+                        <div class="typing-indicator" id="typing"></div>
+                        <div class="social-buttons">
+                            <a href="#" class="social-btn">GitHub</a>
+                            <a href="#" class="social-btn">LinkedIn</a>
+                            <a href="#" class="social-btn">Twitter</a>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <h3 class="accent-text">Project 1</h3>
-                    <p class="subtitle">Details about Project 1...</p>
+
+                <div class="card" id="box2">
+                    <h3 class="name">Box Title 2</h3>
+                    <p>Content for box 2.</p>
                 </div>
-                <div class="card">
-                    <h3 class="accent-text">Project 2</h3>
-                    <p class="subtitle">Details about Project 2...</p>
+
+                <div class="card" id="box3">
+                    <h3 class="name">Box Title 3</h3>
+                    <p>Content for box 3.</p>
                 </div>
-                <div class="card">
-                    <h3 class="accent-text">Project 3</h3>
-                    <p class="subtitle">Details about Project 3...</p>
+
+                <div class="card" id="box4">
+                    <h3 class="name">Box Title 4</h3>
+                    <p>Content for box 4.</p>
                 </div>
-                <div class="card">
-                    <h3 class="accent-text">Project 4</h3>
-                    <p class="subtitle">Details about Project 4...</p>
+
+                <div class="card" id="box5">
+                    <h3 class="name">Box Title 5</h3>
+                    <p>Content for box 5.</p>
                 </div>
-                <div class="card">
-                    <h3 class="accent-text">Project 5</h3>
-                    <p class="subtitle">Details about Project 5...</p>
+
+                <div class="card" id="box6">
+                    <h3 class="name">Box Title 6</h3>
+                    <p>Content for box 6.</p>
                 </div>
             </div>
-            <div class="floating-heart" id="heart"></div>
-            <div class="footer">
-                <p>Made with <span id="random-heart"></span> by <span class="accent-text">SLVRR</span></p>
-                <p>&copy; 2024 SLVRR</p>
+
+            <div class="floating-heart">
+                Made with ❤️ by <span class="accent-text">SLVRR</span>
             </div>
         </div>
     </div>
 
-    <script>
-        const roles = ["student", "web developer", "designer"];
-        let index = 0;
-        let currentText = '';
-        let isDeleting = false;
-
-        function typingEffect() {
-            const target = document.getElementById('typing');
-            const fullText = roles[index];
-            if (isDeleting) {
-                currentText = fullText.substring(0, currentText.length - 1);
-            } else {
-                currentText = fullText.substring(0, currentText.length + 1);
-            }
-            target.innerHTML = `<span class="typing-indicator">|</span>${currentText}`;
-
-            if (!isDeleting && currentText === fullText) {
-                isDeleting = true;
-                setTimeout(typingEffect, 1500);
-            } else if (isDeleting && currentText === '') {
-                isDeleting = false;
-                index = (index + 1) % roles.length;
-                setTimeout(typingEffect, 500);
-            } else {
-                setTimeout(typingEffect, 150);
-            }
-        }
-
-        $(document).ready(function() {
-            typingEffect();
-
-            // Random heart emoji
-            const hearts = ['❤️', '💚', '💙', '💜', '🧡', '💖'];
-            $('#random-heart').text(hearts[Math.floor(Math.random() * hearts.length)]);
-
-            // Animate boxes and navbar
-            $('.card').each(function(index) {
-                $(this).delay(100 * index).fadeIn(300).animate({marginTop: '0px'}, 300);
-            });
-
-            $('.sidebar ul li').each(function(index) {
-                $(this).delay(150 * index).fadeIn(300).animate({left: '0px'}, 300);
-            });
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
