@@ -16,7 +16,6 @@ body {
     background-color: #1a1a1c; /* Navbar Background */
     height: 100%;
     padding: 20px;
-    border-right: 1px solid #454545; /* Line Color */
 }
 
 .navbar h2 {
@@ -34,10 +33,16 @@ body {
     color: #f5f5f5;
     cursor: pointer;
     transition: background 0.3s;
+    border-radius: 5px; /* Rounding for selection */
 }
 
 .navbar li:hover {
-    background: #242424; /* Line Color */
+    background: #866eff; /* Accent Color on hover */
+}
+
+.navbar-divider {
+    border-top: 1px solid #303030; /* Divider Color */
+    margin: 10px 0; /* Spacing */
 }
 
 .container {
@@ -50,7 +55,7 @@ body {
 
 .card {
     background-color: #19191c; /* Box Background */
-    border: 1px solid #454545; /* Box Outline Color */
+    border: 1px solid #303030; /* Box Outline Color */
     border-radius: 10px;
     padding: 20px;
     opacity: 0;
@@ -63,20 +68,20 @@ body {
 }
 
 .profile img {
-    width: 80px; /* Larger profile picture */
-    height: 80px;
+    width: 100px; /* Larger profile picture */
+    height: 100px;
     border-radius: 10px; /* Square with rounded corners */
     margin-right: 10px;
 }
 
 .name {
-    font-size: 24px; /* Name Font Size */
+    font-size: 28px; /* Name Font Size */
     color: #866eff; /* Accent Color */
     font-weight: 700; /* Bold */
 }
 
 .typing-indicator {
-    font-size: 16px; /* Smaller than name */
+    font-size: 18px; /* Smaller than name */
     color: white; /* Default text color */
     font-weight: 600; /* Semi-Bold */
 }
@@ -92,19 +97,26 @@ body {
     border: none;
     color: white; /* Text color for buttons */
     padding: 8px 12px;
-    border-radius: 5px; /* Slightly rounded */
+    border-radius: 10px; /* More rounded */
     cursor: pointer;
     flex: 1; /* Equal width */
     margin-right: 5px;
+    font-weight: 500; /* Medium */
+    transition: background 0.3s, color 0.3s; /* Transition for hover effect */
 }
 
 .social-buttons button:last-child {
     margin-right: 0; /* Remove margin for last button */
 }
 
+.social-buttons button:hover {
+    color: #866eff; /* Accent Color on hover */
+}
+
 .subtitle {
-    color: white; /* White for subtitles */
+    color: #d0d0d0; /* Darker Subtitle Color */
     font-weight: 600; /* Semi-Bold */
+    font-size: 14px; /* Smaller Font Size */
     margin-top: 10px; /* Spacing */
 }
 
@@ -115,7 +127,7 @@ footer {
 
 .accent {
     color: #866eff; /* Accent Color */
-    text-shadow: 0 0 5px #866eff; /* Glowing effect */
+    text-shadow: 0 0 10px #866eff; /* Glowing effect */
 }
 
 /* Animation */
