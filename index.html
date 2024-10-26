@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> <!-- Nice font -->
     <title>SLVRRMAFIA</title>
 </head>
 <body>
@@ -12,7 +13,9 @@
             <h2>Navigation</h2>
             <ul>
                 <li><a href="#about">About Me</a></li>
+                <div class="line"></div>
                 <li><a href="#projects">Projects</a></li>
+                <div class="line"></div>
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
@@ -52,13 +55,9 @@
                     <p>View my projects and achievements visually.</p>
                 </div>
             </section>
+            <div class="heart-message" id="heart-message"></div>
         </main>
     </div>
-
-    <footer>
-        <p>Made with ❤️ by <span class="accent-text">SLVRR</span></p>
-        <p>&copy; 2024 SLVRRMAFIA. All rights reserved.</p>
-    </footer>
 
     <script>
         const roles = ['Student', 'Web Developer', 'Tech Enthusiast'];
@@ -66,14 +65,39 @@
         const dynamicText = document.getElementById('dynamic-text');
 
         function typingEffect() {
-            dynamicText.innerText = roles[index];
-            index = (index + 1) % roles.length;
-            setTimeout(() => {
-                typingEffect();
-            }, 3000); // Change role every 3 seconds
+            dynamicText.innerText = '';
+            let role = roles[index];
+            let i = 0;
+
+            function type() {
+                if (i < role.length) {
+                    dynamicText.innerText += role.charAt(i);
+                    i++;
+                    setTimeout(type, 150); // Typing speed
+                } else {
+                    setTimeout(deleteText, 1500); // Wait before deleting
+                }
+            }
+
+            function deleteText() {
+                if (dynamicText.innerText.length > 0) {
+                    dynamicText.innerText = dynamicText.innerText.slice(0, -1);
+                    setTimeout(deleteText, 100); // Deleting speed
+                } else {
+                    index = (index + 1) % roles.length;
+                    type();
+                }
+            }
+
+            type();
         }
 
         typingEffect(); // Start the typing effect
+
+        // Random heart emoji
+        const heartEmojis = ['❤️', '💖', '💙', '💚', '💛', '🧡', '💜'];
+        const heartMessage = document.getElementById('heart-message');
+        heartMessage.innerHTML = `Made with ${heartEmojis[Math.floor(Math.random() * heartEmojis.length)]} by <span class="accent-text">SLVRR</span>`;
     </script>
 </body>
 </html>
