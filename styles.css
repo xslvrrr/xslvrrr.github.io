@@ -33,16 +33,16 @@ body {
     color: #f5f5f5;
     cursor: pointer;
     transition: background 0.3s;
-    border-radius: 5px; /* Rounding for selection */
+    border-bottom: 1px solid #303030; /* Line Color */
+}
+
+.navbar li:last-child {
+    border-bottom: none; /* No border for the last item */
 }
 
 .navbar li:hover {
-    background: #866eff; /* Accent Color on hover */
-}
-
-.navbar-divider {
-    border-top: 1px solid #303030; /* Divider Color */
-    margin: 10px 0; /* Spacing */
+    background: #866eff; /* Accent Color */
+    border-radius: 5px; /* Rounded selection */
 }
 
 .container {
@@ -81,7 +81,7 @@ body {
 }
 
 .typing-indicator {
-    font-size: 18px; /* Smaller than name */
+    font-size: 16px; /* Smaller than name */
     color: white; /* Default text color */
     font-weight: 600; /* Semi-Bold */
 }
@@ -95,14 +95,13 @@ body {
 .social-buttons button {
     background-color: #242424; /* Background for buttons */
     border: none;
-    color: white; /* Text color for buttons */
+    color: #f5f5f5; /* Text color for buttons */
     padding: 8px 12px;
-    border-radius: 10px; /* More rounded */
+    border-radius: 5px; /* Slightly rounded */
     cursor: pointer;
     flex: 1; /* Equal width */
     margin-right: 5px;
-    font-weight: 500; /* Medium */
-    transition: background 0.3s, color 0.3s; /* Transition for hover effect */
+    font-weight: 500; /* Montserrat 500 */
 }
 
 .social-buttons button:last-child {
@@ -110,14 +109,14 @@ body {
 }
 
 .social-buttons button:hover {
-    color: #866eff; /* Accent Color on hover */
+    color: #866eff; /* Accent color on hover */
 }
 
 .subtitle {
-    color: #d0d0d0; /* Darker Subtitle Color */
+    color: #e0e0e0; /* Darker subtitle color */
     font-weight: 600; /* Semi-Bold */
-    font-size: 14px; /* Smaller Font Size */
     margin-top: 10px; /* Spacing */
+    font-size: 14px; /* Smaller than previous */
 }
 
 footer {
@@ -127,7 +126,8 @@ footer {
 
 .accent {
     color: #866eff; /* Accent Color */
-    text-shadow: 0 0 10px #866eff; /* Glowing effect */
+    text-shadow: 0 0 10px #866eff; /* Glowing effect with more spread */
+    font-weight: 600; /* Montserrat 600 */
 }
 
 /* Animation */
