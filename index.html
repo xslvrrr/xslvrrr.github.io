@@ -3,106 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My About Me Page</title>
     <link rel="stylesheet" href="styles.css">
-    <title>SLVRRMAFIA</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <nav class="sidebar">
+        <div class="sidebar">
             <h2>Navigation</h2>
             <ul>
-                <li><a href="#about">About Me</a></li>
+                <li><a href="#">Home</a></li>
                 <div class="line"></div>
-                <li><a href="#projects">Projects</a></li>
+                <li><a href="#">About</a></li>
                 <div class="line"></div>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Projects</a></li>
+                <div class="line"></div>
+                <li><a href="#">Contact</a></li>
             </ul>
-        </nav>
-        
-        <main class="main-content">
-            <section class="grid">
+        </div>
+        <div class="main-content">
+            <div class="grid">
                 <div class="card profile-card">
-                    <img src="your-profile-picture-url.jpg" alt="Profile Picture" class="profile-pic">
-                    <div class="profile-info">
-                        <h1 class="name">SLVRR</h1>
-                        <p>I'm a <span id="dynamic-text"></span></p>
-                        <div class="social-buttons">
-                            <a href="https://twitter.com/yourprofile" class="social-btn">Twitter</a>
-                            <a href="https://github.com/yourprofile" class="social-btn">GitHub</a>
-                            <a href="https://linkedin.com/in/yourprofile" class="social-btn">LinkedIn</a>
-                        </div>
+                    <img class="profile-pic" src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=671dc687&is=671c7507&hm=20e29735b1bfcd04de989bfd3c52cd014cbbbaa83d3999410dac793decf8c562&=&format=webp&width=629&height=629" alt="Profile Picture">
+                    <div class="name">SLVRR</div>
+                    <div class="subtitle">I'm a <span id="typing"></span></div>
+                    <div class="social-buttons">
+                        <a class="social-btn" href="#">GitHub</a>
+                        <a class="social-btn" href="#">Twitter</a>
+                        <a class="social-btn" href="#">LinkedIn</a>
                     </div>
                 </div>
                 <div class="card">
-                    <h2>Projects</h2>
-                    <p>Check out my latest projects and contributions!</p>
+                    <h3 class="accent-text">Project 1</h3>
+                    <p class="subtitle">Details about Project 1...</p>
                 </div>
                 <div class="card">
-                    <h2>Contact</h2>
-                    <p>Feel free to reach out to me via social media or email.</p>
+                    <h3 class="accent-text">Project 2</h3>
+                    <p class="subtitle">Details about Project 2...</p>
                 </div>
                 <div class="card">
-                    <h2>Blog</h2>
-                    <p>Read my latest thoughts and insights.</p>
+                    <h3 class="accent-text">Project 3</h3>
+                    <p class="subtitle">Details about Project 3...</p>
                 </div>
                 <div class="card">
-                    <h2>Resources</h2>
-                    <p>Explore my favorite tools and resources.</p>
+                    <h3 class="accent-text">Project 4</h3>
+                    <p class="subtitle">Details about Project 4...</p>
                 </div>
                 <div class="card">
-                    <h2>Gallery</h2>
-                    <p>View my projects and achievements visually.</p>
+                    <h3 class="accent-text">Project 5</h3>
+                    <p class="subtitle">Details about Project 5...</p>
                 </div>
-            </section>
-        </main>
-    </div>
-
-    <div class="floating-heart">
-        <p>Made with <span id="heart"></span> by <span class="accent-text">SLVRR</span></p>
+            </div>
+            <div class="floating-heart" id="heart"></div>
+            <div class="footer">
+                <p>Made with <span id="random-heart"></span> by <span class="accent-text">SLVRR</span></p>
+                <p>&copy; 2024 SLVRR</p>
+            </div>
+        </div>
     </div>
 
     <script>
-        const roles = ['Student', 'Web Developer', 'Tech Enthusiast'];
+        const roles = ["student", "web developer", "designer"];
         let index = 0;
-        const dynamicText = document.getElementById('dynamic-text');
+        let currentText = '';
+        let isDeleting = false;
 
         function typingEffect() {
-            dynamicText.innerText = '';
-            let currentRole = roles[index];
-            let charIndex = 0;
+            const target = document.getElementById('typing');
+            const fullText = roles[index];
+            if (isDeleting) {
+                currentText = fullText.substring(0, currentText.length - 1);
+            } else {
+                currentText = fullText.substring(0, currentText.length + 1);
+            }
+            target.innerHTML = `<span class="typing-indicator">|</span>${currentText}`;
 
-            const type = () => {
-                if (charIndex < currentRole.length) {
-                    dynamicText.innerText += currentRole.charAt(charIndex);
-                    charIndex++;
-                    setTimeout(type, 100); // Typing speed
-                } else {
-                    setTimeout(deleteText, 1000); // Wait before deleting
-                }
-            };
-
-            const deleteText = () => {
-                if (charIndex > 0) {
-                    dynamicText.innerText = currentRole.substring(0, charIndex - 1);
-                    charIndex--;
-                    setTimeout(deleteText, 100); // Deleting speed
-                } else {
-                    index = (index + 1) % roles.length;
-                    setTimeout(typingEffect, 500); // Wait before typing next role
-                }
-            };
-
-            type();
+            if (!isDeleting && currentText === fullText) {
+                isDeleting = true;
+                setTimeout(typingEffect, 1500);
+            } else if (isDeleting && currentText === '') {
+                isDeleting = false;
+                index = (index + 1) % roles.length;
+                setTimeout(typingEffect, 500);
+            } else {
+                setTimeout(typingEffect, 150);
+            }
         }
 
-        function randomHeart() {
-            const hearts = ['❤️', '💖', '💓', '💘', '💙', '💚', '💛', '🧡', '💜', '💗'];
-            return hearts[Math.floor(Math.random() * hearts.length)];
-        }
+        $(document).ready(function() {
+            typingEffect();
 
-        document.getElementById('heart').innerHTML = randomHeart();
+            // Random heart emoji
+            const hearts = ['❤️', '💚', '💙', '💜', '🧡', '💖'];
+            $('#random-heart').text(hearts[Math.floor(Math.random() * hearts.length)]);
 
-        typingEffect(); // Start the typing effect
+            // Animate boxes and navbar
+            $('.card').each(function(index) {
+                $(this).delay(100 * index).fadeIn(300).animate({marginTop: '0px'}, 300);
+            });
+
+            $('.sidebar ul li').each(function(index) {
+                $(this).delay(150 * index).fadeIn(300).animate({left: '0px'}, 300);
+            });
+        });
     </script>
 </body>
 </html>
