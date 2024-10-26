@@ -1,5 +1,5 @@
-const typingElement = document.getElementById('typing');
-const phrases = ['student', 'web developer', 'game designer'];
+const typingElement = document.querySelector('.typing-text');
+const phrases = ['student', 'web developer', 'music addict', 'pro robloxian'];
 let phraseIndex = 0;
 let letterIndex = 0;
 
