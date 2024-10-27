@@ -1,39 +1,33 @@
-const typingElement = document.querySelector('.typing-text');
-const phrases = ['student', 'web developer', 'music addict', 'pro robloxian'];
-let phraseIndex = 0;
-let letterIndex = 0;
+// Typing effect for "I'm a [text]"
+const texts = ["student", "web developer", "gamer", "designer"];
+let textIndex = 0;
+let charIndex = 0;
+const typingText = document.querySelector(".typing-text");
+const typingIndicator = document.querySelector(".typing-indicator");
 
 function type() {
-    if (letterIndex < phrases[phraseIndex].length) {
-        typingElement.innerHTML += phrases[phraseIndex].charAt(letterIndex);
-        letterIndex++;
-        setTimeout(type, 150);
+    if (charIndex < texts[textIndex].length) {
+        typingText.textContent += texts[textIndex][charIndex];
+        charIndex++;
+        setTimeout(type, 100);
     } else {
-        setTimeout(deleteText, 1000);
+        setTimeout(erase, 1000);
     }
 }
 
-function deleteText() {
-    if (letterIndex > 0) {
-        typingElement.innerHTML = phrases[phraseIndex].substring(0, letterIndex - 1);
-        letterIndex--;
-        setTimeout(deleteText, 100);
+function erase() {
+    if (charIndex > 0) {
+        typingText.textContent = texts[textIndex].substring(0, charIndex - 1);
+        charIndex--;
+        setTimeout(erase, 100);
     } else {
-        phraseIndex = (phraseIndex + 1) % phrases.length;
-        setTimeout(type, 500);
+        textIndex = (textIndex + 1) % texts.length;
+        setTimeout(type, 1000);
     }
 }
 
-// Load boxes with animation
-document.addEventListener('DOMContentLoaded', () => {
-    const cards = document.querySelectorAll('.card');
-    cards.forEach((card, index) => {
-        setTimeout(() => {
-            card.style.opacity = '1'; // Show the card
-            card.style.animation = 'fadeInUp 0.5s forwards'; // Apply fade-in animation
-        }, index * 200); // Stagger the animation
-    });
-});
-
-// Start the typing effect
 type();
+
+// Randomize heart emoji
+const hearts = ["❤️", "💙", "💜", "💖", "💚"];
+document.getElementById("heart").textContent = hearts[Math.floor(Math.random() * hearts.length)];
