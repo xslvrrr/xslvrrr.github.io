@@ -6,33 +6,37 @@
 
 body {
     font-family: 'Montserrat', sans-serif;
-    background-color: #0E0C0D; /* Darkened main background */
-    color: #FAFAFA; /* Updated text color */
+    background-color: #0E0C0D;
+    color: #FAFAFA;
 }
 
 .navbar-container {
     position: fixed;
-    left: 0;
-    height: 100%;
+    left: 20px; /* Adds space from the screen edge */
+    top: 50%;
+    transform: translateY(-50%);
     width: 150px;
     padding-top: 40px;
     transition: all 0.3s;
+    opacity: 0;
 }
 
 .navbar-indicator {
     position: absolute;
-    width: 5px;
+    width: 100px;
     height: 100%;
     background-color: #000;
-    box-shadow: 0 0 15px 5px #000;
-    left: 0;
-    opacity: 0.4;
+    box-shadow: 0 0 20px 10px #000;
+    left: -50px; /* Adjust for glow */
+    opacity: 0.5;
+    z-index: 1;
 }
 
 .navbar {
+    position: relative;
+    z-index: 2;
     padding: 0;
     text-align: left;
-    transition: opacity 0.3s;
 }
 
 .navbar ul {
@@ -48,7 +52,7 @@ body {
     cursor: pointer;
     margin: 10px 0;
     font-weight: 500;
-    transition: transform 0.2s ease, color 0.3s;
+    transition: transform 0.3s ease, color 0.3s;
     position: relative;
 }
 
@@ -56,14 +60,10 @@ body {
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
-.nav-item:hover {
-    font-size: 20px;
-}
-
 .selection-dot {
     width: 8px;
     height: 8px;
-    background-color: #B2A7FB; /* Accent color */
+    background-color: #B2A7FB;
     border-radius: 50%;
     margin-right: 8px;
     visibility: hidden;
@@ -81,15 +81,15 @@ body {
 }
 
 .card {
-    background-color: #0F0F0F; /* Updated box background */
-    border: 1px solid #1C1C1D; /* Updated outline color */
+    background-color: #0F0F0F;
+    border: 1px solid #1C1C1D;
     border-radius: 10px;
     padding: 20px;
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .card:hover {
-    box-shadow: 0 0 10px #B2A7FB; /* Accent color glow */
+    box-shadow: 0 0 10px #B2A7FB;
 }
 
 .profile-card {
@@ -110,7 +110,7 @@ body {
 
 .name {
     font-size: 28px;
-    color: #B2A7FB; /* Accent color */
+    color: #B2A7FB;
     font-weight: 700;
 }
 
@@ -132,24 +132,26 @@ body {
 
 .social-buttons {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     margin-top: 10px;
+    gap: 10px;
 }
 
 .social-buttons button {
-    background-color: #1E1E1F; /* Updated button color */
+    background-color: #1E1E1F;
     border: none;
     color: #FAFAFA;
-    padding: 8px 12px;
+    padding: 10px;
+    width: 100%;
     border-radius: 10px;
     cursor: pointer;
     font-weight: 500;
     font-family: 'Montserrat', sans-serif;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s;
 }
 
 .social-buttons button:hover {
-    background-color: #181818; /* Darker hover effect */
+    background-color: #161616;
 }
 
 .title {
@@ -180,7 +182,7 @@ footer {
 
 .thick-glow {
     font-weight: 600;
-    text-shadow: 0 0 12px #B2A7FB;
+    text-shadow: 0 0 15px #B2A7FB, 0 0 30px #B2A7FB;
 }
 
 @keyframes blink {
