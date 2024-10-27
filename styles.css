@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Montserrat', sans-serif;
-    background-color: #121214; /* Darkened main background */
+    background-color: #0f0f10; /* Dimmed main background */
     color: #f5f5f5; /* Default text color */
 }
 
@@ -16,36 +16,38 @@ body {
     width: 0;
     height: 100%;
     overflow: hidden;
-    transition: width 0.3s;
+    transition: width 0.3s, box-shadow 0.3s;
 }
 
 .navbar {
-    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding-left: 10px;
     color: #f5f5f5;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5); /* Black glow */
 }
 
 .navbar ul {
     list-style-type: none;
-    padding-left: 20px;
+    padding-left: 0;
 }
 
 .navbar li {
     display: flex;
     align-items: center;
     font-size: 18px;
-    color: #f5f5f5;
+    color: #b3b3b3; /* Dimmed color */
     cursor: pointer;
     margin: 15px 0;
-    transition: font-size 0.2s ease, color 0.3s;
+    font-weight: 500;
+    transition: transform 0.2s ease, color 0.3s;
     font-weight: 500;
 }
 
 .nav-item:hover, .nav-item.selected {
     color: #ffffff;
-}
-
-.nav-item:hover {
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 .selection-dot {
@@ -61,6 +63,11 @@ body {
     visibility: visible;
 }
 
+.navbar-container:hover {
+    width: 150px; /* Navbar expands on hover */
+    box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.8); /* Indicator glow */
+}
+
 .container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -70,8 +77,8 @@ body {
 }
 
 .card {
-    background-color: #151517; /* Darkened box background */
-    border: 1px solid #303030; /* Outline color */
+    background-color: #1a1a1b; /* Further dimmed box background */
+    border: 1px solid #303030; /* Dimmed outline */
     border-radius: 10px;
     padding: 20px;
     transition: transform 0.3s, box-shadow 0.3s;
@@ -126,9 +133,9 @@ body {
 }
 
 .social-buttons button {
-    background-color: #303030; /* Darkened background */
+    background-color: #2a2a2b; /* Dimmed background */
     border: none;
-    color: white;
+    color: #d3d3d3;
     padding: 8px 12px;
     border-radius: 10px;
     cursor: pointer;
@@ -139,19 +146,21 @@ body {
 }
 
 .social-buttons button:hover {
-    color: #866eff;
+    background-color: #353535; /* Slightly dimmed on hover */
 }
 
 .title {
-    color: #f5f5f5;
-    font-size: 20px;
+    color: #ffffff;
+    font-size: 22px;
     font-weight: 600;
+    margin-bottom: 8px;
 }
 
 .subtitle {
-    color: #b0b0b0;
+    color: #a0a0a0;
     font-size: 14px;
     font-weight: 400;
+    margin-top: 8px;
 }
 
 footer {
@@ -165,6 +174,15 @@ footer {
 .accent {
     color: #866eff;
     text-shadow: 0 0 10px #866eff;
+}
+
+#heart {
+    color: #866eff; /* Purple heart */
+}
+
+footer .accent {
+    font-weight: 600;
+    text-shadow: 0 0 15px #866eff; /* Thicker glow for SLVRR */
 }
 
 /* Animations */
