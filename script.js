@@ -1,5 +1,5 @@
 // Typing effect for "I'm a [text]"
-const texts = ["student", "web developer", "15 y/o", "designer"];
+const texts = ["student", "web developer", "15 y/o", "designer", "pro robloxxer"];
 let textIndex = 0;
 let charIndex = 0;
 const typingText = document.querySelector(".typing-text");
@@ -21,52 +21,43 @@ function erase() {
         charIndex--;
         setTimeout(erase, 100); // Speed of erasing
     } else {
-        textIndex = (textIndex + 1) % texts.length;
+        textIndex = (textIndex + 1) % texts.length; // Cycle through text
         setTimeout(type, 500); // Pause before typing next text
     }
 }
 
-// Navbar hover and scaling effects
+// Handle navbar hover effects
 document.addEventListener("DOMContentLoaded", () => {
     type(); // Start typing effect
 
+    // Navbar hover effect
     const navbarContainer = document.querySelector('.navbar-container');
-    const navItems = document.querySelectorAll('.nav-item');
-    const activationThreshold = 100; // Expanded activation width for hover area
     let navbarVisible = false;
 
-    // Dynamic scaling based on cursor position
+    // Show navbar when cursor is near left edge
     document.addEventListener('mousemove', (e) => {
-        // Navbar activation within the specified threshold
-        if (e.clientX < activationThreshold) {
+        if (e.clientX < 70) { // Adjusted activation distance
             navbarContainer.style.opacity = '1';
             navbarVisible = true;
-            moveNavbarCloser(e); // Smoothly move navbar closer to cursor when in range
         } else if (navbarVisible) {
             navbarContainer.style.opacity = '0';
             navbarVisible = false;
         }
-
-        // Dynamic text scaling in navbar
-        navItems.forEach((item, index) => {
-            const rect = item.getBoundingClientRect();
-            const distance = Math.abs(e.clientY - rect.top - rect.height / 2);
-            const scaleFactor = Math.max(1, 1.5 - distance / 150); // Scale dynamically based on distance
-            item.style.transform = `translateX(${index * 5}px) scale(${scaleFactor})`;
-        });
     });
 
-    function moveNavbarCloser(e) {
-        navItems.forEach((item, index) => {
-            const rect = item.getBoundingClientRect();
-            const distance = Math.abs(e.clientX - rect.left);
-            const moveCloser = distance * 0.1; // Move 10% of the distance toward cursor
-            item.style.left = `${parseFloat(item.style.left || 0) + moveCloser}px`;
+    // Scaling effect for navbar items based on cursor position
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('mouseover', () => {
+            navItems.forEach(nav => {
+                nav.style.transform = 'scale(0.9)'; // Shrink other items
+            });
+            item.style.transform = 'scale(1.2)'; // Enlarge hovered item
         });
-    }
-
-    // Social buttons links
-    document.querySelector(".discord-btn").onclick = () => window.open("https://discord.com/users/717659256069029949", "_blank");
-    document.querySelector(".github-btn").onclick = () => window.open("https://github.com/xslvrrr", "_blank");
-    document.querySelector(".youtube-btn").onclick = () => window.open("https://www.youtube.com/@xslvrr", "_blank");
+        item.addEventListener('mouseout', () => {
+            navItems.forEach(nav => {
+                nav.style.transform = 'scale(1)'; // Reset size
+            });
+        });
+    });
 });
