@@ -4,46 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <title>About Me</title>
+    <link rel="stylesheet" href="style.css">
+    <title>About Me - SLVRR</title>
 </head>
 <body>
     <div class="navbar-container">
-        <div class="navbar-indicator"></div>
-        <div class="navbar">
-            <ul>
-                <li class="nav-item selected"><span class="selection-dot"></span> Home</li>
-                <li class="nav-item">About</li>
-                <li class="nav-item">Projects</li>
-                <li class="nav-item">Contact</li>
-            </ul>
-        </div>
+        <div class="nav-item">Home <span class="selection-dot"></span></div>
+        <div class="nav-item">About</div>
+        <div class="nav-item">Projects</div>
+        <div class="nav-item">Contact</div>
     </div>
-    <div class="container">
-        <div class="card profile-card">
-            <div class="profile">
-                <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=671dc687&is=671c7507&hm=20e29735b1bfcd04de989bfd3c52cd014cbbbaa83d3999410dac793decf8c562&=&format=webp&width=629&height=629" alt="Profile Picture">
-                <div class="profile-text">
-                    <h3 class="name">SLVRR</h3>
-                    <span class="typing-container">I'm a <span class="typing-text accent"></span><span class="typing-indicator">|</span></span>
+
+    <div class="main-content">
+        <div class="box">
+            <div class="box-content">
+                <div class="profile-picture">
+                    <img src="https://media.discordapp.net/attachments/1075776298175168576/1295066081953583114/jpegmafia.jpg?ex=671dc687&is=671c7507&hm=20e29735b1bfcd04de989bfd3c52cd014cbbbaa83d3999410dac793decf8c562&=&format=webp&width=629&height=629" alt="Profile Picture">
+                </div>
+                <div class="name-text">
+                    <h1 style="color: #B2A7FB; font-weight: 700;">SLVRR</h1>
+                    <div class="typing-effect">
+                        <span class="typing-text"></span>
+                        <span class="typing-indicator">|</span>
+                    </div>
+                </div>
+                <div class="social-buttons">
+                    <a href="https://discord.com/users/717659256069029949" target="_blank" class="social-button">Discord</a>
+                    <a href="https://github.com/xslvrrr" target="_blank" class="social-button">GitHub</a>
+                    <a href="https://www.youtube.com/@xslvrr" target="_blank" class="social-button">YouTube</a>
                 </div>
             </div>
-            <div class="social-buttons">
-                <button onclick="window.open('https://discord.com', '_blank')">Discord</button>
-                <button onclick="window.open('https://github.com', '_blank')">GitHub</button>
-                <button onclick="window.open('https://youtube.com', '_blank')">YouTube</button>
-            </div>
         </div>
-        <div class="card"><h4 class="title">About Me</h4><p class="subtitle">Subtitle content</p></div>
-        <div class="card"><h4 class="title">My Projects</h4><p class="subtitle">Subtitle content</p></div>
-        <div class="card"><h4 class="title">Hobbies</h4><p class="subtitle">Subtitle content</p></div>
-        <div class="card"><h4 class="title">Skills</h4><p class="subtitle">Subtitle content</p></div>
-        <div class="card"><h4 class="title">Contact</h4><p class="subtitle">Subtitle content</p></div>
+        <div class="box">
+            <h2 class="box-title" style="color: #FAFAFA;">I am a...</h2>
+            <p class="box-subtitle" style="color: #7B7B7F;">Content for box</p>
+        </div>
+        <div class="box">
+            <h2 class="box-title" style="color: #FAFAFA;">My Projects</h2>
+            <p class="box-subtitle" style="color: #7B7B7F;">Content for box</p>
+        </div>
+        <div class="box">
+            <h2 class="box-title" style="color: #FAFAFA;">Contact</h2>
+            <p class="box-subtitle" style="color: #7B7B7F;">Content for box</p>
+        </div>
+        <div class="box">
+            <h2 class="box-title" style="color: #FAFAFA;">Hobbies</h2>
+            <p class="box-subtitle" style="color: #7B7B7F;">Content for box</p>
+        </div>
+        <div class="box">
+            <h2 class="box-title" style="color: #FAFAFA;">Skills</h2>
+            <p class="box-subtitle" style="color: #7B7B7F;">Content for box</p>
+        </div>
     </div>
-    <footer>
-        <p>Made with <span id="heart">💜</span> by <span class="accent">SLVRR</span></p>
-        <p>&copy; 2024 <span class="thick-glow accent">SLVRR</span>, all rights reserved.</p>
+
+    <footer class="copyright">
+        <div class="made-with-love">
+            Made with 💜 by <span style="font-weight: 600; text-shadow: 0 0 15px rgba(178, 167, 251, 0.8);">SLVRR</span>
+        </div>
+        <p>© SLVRR, all rights reserved.</p>
     </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
