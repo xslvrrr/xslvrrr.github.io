@@ -1,5 +1,5 @@
 // Typing effect for "I'm a [text]"
-const texts = ["student", "web developer", "15 y/o", "pro robloxxer", "designer"];
+const texts = ["student", "web developer", "15 y/o", "designer", "pro robloxxer"];
 let textIndex = 0;
 let charIndex = 0;
 const typingText = document.querySelector(".typing-text");
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show navbar when cursor is near left edge
     document.addEventListener('mousemove', (e) => {
-        if (e.clientX < 50) {
+        if (e.clientX < 70) { // Adjusted activation distance
             navbarContainer.style.opacity = '1';
             navbarVisible = true;
         } else if (navbarVisible) {
@@ -45,14 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Scaling effect for navbar items
+    // Scaling effect for navbar items based on cursor position
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('mouseover', () => {
             navItems.forEach(nav => {
                 nav.style.transform = 'scale(0.9)'; // Shrink other items
             });
-            item.style.transform = 'scale(1.1)'; // Enlarge hovered item
+            item.style.transform = 'scale(1.2)'; // Enlarge hovered item
         });
         item.addEventListener('mouseout', () => {
             navItems.forEach(nav => {
