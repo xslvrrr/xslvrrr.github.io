@@ -31,5 +31,5 @@ type();
 // Show/hide navbar on hover
 const navbarContainer = document.querySelector('.navbar-container');
 document.addEventListener('mousemove', (e) => {
-    navbarContainer.style.width = e.clientX < 100 ? '150px' : '0';
+    navbarContainer.style.opacity = e.clientX < 50 ? '1' : '0';
 });
