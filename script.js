@@ -28,6 +28,8 @@ function erase() {
 
 type();
 
-// Randomize heart emoji
-const hearts = ["❤️", "💙", "💜", "💖", "💚"];
-document.getElementById("heart").textContent = hearts[Math.floor(Math.random() * hearts.length)];
+// Show/hide navbar on hover
+const navbarContainer = document.querySelector('.navbar-container');
+document.addEventListener('mousemove', (e) => {
+    navbarContainer.style.width = e.clientX < 100 ? '150px' : '0';
+});
