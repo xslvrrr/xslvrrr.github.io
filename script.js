@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show navbar when cursor is near left edge
     document.addEventListener('mousemove', (e) => {
-        if (e.clientX < 70) { // Adjusted activation distance
+        if (e.clientX < 140) { // Double the activation area for smoother display
             navbarContainer.style.opacity = '1';
             navbarVisible = true;
         } else if (navbarVisible) {
@@ -47,17 +47,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Scaling effect for navbar items based on cursor position
     const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('mouseover', () => {
-            navItems.forEach(nav => {
-                nav.style.transform = 'scale(0.9)'; // Shrink other items
-            });
-            item.style.transform = 'scale(1.2)'; // Enlarge hovered item
+    navItems.forEach((item, index) => {
+        item.addEventListener('mousemove', (e) => {
+            const distance = Math.abs(e.clientY - item.getBoundingClientRect().top);
+            const scale = Math.max(1.1 - distance / 200, 1); // Dynamic scaling based on cursor proximity
+            item.style.transform = `scale(${scale})`;
         });
         item.addEventListener('mouseout', () => {
-            navItems.forEach(nav => {
-                nav.style.transform = 'scale(1)'; // Reset size
-            });
+            item.style.transform = 'scale(1)'; // Reset size on mouse out
         });
+    });
+
+    // Navbar auto-follow effect when cursor is in activation range but not directly over navbar
+    document.addEventListener('mousemove', (e) => {
+        if (e.clientX < 140 && !navbarContainer.contains(e.target)) {
+            let closestItem = navItems[0];
+            let minDistance = Math.abs(e.clientY - closestItem.getBoundingClientRect().top);
+
+            navItems.forEach(item => {
+                const distance = Math.abs(e.clientY - item.getBoundingClientRect().top);
+                if (distance < minDistance) {
+                    closestItem = item;
+                    minDistance = distance;
+                }
+            });
+
+            // Move the navbar 10% closer to cursor vertically
+            const navbarTop = navbarContainer.getBoundingClientRect().top;
+            const moveAmount = (e.clientY - navbarTop) * 0.1;
+            navbarContainer.style.transform = `translateY(${moveAmount}px)`;
+        }
     });
 });
