@@ -10,32 +10,31 @@ body {
     color: #FAFAFA;
 }
 
+/* Navbar styling */
 .navbar-container {
     position: fixed;
-    left: 20px; /* Adds space from the screen edge */
+    left: 20px;
     top: 50%;
     transform: translateY(-50%);
     width: 150px;
-    padding-top: 40px;
-    transition: all 0.3s;
+    transition: opacity 0.3s ease;
     opacity: 0;
 }
 
 .navbar-indicator {
     position: absolute;
-    width: 100px;
-    height: 100%;
-    background-color: #000;
-    box-shadow: 0 0 20px 10px #000;
-    left: -50px; /* Adjust for glow */
-    opacity: 0.5;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.5), transparent 70%);
+    top: 50%;
+    left: -120px;
+    transform: translateY(-50%);
     z-index: 1;
 }
 
 .navbar {
     position: relative;
     z-index: 2;
-    padding: 0;
     text-align: left;
 }
 
@@ -57,6 +56,7 @@ body {
 }
 
 .nav-item:hover, .nav-item.selected {
+    color: #B2A7FB;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
@@ -73,6 +73,7 @@ body {
     visibility: visible;
 }
 
+/* Container and Card Styling */
 .container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -130,11 +131,18 @@ body {
     animation: blink 1s infinite step-end;
 }
 
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* Social Button Styling */
 .social-buttons {
     display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
+    flex-direction: column;
     gap: 10px;
+    margin-top: 15px;
 }
 
 .social-buttons button {
@@ -142,11 +150,11 @@ body {
     border: none;
     color: #FAFAFA;
     padding: 10px;
-    width: 100%;
     border-radius: 10px;
     cursor: pointer;
     font-weight: 500;
     font-family: 'Montserrat', sans-serif;
+    width: 100%;
     transition: background-color 0.3s;
 }
 
@@ -154,25 +162,38 @@ body {
     background-color: #161616;
 }
 
+/* Titles and Subtitles */
 .title {
     color: #FAFAFA;
     font-size: 22px;
     font-weight: 600;
+    margin-bottom: 5px;
 }
 
 .subtitle {
     color: #7B7B7F;
     font-size: 14px;
     margin-top: 5px;
+    margin-bottom: 15px;
 }
 
+/* Footer Styling */
 footer {
     text-align: center;
-    position: absolute;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
-    color: #FAFAFA;
+    position: relative;
+    margin-top: 40px;
+    color: #7B7B7F;
+}
+
+.made-with-love {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.footer-name {
+    color: #B2A7FB;
+    font-weight: 700;
+    text-shadow: 0px 0px 10px #B2A7FB;
 }
 
 .accent {
@@ -183,10 +204,4 @@ footer {
 .thick-glow {
     font-weight: 600;
     text-shadow: 0 0 15px #B2A7FB, 0 0 30px #B2A7FB;
-}
-
-@keyframes blink {
-    50% {
-        opacity: 0;
-    }
 }
