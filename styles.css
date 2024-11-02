@@ -18,7 +18,7 @@ body {
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    width: 150px;
+    width: 180px;
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 100;
@@ -26,11 +26,11 @@ body {
 
 .navbar-indicator {
     position: absolute;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(178, 167, 251, 0.1), transparent 70%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.5), transparent 70%);
     top: 50%;
-    left: -120px;
+    left: -150px;
     transform: translateY(-50%);
     z-index: 1;
 }
@@ -74,10 +74,11 @@ body {
 /* Container and Cards */
 .container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 12px;
     padding: 20px;
-    max-width: 1200px;
+    width: 95%;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -85,7 +86,7 @@ body {
     background-color: #0F0F0F;
     border: 1px solid #1C1C1D;
     border-radius: 10px;
-    padding: 20px;
+    padding: 24px;
     transition: box-shadow 0.3s ease;
 }
 
@@ -93,9 +94,21 @@ body {
     box-shadow: 0 0 15px rgba(178, 167, 251, 0.3);
 }
 
+.title {
+    color: #FAFAFA;
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #7B7B7F;
+    font-size: 1.1em;
+}
+
 /* Profile Card Specific Styles */
 .profile-card {
-    grid-column: span 2;
+    margin-bottom: 8px;
 }
 
 .profile {
@@ -155,4 +168,14 @@ footer {
 .thick-glow {
     font-weight: 600;
     text-shadow: 0 0 15px #B2A7FB;
+}
+
+/* Typing text updates */
+.typing-text {
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.typing-text.deleting {
+    color: #8A82C3;
 }
