@@ -37,21 +37,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const navbarContainer = document.querySelector('.navbar-container');
     const navItems = document.querySelectorAll('.nav-item');
     let navbarVisible = false;
+    let currentMoveAmount = 0; // Track current position for smooth movement
 
     document.addEventListener('mousemove', (e) => {
         if (e.clientX < 220) {
             navbarContainer.style.opacity = '1';
             navbarVisible = true;
 
-            // Reduced movement amount
-            const moveAmount = (e.clientY - window.innerHeight / 2) * 0.05;
-            navbarContainer.style.transform = `translateY(calc(-50% + ${moveAmount}px))`;
+            // Smoother movement with lerp (linear interpolation)
+            const targetMoveAmount = (e.clientY - window.innerHeight / 2) * 0.02; // Reduced movement amount
+            currentMoveAmount += (targetMoveAmount - currentMoveAmount) * 0.1; // Smooth transition
+            navbarContainer.style.transform = `translateY(calc(-50% + ${currentMoveAmount}px))`;
 
             // Get the total height of the navbar
             const firstItem = navItems[0].getBoundingClientRect();
             const lastItem = navItems[navItems.length - 1].getBoundingClientRect();
             const navHeight = lastItem.bottom - firstItem.top;
-            const navCenter = firstItem.top + navHeight / 2;
 
             // Scale all items based on cursor distance
             navItems.forEach(item => {
@@ -62,21 +63,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 const distanceFromCursor = Math.abs(e.clientY - itemCenterY);
                 const distancePercent = distanceFromCursor / (navHeight / 2);
                 
-                // Adjust these values to control the scaling effect
-                const maxScale = 1.2;  // Maximum scale when cursor is closest
-                const minScale = 0.9;  // Minimum scale when cursor is furthest
+                // Reduced scaling effect (halved)
+                const maxScale = 1.1;  // Reduced from 1.2
+                const minScale = 0.95; // Increased from 0.9
                 const scaleRange = maxScale - minScale;
                 
                 // Calculate scale with a smoother falloff
                 const scale = maxScale - (Math.min(distancePercent, 1) * scaleRange);
                 
-                // Apply transform with smooth transition
+                // Apply transform
                 item.style.transform = `scale(${scale})`;
-                item.style.transition = 'transform 0.15s ease-out';
             });
         } else if (navbarVisible) {
             navbarContainer.style.opacity = '0';
             navbarVisible = false;
+            currentMoveAmount = 0; // Reset position
             
             // Reset all items
             navItems.forEach(item => {
