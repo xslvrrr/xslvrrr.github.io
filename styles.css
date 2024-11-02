@@ -47,9 +47,9 @@ body {
 .nav-item {
     display: flex;
     align-items: center;
-    margin: 20px 0;
+    margin: 12px 0;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease-out;
     color: #FAFAFA;
     font-weight: 500;
     transform-origin: left center;
