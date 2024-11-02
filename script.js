@@ -39,8 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let navbarVisible = false;
 
     document.addEventListener('mousemove', (e) => {
-        // Show/hide navbar
-        if (e.clientX < 180) {
+        if (e.clientX < 220) {
             navbarContainer.style.opacity = '1';
             navbarVisible = true;
 
@@ -48,15 +47,32 @@ document.addEventListener("DOMContentLoaded", () => {
             const moveAmount = (e.clientY - window.innerHeight / 2) * 0.05;
             navbarContainer.style.transform = `translateY(calc(-50% + ${moveAmount}px))`;
 
-            // Dynamic scaling based on cursor position
+            // Get the total height of the navbar
+            const firstItem = navItems[0].getBoundingClientRect();
+            const lastItem = navItems[navItems.length - 1].getBoundingClientRect();
+            const navHeight = lastItem.bottom - firstItem.top;
+            const navCenter = firstItem.top + navHeight / 2;
+
+            // Scale all items based on cursor distance
             navItems.forEach(item => {
                 const rect = item.getBoundingClientRect();
-                const distance = Math.abs(e.clientY - (rect.top + rect.height / 2));
-                const scale = Math.max(1.15 - distance / 100, 1);
-                const opacity = Math.max(1 - distance / 150, 0.7);
+                const itemCenterY = rect.top + (rect.height / 2);
                 
+                // Calculate distance from cursor as a percentage of nav height
+                const distanceFromCursor = Math.abs(e.clientY - itemCenterY);
+                const distancePercent = distanceFromCursor / (navHeight / 2);
+                
+                // Adjust these values to control the scaling effect
+                const maxScale = 1.2;  // Maximum scale when cursor is closest
+                const minScale = 0.9;  // Minimum scale when cursor is furthest
+                const scaleRange = maxScale - minScale;
+                
+                // Calculate scale with a smoother falloff
+                const scale = maxScale - (Math.min(distancePercent, 1) * scaleRange);
+                
+                // Apply transform with smooth transition
                 item.style.transform = `scale(${scale})`;
-                item.style.opacity = opacity;
+                item.style.transition = 'transform 0.15s ease-out';
             });
         } else if (navbarVisible) {
             navbarContainer.style.opacity = '0';
@@ -65,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Reset all items
             navItems.forEach(item => {
                 item.style.transform = 'scale(1)';
-                item.style.opacity = '1';
             });
         }
     });
