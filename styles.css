@@ -82,7 +82,7 @@ body {
     width: 98%;
     max-width: 1800px;
     margin: 0 auto;
-    grid-auto-flow: column;
+    grid-auto-flow: row;
 }
 
 .card {
