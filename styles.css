@@ -166,7 +166,7 @@ body {
 .social-buttons .button-bg {
     position: absolute;
     width: 85%;
-    height: auto;
+    height: 85%;
     opacity: 0.5;
     object-fit: contain;
     pointer-events: none;
