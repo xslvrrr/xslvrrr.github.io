@@ -111,7 +111,6 @@ body {
 
 /* Profile Card Specific Styles */
 .profile-card {
-    grid-column: 1 / -1;
     margin-bottom: 16px;
 }
 
@@ -195,15 +194,21 @@ footer {
 
 .thick-glow {
     font-weight: 600;
-    text-shadow: 0 0 15px #B2A7FB;
+    text-shadow: 0 0 25px #B2A7FB, 0 0 35px #B2A7FB;
 }
 
 /* Typing text updates */
 .typing-text {
     font-weight: 600;
-    transition: color 0.2s ease;
+    transition: color 0.3s ease;
+}
+
+@keyframes deleteFlash {
+    0% { color: #B2A7FB; }
+    50% { color: #8A82C3; }
+    100% { color: #B2A7FB; }
 }
 
 .typing-text.deleting {
-    color: #8A82C3;
+    animation: deleteFlash 0.8s ease infinite;
 }
