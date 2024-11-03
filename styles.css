@@ -165,10 +165,14 @@ body {
 
 .social-buttons .button-bg {
     position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: 85%;
-    height: 85%;
+    height: auto;
+    min-height: 150%;
     opacity: 0.5;
-    object-fit: contain;
+    object-fit: cover;
     pointer-events: none;
     z-index: 1;
 }
