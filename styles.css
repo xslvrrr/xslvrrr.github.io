@@ -82,7 +82,8 @@ body {
     width: 98%;
     max-width: 1800px;
     margin: 0 auto;
-    grid-auto-flow: row;
+    grid-auto-flow: row dense;
+    align-items: start;
 }
 
 .card {
@@ -92,6 +93,7 @@ body {
     border-radius: 10px;
     padding: 24px;
     transition: box-shadow 0.3s ease;
+    align-self: start;
 }
 
 .card:hover {
