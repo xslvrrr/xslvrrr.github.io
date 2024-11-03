@@ -22,7 +22,7 @@ function erase() {
         }
         typingText.textContent = texts[textIndex].substring(0, charIndex - 1);
         charIndex--;
-        setTimeout(erase, 50);
+        setTimeout(erase, 80);
     } else {
         typingText.classList.remove('deleting');
         textIndex = (textIndex + 1) % texts.length;
