@@ -1,16 +1,25 @@
-let timeout;
+document.addEventListener('DOMContentLoaded', () => {
+  const logoOriginal = document.querySelector('.logo-original');
+  const logoOverlay = document.querySelector('.logo-overlay');
+  let lastScrollTop = 0;
+  let scrollTimeout;
 
-window.addEventListener('scroll', () => {
-  const originalLogo = document.querySelector('.original-logo');
+  window.addEventListener('scroll', () => {
+    // Clear the previous timeout
+    clearTimeout(scrollTimeout);
 
-  // Clear any existing timeout
-  clearTimeout(timeout);
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-  // Fade out the original logo while scrolling
-  originalLogo.style.opacity = '0';
+    // Show overlay logo while scrolling
+    logoOriginal.style.opacity = '0';
+    logoOverlay.style.opacity = '1';
 
-  // Set a timeout to fade it back in when scrolling stops
-  timeout = setTimeout(() => {
-    originalLogo.style.opacity = '1';
-  }, 300); // Adjust delay for smoother effect if needed
+    // Set timeout to revert logos after scrolling stops
+    scrollTimeout = setTimeout(() => {
+      logoOriginal.style.opacity = '1';
+      logoOverlay.style.opacity = '0';
+    }, 150); // Adjust this delay as needed
+
+    lastScrollTop = scrollTop;
+  });
 });
