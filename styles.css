@@ -15,7 +15,7 @@ body {
 
 /* Sticky Navbar */
 .navbar {
-  position: fixed; /* Sticks to the top of the screen */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -23,7 +23,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 120px; /* Triple the padding */
+  padding: 0 160px; /* Increased padding */
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px) brightness(0.8);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
@@ -32,7 +32,7 @@ body {
 }
 
 .logo {
-  height: 28px; /* Much smaller logo size */
+  height: 28px; /* Smaller logo size */
 }
 
 .login {
@@ -41,8 +41,8 @@ body {
   text-decoration: none;
   font-size: 1rem;
   font-weight: bold;
-  padding: 10px 20px;
-  border-radius: 20px; /* Apple-like rounding */
+  padding: 14px 28px; /* Larger button size */
+  border-radius: 20px;
   transition: background-color 0.3s, box-shadow 0.3s;
 }
 
@@ -57,25 +57,28 @@ body {
   justify-content: center;
   align-items: flex-start;
   height: calc(100vh - 104px); /* Account for navbar height */
-  padding: 0 120px; /* Triple the padding */
+  padding: 0 160px; /* Increased padding */
   text-align: left;
 }
 
 .title {
-  font-size: 5rem; /* Larger title size */
+  font-size: 5.5rem; /* Larger title size */
   font-weight: bold;
   line-height: 1.2;
   margin-bottom: 10px;
 }
 
 .title .reimagined {
-  color: #00b894;
+  background: linear-gradient(to bottom, #00b894, #007d6f); /* Green gradient */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-wipe 2s ease-in-out forwards;
 }
 
 .subtitle {
   font-size: 1.6rem;
   margin-bottom: 20px;
-  color: #bcbcbc; /* Darker for contrast */
+  color: #bcbcbc; /* Darker subtitle for contrast */
 }
 
 .learn-more {
@@ -84,8 +87,8 @@ body {
   color: #00b894;
   text-decoration: none;
   border: 2px solid #00b894;
-  padding: 12px 24px;
-  border-radius: 20px; /* Apple-like rounding */
+  padding: 14px 32px; /* Larger button size */
+  border-radius: 20px;
   transition: all 0.3s;
 }
 
@@ -106,18 +109,15 @@ body {
   pointer-events: none;
   transform: translate(-50%, -50%);
   z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.2s ease-out, transform 0.1s ease-out;
+  opacity: 1; /* Always visible */
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+/* Gradient Animation */
+@keyframes gradient-wipe {
+  0% {
+    background: linear-gradient(to bottom, white, white);
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  100% {
+    background: linear-gradient(to bottom, #00b894, #007d6f);
   }
 }
