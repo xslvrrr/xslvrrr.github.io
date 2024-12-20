@@ -1,126 +1,133 @@
 /* General Reset */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #0f0f0f;
-  color: #ffffff;
-  overflow-x: hidden;
-}
-
-/* Sticky Navbar */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 104px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 160px;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 1000;
-}
-
-.logo-container {
-  position: relative;
-}
-
-.logo {
-  height: 64px;
-  transition: opacity 0.4s ease-in-out;
-}
-
-.logo-2 {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 1; /* Always visible */
-}
-
-.original-logo {
-  opacity: 1; /* Fully visible by default */
-}
-
-/* Login Button */
-.login {
-  font-size: 18px;
-  color: #ffffff;
-  text-decoration: none;
-  padding: 8px 20px;
-  border: 2px solid #ffffff;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.login:hover {
-  background-color: #ffffff;
-  color: #0f0f0f;
-}
-
-/* Content */
-.content {
-  margin-top: 200px;
-  padding: 0 160px;
-  text-align: center;
-}
-
-.title {
-  font-size: 64px;
-  line-height: 1.2;
-}
-
-.reimagined {
-  font-weight: bold;
-  color: #00ffab;
-}
-
-.subtitle {
-  font-size: 24px;
-  margin-top: 20px;
-  color: #cccccc;
-}
-
-.no-millennium {
-  display: block;
-  margin: 40px auto 0;
-  max-width: 80%;
-}
-
-/* Stimulus Section */
-.stimulus-container {
-  margin: 60px auto;
-  padding: 40px;
-  max-width: 600px;
-  background-color: #222222;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.inner-box {
-  padding: 20px;
-  background-color: #333333;
-  border-radius: 12px;
-}
-
-.stimulus-title {
-  font-size: 20px;
-  color: #00ffab;
-  margin-bottom: 10px;
-}
-
-.stimulus-subtitle {
-  font-size: 18px;
-  color: #ffffff;
-  margin-bottom: 10px;
-}
-
-.stimulus-body {
-  font-size: 16px;
-  color: #cccccc;
-}
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #0f0f0f;
+    color: #ffffff;
+    overflow-x: hidden;
+    cursor: default;
+  }
+  
+  /* Sticky Navbar */
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 104px; /* 30% taller */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 160px; /* Increased padding */
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px) brightness(0.8);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .logo-container {
+    position: relative;
+    height: 28px;
+  }
+  
+  .logo {
+    height: 28px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .logo-original {
+    opacity: 1;
+  }
+  
+  .logo-overlay {
+    opacity: 0;
+  }
+  
+  /* Update content styles to accommodate side image */
+  .content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: calc(100vh - 104px);
+    padding: 0 160px;
+  }
+  
+  .text-content {
+    flex: 1;
+  }
+  
+  .side-image {
+    height: 70vh;
+    margin-left: 60px;
+    object-fit: contain;
+  }
+  
+  .login {
+    background-color: #00b894;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 14px 28px; /* Larger button size */
+    border-radius: 20px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  
+  .login:hover {
+    background-color: #01976d;
+  }
+  
+  /* Center Content */
+  .content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    height: calc(100vh - 104px); /* Account for navbar height */
+    padding: 0 160px; /* Increased padding */
+    text-align: left;
+  }
+  
+  .title {
+    font-size: 5.5rem; /* Larger title size */
+    font-weight: bold;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  
+  .title .reimagined {
+    background: linear-gradient(to bottom, #00b894, #007d6f); /* Green gradient */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .subtitle {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    color: #bcbcbc; /* Darker subtitle for contrast */
+  }
+  
+  .learn-more {
+    display: inline-block;
+    font-size: 1.2rem;
+    color: #00b894;
+    text-decoration: none;
+    border: 2px solid #00b894;
+    padding: 14px 32px; /* Larger button size */
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+  
+  .learn-more:hover {
+    background-color: #00b894;
+    color: #0f0f0f;
+  }
