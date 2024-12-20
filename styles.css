@@ -10,7 +10,7 @@ body {
   background-color: #0f0f0f;
   color: #ffffff;
   overflow-x: hidden;
-  cursor: none; /* Hide default cursor */
+  cursor: default;
 }
 
 /* Sticky Navbar */
@@ -72,7 +72,6 @@ body {
   background: linear-gradient(to bottom, #00b894, #007d6f); /* Green gradient */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradient-wipe 2s ease-in-out forwards;
 }
 
 .subtitle {
@@ -95,29 +94,4 @@ body {
 .learn-more:hover {
   background-color: #00b894;
   color: #0f0f0f;
-}
-
-/* Radial Glow Effect */
-.cursor-glow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 20, 147, 0.7), rgba(255, 20, 147, 0));
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  z-index: 9999;
-  opacity: 1; /* Always visible */
-}
-
-/* Gradient Animation */
-@keyframes gradient-wipe {
-  0% {
-    background: linear-gradient(to bottom, white, white);
-  }
-  100% {
-    background: linear-gradient(to bottom, #00b894, #007d6f);
-  }
 }
