@@ -15,23 +15,24 @@ body {
 
 /* Sticky Navbar */
 .navbar {
-  position: fixed; /* Always sticks to the top of the screen */
+  position: fixed; /* Sticks to the top of the screen */
   top: 0;
   left: 0;
   width: 100%;
-  height: 80px;
+  height: 104px; /* 30% taller */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 120px; /* Triple the padding */
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px) brightness(0.8);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  z-index: 1000; /* Ensures it stays above all other elements */
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo {
-  height: 40px; /* Adjusted for proportional size */
+  height: 28px; /* Much smaller logo size */
 }
 
 .login {
@@ -41,7 +42,7 @@ body {
   font-size: 1rem;
   font-weight: bold;
   padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 20px; /* Apple-like rounding */
   transition: background-color 0.3s, box-shadow 0.3s;
 }
 
@@ -55,13 +56,13 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  height: calc(100vh - 80px); /* Account for navbar height */
-  padding: 0 40px;
+  height: calc(100vh - 104px); /* Account for navbar height */
+  padding: 0 120px; /* Triple the padding */
   text-align: left;
 }
 
 .title {
-  font-size: 4rem; /* Larger title size */
+  font-size: 5rem; /* Larger title size */
   font-weight: bold;
   line-height: 1.2;
   margin-bottom: 10px;
@@ -72,7 +73,7 @@ body {
 }
 
 .subtitle {
-  font-size: 1.5rem; /* Larger subtitle */
+  font-size: 1.6rem;
   margin-bottom: 20px;
   color: #bcbcbc; /* Darker for contrast */
 }
@@ -83,8 +84,8 @@ body {
   color: #00b894;
   text-decoration: none;
   border: 2px solid #00b894;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 12px 24px;
+  border-radius: 20px; /* Apple-like rounding */
   transition: all 0.3s;
 }
 
@@ -93,21 +94,20 @@ body {
   color: #0f0f0f;
 }
 
-/* Cursor Glow */
+/* Radial Glow Effect */
 .cursor-glow {
   position: fixed;
   top: 0;
   left: 0;
-  width: 50px;
-  height: 50px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
-  background-color: rgba(255, 20, 147, 0.5); /* Pink glow */
-  pointer-events: none; /* Prevents interaction with elements */
-  mix-blend-mode: color-dodge; /* Enhances the glow effect */
+  background: radial-gradient(circle, rgba(255, 20, 147, 0.7), rgba(255, 20, 147, 0));
+  pointer-events: none;
   transform: translate(-50%, -50%);
-  z-index: 9999; /* On top of all elements */
-  opacity: 0; /* Start hidden */
-  transition: opacity 0.2s ease-out;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.2s ease-out, transform 0.1s ease-out;
 }
 
 /* Animations */
