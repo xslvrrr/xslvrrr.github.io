@@ -59,18 +59,25 @@
     align-items: center;
     height: calc(100vh - 104px);
     padding: 0 160px;
-  }
-  
-  .text-content {
+    text-align: left;
+}
+
+.text-content {
     flex: 1;
-  }
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 60%; /* Prevent text from spreading too wide */
+}
   
-  .side-image {
+.side-image {
     height: 70vh;
     margin-left: 60px;
     object-fit: contain;
-  }
-  
+    align-self: center; /* Center the image vertically */
+}
+
   .login {
     background-color: #00b894;
     color: #ffffff;
@@ -84,17 +91,6 @@
   
   .login:hover {
     background-color: #01976d;
-  }
-  
-  /* Center Content */
-  .content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    height: calc(100vh - 104px); /* Account for navbar height */
-    padding: 0 160px; /* Increased padding */
-    text-align: left;
   }
   
   .title {
