@@ -10,25 +10,28 @@ body {
   background-color: #0f0f0f;
   color: #ffffff;
   overflow-x: hidden;
+  cursor: none; /* Hide default cursor */
 }
 
-/* Navbar with Frosted Glass Effect */
+/* Sticky Navbar */
 .navbar {
-  position: sticky;
+  position: fixed; /* Always sticks to the top of the screen */
   top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  height: 80px;
   padding: 0 40px;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px) brightness(0.8);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000; /* Ensures it stays above all other elements */
 }
 
 .logo {
-  height: 40px; /* Smaller logo */
+  height: 40px; /* Adjusted for proportional size */
 }
 
 .login {
@@ -44,26 +47,24 @@ body {
 
 .login:hover {
   background-color: #01976d;
-  box-shadow: 0 0 10px 5px rgba(255, 20, 147, 0.5); /* Pink glow */
 }
 
+/* Center Content */
 .content {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  height: calc(100vh - 80px); /* Center vertically */
-  text-align: left;
+  height: calc(100vh - 80px); /* Account for navbar height */
   padding: 0 40px;
-  animation: fadeInRise 1s ease-out;
+  text-align: left;
 }
 
 .title {
-  font-size: 4rem; /* Bigger title */
+  font-size: 4rem; /* Larger title size */
   font-weight: bold;
   line-height: 1.2;
   margin-bottom: 10px;
-  animation: fadeInRise 1.2s ease-out;
 }
 
 .title .reimagined {
@@ -71,10 +72,9 @@ body {
 }
 
 .subtitle {
-  font-size: 1.5rem; /* Bigger subtitle */
+  font-size: 1.5rem; /* Larger subtitle */
   margin-bottom: 20px;
-  color: #bcbcbc; /* Darker subtitle */
-  animation: fadeInRise 1.4s ease-out;
+  color: #bcbcbc; /* Darker for contrast */
 }
 
 .learn-more {
@@ -86,51 +86,38 @@ body {
   padding: 10px 20px;
   border-radius: 5px;
   transition: all 0.3s;
-  animation: fadeInRise 1.6s ease-out;
 }
 
 .learn-more:hover {
   background-color: #00b894;
   color: #0f0f0f;
-  box-shadow: 0 0 15px 5px rgba(255, 20, 147, 0.5); /* Pink glow */
 }
 
-/* Animation */
-@keyframes fadeInRise {
+/* Cursor Glow */
+.cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: rgba(255, 20, 147, 0.5); /* Pink glow */
+  pointer-events: none; /* Prevents interaction with elements */
+  mix-blend-mode: color-dodge; /* Enhances the glow effect */
+  transform: translate(-50%, -50%);
+  z-index: 9999; /* On top of all elements */
+  opacity: 0; /* Start hidden */
+  transition: opacity 0.2s ease-out;
+}
+
+/* Animations */
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Cursor Glow Effect */
-body {
-  cursor: none;
-}
-
-body::after {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: rgba(255, 20, 147, 0.7); /* Pink glow */
-  border-radius: 50%;
-  pointer-events: none;
-  animation: cursorGlow 0.2s ease-in-out infinite;
-}
-
-@keyframes cursorGlow {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
     transform: scale(1);
   }
 }
