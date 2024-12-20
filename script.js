@@ -9,7 +9,7 @@ document.addEventListener('mousemove', (e) => {
   cursorGlow.style.top = `${e.clientY}px`;
   cursorGlow.style.left = `${e.clientX}px`;
 
-  // Check if the cursor is over any green element
+  // Check if cursor overlaps any green element
   const isOverGreenElement = greenElements.some((element) => {
     const rect = element.getBoundingClientRect();
     return (
@@ -20,7 +20,7 @@ document.addEventListener('mousemove', (e) => {
     );
   });
 
-  // Show or Hide the Glow
+  // Show or hide glow
   if (isOverGreenElement) {
     cursorGlow.style.opacity = 1;
   } else {
