@@ -16,17 +16,20 @@ let currentSaturation = 100;
 let currentLightness = 36;
 let isDraggingHue = false;
 let isDraggingColor = false;
+let isPickerOpen = false;
 
 // Toggle settings popup
 settingsBtn.addEventListener('click', (e) => {
   e.stopPropagation();
+  isPickerOpen = !isPickerOpen;
   settingsBtn.classList.toggle('active');
   settingsPopup.classList.toggle('active');
 });
 
 // Close popup when clicking outside
 document.addEventListener('click', (e) => {
-  if (!settingsPopup.contains(e.target) && settingsPopup.classList.contains('active')) {
+  if (!settingsPopup.contains(e.target) && !settingsBtn.contains(e.target) && isPickerOpen && !isDraggingHue && !isDraggingColor) {
+    isPickerOpen = false;
     settingsBtn.classList.remove('active');
     settingsPopup.classList.remove('active');
   }
@@ -101,7 +104,7 @@ function updateColorPicker(h, s, l) {
   
   // Calculate brightness and update text colors
   const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
-  const isDark = brightness < 140;
+  const isDark = brightness < 180; // Increased threshold for better contrast
   
   // Update CSS variables
   const root = document.documentElement;
