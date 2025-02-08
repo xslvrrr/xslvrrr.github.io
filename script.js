@@ -1,9 +1,21 @@
 // Settings button and popup functionality
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsPopup = document.querySelector('.settings-popup');
-const colorPicker = document.querySelector('#accent-color');
 const hexInput = document.querySelector('#hex-input');
 const rgbInput = document.querySelector('#rgb-input');
+
+// Color picker elements
+const colorArea = document.querySelector('.color-area');
+const colorAreaInner = document.querySelector('.color-area-inner');
+const colorAreaThumb = document.querySelector('.color-area-thumb');
+const hueSlider = document.querySelector('.hue-slider');
+const hueThumb = document.querySelector('.hue-slider-thumb');
+
+let currentHue = 0;
+let currentSaturation = 100;
+let currentLightness = 50;
+let isDraggingHue = false;
+let isDraggingColor = false;
 
 // Toggle settings popup
 settingsBtn.addEventListener('click', (e) => {
@@ -23,7 +35,7 @@ document.addEventListener('click', (e) => {
 // Convert RGB to HEX
 function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(x => {
-    const hex = x.toString(16);
+    const hex = Math.round(x).toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   }).join('');
 }
@@ -38,54 +50,133 @@ function hexToRgb(hex) {
   } : null;
 }
 
-// Update color inputs and CSS variables
-function updateColor(hex) {
-  const root = document.documentElement;
-  const rgb = hexToRgb(hex);
+// HSL to RGB conversion
+function hslToRgb(h, s, l) {
+  s /= 100;
+  l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n =>
+    l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return {
+    r: 255 * f(0),
+    g: 255 * f(8),
+    b: 255 * f(4)
+  };
+}
+
+// Update the color picker UI
+function updateColorPicker(h, s, l) {
+  // Update color area background
+  colorAreaInner.style.backgroundColor = `hsl(${h}, 100%, 50%)`;
+  
+  // Update thumbs position
+  const saturationX = (s / 100) * colorArea.offsetWidth;
+  const lightnessY = (1 - l / 100) * colorArea.offsetHeight;
+  const hueX = (h / 360) * hueSlider.offsetWidth;
+  
+  colorAreaThumb.style.left = `${saturationX}px`;
+  colorAreaThumb.style.top = `${lightnessY}px`;
+  hueThumb.style.left = `${hueX}px`;
+  
+  // Update color thumb background
+  colorAreaThumb.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+  
+  // Convert to RGB and update inputs
+  const rgb = hslToRgb(h, s, l);
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  
+  hexInput.value = hex;
+  rgbInput.value = `${Math.round(rgb.r)},${Math.round(rgb.g)},${Math.round(rgb.b)}`;
   
   // Update CSS variables
+  const root = document.documentElement;
   root.style.setProperty('--accent-color', hex);
-  root.style.setProperty('--accent-darker', adjustColor(hex, -20));
-  
-  // Update input fields
-  colorPicker.value = hex;
-  hexInput.value = hex;
-  rgbInput.value = `${rgb.r},${rgb.g},${rgb.b}`;
+  root.style.setProperty('--accent-darker', rgbToHex(
+    rgb.r * 0.8,
+    rgb.g * 0.8,
+    rgb.b * 0.8
+  ));
 }
 
-// Adjust color brightness
-function adjustColor(hex, percent) {
-  const rgb = hexToRgb(hex);
-  const adjust = (value) => {
-    return Math.max(0, Math.min(255, Math.round(value * (1 + percent/100))));
-  };
-  
-  return rgbToHex(
-    adjust(rgb.r),
-    adjust(rgb.g),
-    adjust(rgb.b)
-  );
-}
-
-// Color picker event listeners
-colorPicker.addEventListener('input', (e) => {
-  updateColor(e.target.value);
+// Handle hue slider interactions
+hueSlider.addEventListener('mousedown', (e) => {
+  isDraggingHue = true;
+  const rect = hueSlider.getBoundingClientRect();
+  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  currentHue = x * 360;
+  updateColorPicker(currentHue, currentSaturation, currentLightness);
 });
 
-hexInput.addEventListener('change', (e) => {
-  const hex = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value;
-  if (/^#[0-9A-F]{6}$/i.test(hex)) {
-    updateColor(hex);
+// Handle color area interactions
+colorArea.addEventListener('mousedown', (e) => {
+  isDraggingColor = true;
+  const rect = colorArea.getBoundingClientRect();
+  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+  currentSaturation = x * 100;
+  currentLightness = (1 - y) * 100;
+  updateColorPicker(currentHue, currentSaturation, currentLightness);
+});
+
+// Handle mouse movement
+document.addEventListener('mousemove', (e) => {
+  if (isDraggingHue) {
+    const rect = hueSlider.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    currentHue = x * 360;
+    updateColorPicker(currentHue, currentSaturation, currentLightness);
+  }
+  if (isDraggingColor) {
+    const rect = colorArea.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    currentSaturation = x * 100;
+    currentLightness = (1 - y) * 100;
+    updateColorPicker(currentHue, currentSaturation, currentLightness);
   }
 });
 
+// Handle mouse up
+document.addEventListener('mouseup', () => {
+  isDraggingHue = false;
+  isDraggingColor = false;
+});
+
+// Handle hex input
+hexInput.addEventListener('change', (e) => {
+  const hex = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value;
+  if (/^#[0-9A-F]{6}$/i.test(hex)) {
+    const rgb = hexToRgb(hex);
+    // Convert RGB to HSL
+    const max = Math.max(rgb.r, rgb.g, rgb.b) / 255;
+    const min = Math.min(rgb.r, rgb.g, rgb.b) / 255;
+    const delta = max - min;
+    
+    currentLightness = (max + min) / 2 * 100;
+    currentSaturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * currentLightness/100 - 1)) * 100;
+    
+    if (delta === 0) currentHue = 0;
+    else if (max === rgb.r/255) currentHue = 60 * ((rgb.g/255 - rgb.b/255) / delta);
+    else if (max === rgb.g/255) currentHue = 60 * (2 + (rgb.b/255 - rgb.r/255) / delta);
+    else currentHue = 60 * (4 + (rgb.r/255 - rgb.g/255) / delta);
+    
+    if (currentHue < 0) currentHue += 360;
+    
+    updateColorPicker(currentHue, currentSaturation, currentLightness);
+  }
+});
+
+// Handle RGB input
 rgbInput.addEventListener('change', (e) => {
   const values = e.target.value.split(',').map(v => parseInt(v.trim()));
   if (values.length === 3 && values.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
     const hex = rgbToHex(values[0], values[1], values[2]);
-    updateColor(hex);
+    hexInput.value = hex;
+    hexInput.dispatchEvent(new Event('change'));
   }
 });
 
 // Initialize with default color
-updateColor('#00b894');
+hexInput.value = '#00b894';
+hexInput.dispatchEvent(new Event('change'));
