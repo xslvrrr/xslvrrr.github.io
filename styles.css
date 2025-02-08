@@ -85,7 +85,8 @@ body {
   padding: 24px;
   display: none;
   backdrop-filter: blur(10px);
-  min-width: 300px;
+  width: 300px;
+  height: 520px;
 }
 
 .settings-popup.active {
@@ -303,6 +304,7 @@ body {
 
 .gradient-editor {
   display: none;
+  height: 420px;
 }
 
 .gradient-editor.active {
@@ -390,6 +392,7 @@ body {
 
 .solid-picker {
   display: block;
+  height: 420px;
 }
 
 .solid-picker.hidden {
