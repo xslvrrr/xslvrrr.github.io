@@ -300,9 +300,25 @@ tabSwitcher.addEventListener('click', (e) => {
     document.querySelectorAll('.tab-option').forEach(t => t.classList.remove('active'));
     e.target.classList.add('active');
     
+    const root = document.documentElement;
     if (tab === 'solid') {
       solidPicker.classList.remove('hidden');
       gradientEditor.classList.remove('active');
+      
+      // Apply solid color
+      const rgb = hsvToRgb(currentHue, currentSaturation, currentValue);
+      const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+      const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
+      const isDark = brightness < 180;
+      
+      root.style.setProperty('--accent-gradient', `linear-gradient(90deg, ${hex} 0%, ${hex} 100%)`);
+      root.style.setProperty('--accent-color', hex);
+      root.style.setProperty('--accent-darker', rgbToHex(
+        rgb.r * 0.7,
+        rgb.g * 0.7,
+        rgb.b * 0.7
+      ));
+      root.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
     } else {
       solidPicker.classList.add('hidden');
       gradientEditor.classList.add('active');
@@ -322,14 +338,11 @@ function createStopElement(position, color) {
 
 // Update gradient preview
 function updateGradientPreview() {
-  const angle = angleInput.value;
-  const gradient = `linear-gradient(${angle}deg, ${gradientStopsData
+  const gradient = `linear-gradient(${angleInput.value}deg, ${gradientStopsData
     .map(stop => `${stop.color} ${stop.position}%`)
     .join(', ')})`;
   
-  gradientPreview.style.background = gradient;
-  document.documentElement.style.setProperty('--accent-color', gradientStopsData[0].color);
-  document.documentElement.style.setProperty('--accent-darker', gradientStopsData[gradientStopsData.length - 1].color);
+  document.documentElement.style.setProperty('--accent-gradient', gradient);
   
   // Update color picker with active stop color
   const activeStop = gradientStopsData[activeStopIndex];
@@ -403,9 +416,11 @@ removeStopBtn.addEventListener('click', () => {
   }
 });
 
-// Update gradient angle
+// Update gradient angle with debounce
+let angleUpdateTimeout;
 angleInput.addEventListener('input', () => {
-  updateGradientPreview();
+  clearTimeout(angleUpdateTimeout);
+  angleUpdateTimeout = setTimeout(updateGradientPreview, 100);
 });
 
 // Update gradient stop color when color picker changes
