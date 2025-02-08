@@ -17,6 +17,7 @@ body {
   color: #ffffff;
   overflow-x: hidden;
   cursor: default;
+  font-weight: 500;
 }
 
 /* Sticky Navbar */
@@ -83,6 +84,7 @@ body {
   padding: 24px;
   display: none;
   backdrop-filter: blur(10px);
+  min-width: 300px;
 }
 
 .settings-popup.active {
@@ -91,19 +93,95 @@ body {
 
 .settings-popup h2 {
   font-family: 'Poppins', sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.2rem;
   margin-bottom: 16px;
 }
 
-.color-picker {
-  width: 300px;
+.custom-color-picker {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.hue-slider {
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  background: linear-gradient(to right, 
+    #ff0000 0%, #ffff00 17%, 
+    #00ff00 33%, #00ffff 50%, 
+    #0000ff 67%, #ff00ff 83%, 
+    #ff0000 100%
+  );
+  position: relative;
+  cursor: pointer;
+}
+
+.hue-slider-thumb {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+  cursor: grab;
+}
+
+.color-area {
+  width: 100%;
+  padding-bottom: 100%;
+  position: relative;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.color-area-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.color-area-white {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right, white 0%, transparent 100%);
+}
+
+.color-area-black {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, black 100%);
+}
+
+.color-area-thumb {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .color-inputs {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
 }
 
 .color-input {
@@ -114,6 +192,7 @@ body {
   padding: 8px;
   color: white;
   font-family: 'Poppins', sans-serif;
+  font-weight: 500;
 }
 
 .login {
@@ -121,7 +200,7 @@ body {
   color: #ffffff;
   text-decoration: none;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 14px 28px;
   border-radius: 12px;
   transition: background-color 0.3s, box-shadow 0.3s;
@@ -144,7 +223,7 @@ body {
 
 .title {
   font-size: 5.5rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
   margin-bottom: 10px;
 }
@@ -156,10 +235,10 @@ body {
 }
 
 .subtitle {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   margin-bottom: 20px;
   color: var(--text-gray);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .learn-more {
@@ -171,7 +250,7 @@ body {
   padding: 14px 32px;
   border-radius: 12px;
   transition: all 0.3s;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .learn-more:hover {
