@@ -20,25 +20,66 @@
       </button>
       <div class="settings-popup">
         <h2>Colour Picker</h2>
-        <div class="custom-color-picker">
-          <div class="color-area">
-            <div class="color-area-inner">
-              <div class="color-area-white"></div>
-              <div class="color-area-black"></div>
+        <div class="tab-switcher">
+          <div class="tab-option active" data-tab="solid">Solid</div>
+          <div class="tab-option" data-tab="gradient">Gradient</div>
+        </div>
+        <div class="solid-picker">
+          <div class="custom-color-picker">
+            <div class="color-area">
+              <div class="color-area-inner">
+                <div class="color-area-white"></div>
+                <div class="color-area-black"></div>
+              </div>
+              <div class="color-area-thumb"></div>
             </div>
-            <div class="color-area-thumb"></div>
-          </div>
-          <div class="hue-slider">
-            <div class="hue-slider-thumb"></div>
-          </div>
-          <div class="color-inputs">
-            <div class="color-input-group">
-              <label class="color-input-label" for="hex-input">HEX</label>
-              <input type="text" class="color-input" id="hex-input" placeholder="#HEX">
+            <div class="hue-slider">
+              <div class="hue-slider-thumb"></div>
             </div>
-            <div class="color-input-group">
-              <label class="color-input-label" for="rgb-input">RGB</label>
-              <input type="text" class="color-input" id="rgb-input" placeholder="R,G,B">
+            <div class="color-inputs">
+              <div class="color-input-group">
+                <label class="color-input-label" for="hex-input">HEX</label>
+                <input type="text" class="color-input" id="hex-input" placeholder="#HEX">
+              </div>
+              <div class="color-input-group">
+                <label class="color-input-label" for="rgb-input">RGB</label>
+                <input type="text" class="color-input" id="rgb-input" placeholder="R,G,B">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="gradient-editor">
+          <div class="gradient-preview">
+            <div class="gradient-stops"></div>
+          </div>
+          <div class="gradient-controls">
+            <span class="gradient-angle-label">Angle</span>
+            <input type="number" class="color-input gradient-angle" value="90" min="0" max="360">
+            <div class="gradient-buttons">
+              <button class="gradient-button" id="add-stop">Add Stop</button>
+              <button class="gradient-button" id="remove-stop" disabled>Remove Stop</button>
+            </div>
+          </div>
+          <div class="custom-color-picker">
+            <div class="color-area">
+              <div class="color-area-inner">
+                <div class="color-area-white"></div>
+                <div class="color-area-black"></div>
+              </div>
+              <div class="color-area-thumb"></div>
+            </div>
+            <div class="hue-slider">
+              <div class="hue-slider-thumb"></div>
+            </div>
+            <div class="color-inputs">
+              <div class="color-input-group">
+                <label class="color-input-label" for="hex-input-gradient">HEX</label>
+                <input type="text" class="color-input" id="hex-input-gradient" placeholder="#HEX">
+              </div>
+              <div class="color-input-group">
+                <label class="color-input-label" for="rgb-input-gradient">RGB</label>
+                <input type="text" class="color-input" id="rgb-input-gradient" placeholder="R,G,B">
+              </div>
             </div>
           </div>
         </div>
