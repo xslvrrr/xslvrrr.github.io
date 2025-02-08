@@ -137,7 +137,7 @@ function updateColorPicker(h, s, v) {
   colorAreaInner.style.backgroundColor = `hsl(${h}, 100%, 50%)`;
   
   // Update thumbs position
-  const saturationX = (s / 100) * colorArea.offsetWidth;
+  const saturationX = ((100 - s) / 100) * colorArea.offsetWidth;
   const valueY = ((100 - v) / 100) * colorArea.offsetHeight;
   const hueX = (h / 360) * hueSlider.offsetWidth;
   
@@ -185,7 +185,7 @@ colorArea.addEventListener('mousedown', (e) => {
   const rect = colorArea.getBoundingClientRect();
   const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-  currentSaturation = x * 100;
+  currentSaturation = (1 - x) * 100;
   currentValue = 100 - (y * 100);
   updateColorPicker(currentHue, currentSaturation, currentValue);
 });
@@ -202,7 +202,7 @@ document.addEventListener('mousemove', (e) => {
     const rect = colorArea.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    currentSaturation = x * 100;
+    currentSaturation = (1 - x) * 100;
     currentValue = 100 - (y * 100);
     updateColorPicker(currentHue, currentSaturation, currentValue);
   }
