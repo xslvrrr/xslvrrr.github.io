@@ -152,22 +152,29 @@ function updateColorPicker(h, s, v) {
   // Update color thumb background
   colorAreaThumb.style.backgroundColor = hex;
   
-  hexInput.value = hex;
-  rgbInput.value = `${rgb.r},${rgb.g},${rgb.b}`;
-  
-  // Calculate brightness and update text colors
-  const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
-  const isDark = brightness < 180;
-  
-  // Update CSS variables
-  const root = document.documentElement;
-  root.style.setProperty('--accent-color', hex);
-  root.style.setProperty('--accent-darker', rgbToHex(
-    rgb.r * 0.7,
-    rgb.g * 0.7,
-    rgb.b * 0.7
-  ));
-  root.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
+  // Update the active color picker inputs
+  if (solidPicker.classList.contains('hidden')) {
+    hexInputGradient.value = hex;
+    rgbInputGradient.value = `${rgb.r},${rgb.g},${rgb.b}`;
+    updateGradientStopColor(h, s, v);
+  } else {
+    hexInput.value = hex;
+    rgbInput.value = `${rgb.r},${rgb.g},${rgb.b}`;
+    
+    // Calculate brightness and update text colors
+    const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
+    const isDark = brightness < 180;
+    
+    // Update CSS variables for solid color
+    const root = document.documentElement;
+    root.style.setProperty('--accent-color', hex);
+    root.style.setProperty('--accent-darker', rgbToHex(
+      rgb.r * 0.7,
+      rgb.g * 0.7,
+      rgb.b * 0.7
+    ));
+    root.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
+  }
 }
 
 // Handle hue slider interactions
@@ -234,3 +241,169 @@ rgbInput.addEventListener('change', (e) => {
 // Initialize with default color
 hexInput.value = '#00b894';
 hexInput.dispatchEvent(new Event('change'));
+
+// Gradient functionality
+const tabSwitcher = document.querySelector('.tab-switcher');
+const solidPicker = document.querySelector('.solid-picker');
+const gradientEditor = document.querySelector('.gradient-editor');
+const gradientPreview = document.querySelector('.gradient-preview');
+const gradientStops = document.querySelector('.gradient-stops');
+const addStopBtn = document.getElementById('add-stop');
+const removeStopBtn = document.getElementById('remove-stop');
+const angleInput = document.querySelector('.gradient-angle');
+const hexInputGradient = document.getElementById('hex-input-gradient');
+const rgbInputGradient = document.getElementById('rgb-input-gradient');
+
+let gradientStopsData = [
+  { position: 0, color: '#00b894' },
+  { position: 100, color: '#01976d' }
+];
+let activeStopIndex = 0;
+let isDraggingStop = false;
+
+// Tab switching
+tabSwitcher.addEventListener('click', (e) => {
+  if (e.target.classList.contains('tab-option')) {
+    const tab = e.target.dataset.tab;
+    document.querySelectorAll('.tab-option').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    
+    if (tab === 'solid') {
+      solidPicker.classList.remove('hidden');
+      gradientEditor.classList.remove('active');
+    } else {
+      solidPicker.classList.add('hidden');
+      gradientEditor.classList.add('active');
+      updateGradientPreview();
+    }
+  }
+});
+
+// Create gradient stop element
+function createStopElement(position, color) {
+  const stop = document.createElement('div');
+  stop.className = 'gradient-stop';
+  stop.style.left = `${position}%`;
+  stop.style.backgroundColor = color;
+  return stop;
+}
+
+// Update gradient preview
+function updateGradientPreview() {
+  const angle = angleInput.value;
+  const gradient = `linear-gradient(${angle}deg, ${gradientStopsData
+    .map(stop => `${stop.color} ${stop.position}%`)
+    .join(', ')})`;
+  
+  gradientPreview.style.background = gradient;
+  document.documentElement.style.setProperty('--accent-color', gradientStopsData[0].color);
+  document.documentElement.style.setProperty('--accent-darker', gradientStopsData[gradientStopsData.length - 1].color);
+  
+  // Update color picker with active stop color
+  const activeStop = gradientStopsData[activeStopIndex];
+  const rgb = hexToRgb(activeStop.color);
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+  currentHue = hsv.h;
+  currentSaturation = hsv.s;
+  currentValue = hsv.v;
+  updateColorPicker(currentHue, currentSaturation, currentValue);
+  
+  hexInputGradient.value = activeStop.color;
+  rgbInputGradient.value = `${rgb.r},${rgb.g},${rgb.b}`;
+}
+
+// Render gradient stops
+function renderGradientStops() {
+  gradientStops.innerHTML = '';
+  gradientStopsData.forEach((stop, index) => {
+    const stopElement = createStopElement(stop.position, stop.color);
+    if (index === activeStopIndex) {
+      stopElement.classList.add('active');
+    }
+    gradientStops.appendChild(stopElement);
+  });
+  removeStopBtn.disabled = gradientStopsData.length <= 2;
+}
+
+// Handle gradient stop drag
+gradientStops.addEventListener('mousedown', (e) => {
+  if (e.target.classList.contains('gradient-stop')) {
+    isDraggingStop = true;
+    const stops = Array.from(gradientStops.children);
+    activeStopIndex = stops.indexOf(e.target);
+    renderGradientStops();
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (isDraggingStop) {
+    const rect = gradientPreview.getBoundingClientRect();
+    const position = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    gradientStopsData[activeStopIndex].position = position;
+    renderGradientStops();
+    updateGradientPreview();
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isDraggingStop = false;
+});
+
+// Add new gradient stop
+addStopBtn.addEventListener('click', () => {
+  const newPosition = 50;
+  const newColor = '#ffffff';
+  gradientStopsData.push({ position: newPosition, color: newColor });
+  activeStopIndex = gradientStopsData.length - 1;
+  renderGradientStops();
+  updateGradientPreview();
+});
+
+// Remove active gradient stop
+removeStopBtn.addEventListener('click', () => {
+  if (gradientStopsData.length > 2) {
+    gradientStopsData.splice(activeStopIndex, 1);
+    activeStopIndex = Math.max(0, activeStopIndex - 1);
+    renderGradientStops();
+    updateGradientPreview();
+  }
+});
+
+// Update gradient angle
+angleInput.addEventListener('change', () => {
+  updateGradientPreview();
+});
+
+// Update gradient stop color when color picker changes
+function updateGradientStopColor(h, s, v) {
+  const rgb = hsvToRgb(h, s, v);
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  gradientStopsData[activeStopIndex].color = hex;
+  renderGradientStops();
+  updateGradientPreview();
+}
+
+// Handle gradient hex input
+hexInputGradient.addEventListener('change', (e) => {
+  const hex = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value;
+  if (/^#[0-9A-F]{6}$/i.test(hex)) {
+    gradientStopsData[activeStopIndex].color = hex;
+    renderGradientStops();
+    updateGradientPreview();
+  }
+});
+
+// Handle gradient RGB input
+rgbInputGradient.addEventListener('change', (e) => {
+  const values = e.target.value.split(',').map(v => parseInt(v.trim()));
+  if (values.length === 3 && values.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
+    const hex = rgbToHex(values[0], values[1], values[2]);
+    gradientStopsData[activeStopIndex].color = hex;
+    renderGradientStops();
+    updateGradientPreview();
+  }
+});
+
+// Initialize gradient editor
+renderGradientStops();
+updateGradientPreview();
