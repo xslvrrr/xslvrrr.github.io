@@ -185,7 +185,7 @@ colorArea.addEventListener('mousedown', (e) => {
   const rect = colorArea.getBoundingClientRect();
   const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-  currentSaturation = x * 100;
+  currentSaturation = (1 - x) * 100;
   currentValue = 100 - (y * 100);
   updateColorPicker(currentHue, currentSaturation, currentValue);
 });
@@ -202,7 +202,7 @@ document.addEventListener('mousemove', (e) => {
     const rect = colorArea.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    currentSaturation = x * 100;
+    currentSaturation = (1 - x) * 100;
     currentValue = 100 - (y * 100);
     updateColorPicker(currentHue, currentSaturation, currentValue);
   }
