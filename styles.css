@@ -275,3 +275,123 @@ body {
   background-color: var(--accent-color);
   color: var(--accent-text);
 }
+
+.tab-switcher {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.tab-option {
+  flex: 1;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-gray);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.tab-option.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.gradient-editor {
+  display: none;
+}
+
+.gradient-editor.active {
+  display: block;
+}
+
+.gradient-preview {
+  width: 100%;
+  height: 24px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  position: relative;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-darker) 100%);
+}
+
+.gradient-stops {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 20px;
+}
+
+.gradient-stop {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+  transform: translate(-50%, 0);
+  cursor: grab;
+  background-color: white;
+}
+
+.gradient-stop.active {
+  border-color: var(--accent-color);
+}
+
+.gradient-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.gradient-angle {
+  width: 60px;
+  text-align: right;
+}
+
+.gradient-angle-label {
+  color: var(--text-gray);
+  font-size: 0.9rem;
+  margin-right: 4px;
+}
+
+.gradient-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.gradient-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.gradient-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.gradient-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.solid-picker {
+  display: block;
+}
+
+.solid-picker.hidden {
+  display: none;
+}
