@@ -2,6 +2,7 @@
 :root {
   --accent-color: #00b894;
   --accent-darker: #01976d;
+  --accent-text: #ffffff;
   --text-gray: rgb(122, 117, 128);
 }
 
@@ -181,11 +182,25 @@ body {
 
 .color-inputs {
   display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.color-input {
+.color-input-group {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.color-input-label {
+  font-size: 0.8rem;
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+.color-input {
+  width: 100%;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
@@ -197,13 +212,13 @@ body {
 
 .login {
   background-color: var(--accent-color);
-  color: #ffffff;
+  color: var(--accent-text);
   text-decoration: none;
   font-size: 1rem;
   font-weight: 600;
   padding: 14px 28px;
   border-radius: 12px;
-  transition: background-color 0.3s, box-shadow 0.3s;
+  transition: all 0.3s;
 }
 
 .login:hover {
@@ -229,9 +244,13 @@ body {
 }
 
 .title .reimagined {
-  background: linear-gradient(to bottom, var(--accent-color), var(--accent-darker));
+  background: linear-gradient(to bottom, 
+    var(--accent-color) 0%,
+    var(--accent-darker) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  padding-right: 4px; /* Prevent gradient cutoff */
 }
 
 .subtitle {
@@ -255,5 +274,5 @@ body {
 
 .learn-more:hover {
   background-color: var(--accent-color);
-  color: #0f0f0f;
+  color: var(--accent-text);
 }
