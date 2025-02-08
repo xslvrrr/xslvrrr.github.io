@@ -11,9 +11,9 @@ const colorAreaThumb = document.querySelector('.color-area-thumb');
 const hueSlider = document.querySelector('.hue-slider');
 const hueThumb = document.querySelector('.hue-slider-thumb');
 
-let currentHue = 0;
+let currentHue = 168; // Initial hue for #00b894
 let currentSaturation = 100;
-let currentLightness = 50;
+let currentLightness = 36;
 let isDraggingHue = false;
 let isDraggingColor = false;
 
@@ -65,6 +65,16 @@ function hslToRgb(h, s, l) {
   };
 }
 
+// Calculate perceived brightness (0-255)
+function getPerceivedBrightness(r, g, b) {
+  // Using relative luminance formula
+  return Math.sqrt(
+    0.299 * r * r +
+    0.587 * g * g +
+    0.114 * b * b
+  );
+}
+
 // Update the color picker UI
 function updateColorPicker(h, s, l) {
   // Update color area background
@@ -89,14 +99,19 @@ function updateColorPicker(h, s, l) {
   hexInput.value = hex;
   rgbInput.value = `${Math.round(rgb.r)},${Math.round(rgb.g)},${Math.round(rgb.b)}`;
   
+  // Calculate brightness and update text colors
+  const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
+  const isDark = brightness < 140;
+  
   // Update CSS variables
   const root = document.documentElement;
   root.style.setProperty('--accent-color', hex);
   root.style.setProperty('--accent-darker', rgbToHex(
-    rgb.r * 0.8,
-    rgb.g * 0.8,
-    rgb.b * 0.8
+    rgb.r * 0.7,
+    rgb.g * 0.7,
+    rgb.b * 0.7
   ));
+  root.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
 }
 
 // Handle hue slider interactions
