@@ -157,7 +157,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to right, transparent 0%, white 100%);
+  background: linear-gradient(to right, white 0%, transparent 100%);
+  mix-blend-mode: soft-light;
 }
 
 .color-area-black {
