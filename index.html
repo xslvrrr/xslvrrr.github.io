@@ -6,7 +6,7 @@
   <title>Millennium Reimagined</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -20,8 +20,17 @@
       </button>
       <div class="settings-popup">
         <h2>Colour Picker</h2>
-        <div class="color-picker">
-          <input type="color" id="accent-color" value="#00b894">
+        <div class="custom-color-picker">
+          <div class="color-area">
+            <div class="color-area-inner">
+              <div class="color-area-white"></div>
+              <div class="color-area-black"></div>
+            </div>
+            <div class="color-area-thumb"></div>
+          </div>
+          <div class="hue-slider">
+            <div class="hue-slider-thumb"></div>
+          </div>
           <div class="color-inputs">
             <input type="text" class="color-input" id="hex-input" placeholder="#HEX">
             <input type="text" class="color-input" id="rgb-input" placeholder="R,G,B">
