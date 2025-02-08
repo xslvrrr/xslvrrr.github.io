@@ -5,11 +5,17 @@ const hexInput = document.querySelector('#hex-input');
 const rgbInput = document.querySelector('#rgb-input');
 
 // Color picker elements
-const colorArea = document.querySelector('.color-area');
-const colorAreaInner = document.querySelector('.color-area-inner');
-const colorAreaThumb = document.querySelector('.color-area-thumb');
-const hueSlider = document.querySelector('.hue-slider');
-const hueThumb = document.querySelector('.hue-slider-thumb');
+const colorArea = document.querySelector('.solid-picker .color-area');
+const colorAreaInner = document.querySelector('.solid-picker .color-area-inner');
+const colorAreaThumb = document.querySelector('.solid-picker .color-area-thumb');
+const hueSlider = document.querySelector('.solid-picker .hue-slider');
+const hueThumb = document.querySelector('.solid-picker .hue-slider-thumb');
+
+const colorAreaGradient = document.querySelector('.gradient-editor .color-area');
+const colorAreaInnerGradient = document.querySelector('.gradient-editor .color-area-inner');
+const colorAreaThumbGradient = document.querySelector('.gradient-editor .color-area-thumb');
+const hueSliderGradient = document.querySelector('.gradient-editor .hue-slider');
+const hueThumbGradient = document.querySelector('.gradient-editor .hue-slider-thumb');
 
 let currentHue = 168; // Initial hue for #00b894
 let currentSaturation = 100;
@@ -132,35 +138,51 @@ function getPerceivedBrightness(r, g, b) {
 }
 
 // Update the color picker UI
-function updateColorPicker(h, s, v) {
+function updateColorPicker(h, s, v, isGradient = false) {
+  const elements = isGradient ? {
+    colorArea: colorAreaGradient,
+    colorAreaInner: colorAreaInnerGradient,
+    colorAreaThumb: colorAreaThumbGradient,
+    hueSlider: hueSliderGradient,
+    hueThumb: hueThumbGradient,
+    hexInput: hexInputGradient,
+    rgbInput: rgbInputGradient
+  } : {
+    colorArea: colorArea,
+    colorAreaInner: colorAreaInner,
+    colorAreaThumb: colorAreaThumb,
+    hueSlider: hueSlider,
+    hueThumb: hueThumb,
+    hexInput: hexInput,
+    rgbInput: rgbInput
+  };
+
   // Update color area background
-  colorAreaInner.style.backgroundColor = `hsl(${h}, 100%, 50%)`;
+  elements.colorAreaInner.style.backgroundColor = `hsl(${h}, 100%, 50%)`;
   
   // Update thumbs position
-  const saturationX = ((100 - s) / 100) * colorArea.offsetWidth;
-  const valueY = ((100 - v) / 100) * colorArea.offsetHeight;
-  const hueX = (h / 360) * hueSlider.offsetWidth;
+  const saturationX = ((100 - s) / 100) * elements.colorArea.offsetWidth;
+  const valueY = ((100 - v) / 100) * elements.colorArea.offsetHeight;
+  const hueX = (h / 360) * elements.hueSlider.offsetWidth;
   
-  colorAreaThumb.style.left = `${saturationX}px`;
-  colorAreaThumb.style.top = `${valueY}px`;
-  hueThumb.style.left = `${hueX}px`;
+  elements.colorAreaThumb.style.left = `${saturationX}px`;
+  elements.colorAreaThumb.style.top = `${valueY}px`;
+  elements.hueThumb.style.left = `${hueX}px`;
   
   // Convert to RGB and update inputs
   const rgb = hsvToRgb(h, s, v);
   const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
   
   // Update color thumb background
-  colorAreaThumb.style.backgroundColor = hex;
+  elements.colorAreaThumb.style.backgroundColor = hex;
   
-  // Update the active color picker inputs
-  if (solidPicker.classList.contains('hidden')) {
-    hexInputGradient.value = hex;
-    rgbInputGradient.value = `${rgb.r},${rgb.g},${rgb.b}`;
+  // Update inputs
+  elements.hexInput.value = hex;
+  elements.rgbInput.value = `${rgb.r},${rgb.g},${rgb.b}`;
+
+  if (isGradient) {
     updateGradientStopColor(h, s, v);
   } else {
-    hexInput.value = hex;
-    rgbInput.value = `${rgb.r},${rgb.g},${rgb.b}`;
-    
     // Calculate brightness and update text colors
     const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
     const isDark = brightness < 180;
@@ -177,41 +199,51 @@ function updateColorPicker(h, s, v) {
   }
 }
 
-// Handle hue slider interactions
-hueSlider.addEventListener('mousedown', (e) => {
-  isDraggingHue = true;
-  const rect = hueSlider.getBoundingClientRect();
-  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  currentHue = x * 360;
-  updateColorPicker(currentHue, currentSaturation, currentValue);
-});
-
-// Handle color area interactions
-colorArea.addEventListener('mousedown', (e) => {
-  isDraggingColor = true;
-  const rect = colorArea.getBoundingClientRect();
-  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-  currentSaturation = (1 - x) * 100;
-  currentValue = 100 - (y * 100);
-  updateColorPicker(currentHue, currentSaturation, currentValue);
-});
-
-// Handle mouse movement
-document.addEventListener('mousemove', (e) => {
-  if (isDraggingHue) {
-    const rect = hueSlider.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    currentHue = x * 360;
-    updateColorPicker(currentHue, currentSaturation, currentValue);
-  }
-  if (isDraggingColor) {
+// Handle color area interactions for both pickers
+function setupColorAreaEvents(colorArea, isGradient) {
+  colorArea.addEventListener('mousedown', (e) => {
+    isDraggingColor = true;
     const rect = colorArea.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
     currentSaturation = (1 - x) * 100;
     currentValue = 100 - (y * 100);
-    updateColorPicker(currentHue, currentSaturation, currentValue);
+    updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+  });
+}
+
+// Handle hue slider interactions for both pickers
+function setupHueSliderEvents(hueSlider, isGradient) {
+  hueSlider.addEventListener('mousedown', (e) => {
+    isDraggingHue = true;
+    const rect = hueSlider.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    currentHue = x * 360;
+    updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+  });
+}
+
+// Setup events for both color pickers
+setupColorAreaEvents(colorArea, false);
+setupColorAreaEvents(colorAreaGradient, true);
+setupHueSliderEvents(hueSlider, false);
+setupHueSliderEvents(hueSliderGradient, true);
+
+// Handle mouse movement for both pickers
+document.addEventListener('mousemove', (e) => {
+  if (isDraggingHue) {
+    const rect = (solidPicker.classList.contains('hidden') ? hueSliderGradient : hueSlider).getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    currentHue = x * 360;
+    updateColorPicker(currentHue, currentSaturation, currentValue, solidPicker.classList.contains('hidden'));
+  }
+  if (isDraggingColor) {
+    const rect = (solidPicker.classList.contains('hidden') ? colorAreaGradient : colorArea).getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    currentSaturation = (1 - x) * 100;
+    currentValue = 100 - (y * 100);
+    updateColorPicker(currentHue, currentSaturation, currentValue, solidPicker.classList.contains('hidden'));
   }
 });
 
@@ -306,7 +338,7 @@ function updateGradientPreview() {
   currentHue = hsv.h;
   currentSaturation = hsv.s;
   currentValue = hsv.v;
-  updateColorPicker(currentHue, currentSaturation, currentValue);
+  updateColorPicker(currentHue, currentSaturation, currentValue, true);
   
   hexInputGradient.value = activeStop.color;
   rgbInputGradient.value = `${rgb.r},${rgb.g},${rgb.b}`;
@@ -328,10 +360,12 @@ function renderGradientStops() {
 // Handle gradient stop drag
 gradientStops.addEventListener('mousedown', (e) => {
   if (e.target.classList.contains('gradient-stop')) {
+    e.stopPropagation();
     isDraggingStop = true;
     const stops = Array.from(gradientStops.children);
     activeStopIndex = stops.indexOf(e.target);
     renderGradientStops();
+    updateGradientPreview();
   }
 });
 
@@ -370,7 +404,7 @@ removeStopBtn.addEventListener('click', () => {
 });
 
 // Update gradient angle
-angleInput.addEventListener('change', () => {
+angleInput.addEventListener('input', () => {
   updateGradientPreview();
 });
 
