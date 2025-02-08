@@ -137,7 +137,7 @@ function updateColorPicker(h, s, v) {
   colorAreaInner.style.backgroundColor = `hsl(${h}, 100%, 50%)`;
   
   // Update thumbs position
-  const saturationX = (s / 100) * colorArea.offsetWidth;
+  const saturationX = ((100 - s) / 100) * colorArea.offsetWidth;
   const valueY = ((100 - v) / 100) * colorArea.offsetHeight;
   const hueX = (h / 360) * hueSlider.offsetWidth;
   
