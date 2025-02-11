@@ -87,7 +87,8 @@ body {
   display: none;
   backdrop-filter: blur(10px);
   width: 300px;
-  height: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .settings-popup.active {
@@ -266,13 +267,13 @@ body {
   text-decoration: none;
   border: 2px solid transparent;
   padding: 14px 32px;
-  border-radius: 12px;
   font-weight: 600;
   background: var(--accent-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   border-image: var(--accent-gradient);
   border-image-slice: 1;
+  border-radius: 0;
 }
 
 .learn-more:hover {
@@ -335,25 +336,9 @@ body {
   height: 20px;
 }
 
-.gradient-stop {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
-  transform: translate(-50%, 0);
-  cursor: grab;
-  background-color: white;
-}
-
-.gradient-stop.active {
-  border-image: var(--accent-gradient);
-  border-image-slice: 1;
-}
-
 .gradient-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 60px 1fr;
   gap: 8px;
   margin-bottom: 16px;
   align-items: center;
@@ -367,13 +352,13 @@ body {
 .gradient-angle-label {
   color: var(--text-gray);
   font-size: 0.9rem;
-  margin-right: 4px;
 }
 
 .gradient-buttons {
   display: flex;
   gap: 8px;
-  margin-left: auto;
+  margin-top: 8px;
+  grid-column: 1 / -1;
 }
 
 .gradient-button {
