@@ -305,20 +305,8 @@ tabSwitcher.addEventListener('click', (e) => {
       solidPicker.classList.remove('hidden');
       gradientEditor.classList.remove('active');
       
-      // Apply solid color
-      const rgb = hsvToRgb(currentHue, currentSaturation, currentValue);
-      const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-      const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
-      const isDark = brightness < 180;
-      
-      root.style.setProperty('--accent-gradient', `linear-gradient(90deg, ${hex} 0%, ${hex} 100%)`);
-      root.style.setProperty('--accent-color', hex);
-      root.style.setProperty('--accent-darker', rgbToHex(
-        rgb.r * 0.7,
-        rgb.g * 0.7,
-        rgb.b * 0.7
-      ));
-      root.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
+      // Keep current solid color state instead of using gradient stop color
+      updateColorPicker(currentHue, currentSaturation, currentValue, false);
     } else {
       solidPicker.classList.add('hidden');
       gradientEditor.classList.add('active');
@@ -352,6 +340,14 @@ function updateGradientPreview() {
   currentSaturation = hsv.s;
   currentValue = hsv.v;
   updateColorPicker(currentHue, currentSaturation, currentValue, true);
+  
+  // Calculate text color based on the average brightness of gradient stops
+  const avgBrightness = gradientStopsData.reduce((sum, stop) => {
+    const rgb = hexToRgb(stop.color);
+    return sum + getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
+  }, 0) / gradientStopsData.length;
+  
+  document.documentElement.style.setProperty('--accent-text', avgBrightness < 180 ? '#ffffff' : '#000000');
   
   hexInputGradient.value = activeStop.color;
   rgbInputGradient.value = `${rgb.r},${rgb.g},${rgb.b}`;
@@ -398,8 +394,46 @@ document.addEventListener('mouseup', () => {
 
 // Add new gradient stop
 addStopBtn.addEventListener('click', () => {
-  const newPosition = 50;
-  const newColor = '#ffffff';
+  const stops = gradientStopsData.sort((a, b) => a.position - b.position);
+  let newPosition;
+  
+  if (stops.length < 2) {
+    newPosition = 50;
+  } else {
+    // Find largest gap between stops
+    let maxGap = 0;
+    let gapPosition = 50;
+    
+    for (let i = 0; i < stops.length - 1; i++) {
+      const gap = stops[i + 1].position - stops[i].position;
+      if (gap > maxGap) {
+        maxGap = gap;
+        gapPosition = stops[i].position + gap / 2;
+      }
+    }
+    newPosition = gapPosition;
+  }
+  
+  // Interpolate color between adjacent stops
+  const prevStop = stops.find(s => s.position <= newPosition);
+  const nextStop = stops.find(s => s.position > newPosition);
+  let newColor;
+  
+  if (!prevStop) {
+    newColor = nextStop.color;
+  } else if (!nextStop) {
+    newColor = prevStop.color;
+  } else {
+    const ratio = (newPosition - prevStop.position) / (nextStop.position - prevStop.position);
+    const prevRgb = hexToRgb(prevStop.color);
+    const nextRgb = hexToRgb(nextStop.color);
+    newColor = rgbToHex(
+      Math.round(prevRgb.r + (nextRgb.r - prevRgb.r) * ratio),
+      Math.round(prevRgb.g + (nextRgb.g - prevRgb.g) * ratio),
+      Math.round(prevRgb.b + (nextRgb.b - prevRgb.b) * ratio)
+    );
+  }
+  
   gradientStopsData.push({ position: newPosition, color: newColor });
   activeStopIndex = gradientStopsData.length - 1;
   renderGradientStops();
