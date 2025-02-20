@@ -1,6 +1,9 @@
 // Settings button and popup functionality
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsPopup = document.querySelector('.settings-popup');
+const tabSwitcher = document.querySelector('.tab-switcher');
+const solidPicker = document.querySelector('.solid-picker');
+const gradientEditor = document.querySelector('.gradient-editor');
 const hexInput = document.querySelector('#hex-input');
 const rgbInput = document.querySelector('#rgb-input');
 
@@ -17,12 +20,27 @@ const colorAreaThumbGradient = document.querySelector('.gradient-editor .color-a
 const hueSliderGradient = document.querySelector('.gradient-editor .hue-slider');
 const hueThumbGradient = document.querySelector('.gradient-editor .hue-slider-thumb');
 
+const gradientPreview = document.querySelector('.gradient-preview');
+const gradientStops = document.querySelector('.gradient-stops');
+const addStopBtn = document.getElementById('add-stop');
+const removeStopBtn = document.getElementById('remove-stop');
+const angleInput = document.querySelector('.gradient-angle');
+const hexInputGradient = document.getElementById('hex-input-gradient');
+const rgbInputGradient = document.getElementById('rgb-input-gradient');
+
 let currentHue = 168; // Initial hue for #00b894
 let currentSaturation = 100;
 let currentValue = 72;
 let isDraggingHue = false;
 let isDraggingColor = false;
 let isMouseDownOnPicker = false;
+
+let gradientStopsData = [
+  { position: 0, color: '#00b894' },
+  { position: 100, color: '#01976d' }
+];
+let activeStopIndex = 0;
+let isDraggingStop = false;
 
 // Toggle settings popup
 settingsBtn.addEventListener('click', (e) => {
@@ -296,25 +314,6 @@ gradientEditor.classList.remove('active');
 
 hexInput.value = '#00b894';
 hexInput.dispatchEvent(new Event('change'));
-
-// Gradient functionality
-const tabSwitcher = document.querySelector('.tab-switcher');
-const solidPicker = document.querySelector('.solid-picker');
-const gradientEditor = document.querySelector('.gradient-editor');
-const gradientPreview = document.querySelector('.gradient-preview');
-const gradientStops = document.querySelector('.gradient-stops');
-const addStopBtn = document.getElementById('add-stop');
-const removeStopBtn = document.getElementById('remove-stop');
-const angleInput = document.querySelector('.gradient-angle');
-const hexInputGradient = document.getElementById('hex-input-gradient');
-const rgbInputGradient = document.getElementById('rgb-input-gradient');
-
-let gradientStopsData = [
-  { position: 0, color: '#00b894' },
-  { position: 100, color: '#01976d' }
-];
-let activeStopIndex = 0;
-let isDraggingStop = false;
 
 // Tab switching
 tabSwitcher.addEventListener('click', (e) => {
