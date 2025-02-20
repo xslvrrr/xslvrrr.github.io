@@ -270,7 +270,12 @@ rgbInput.addEventListener('change', (e) => {
   }
 });
 
-// Initialize with default color
+// Initialize with default color and solid tab
+document.querySelector('[data-tab="solid"]').classList.add('active');
+document.querySelector('[data-tab="gradient"]').classList.remove('active');
+solidPicker.classList.remove('hidden');
+gradientEditor.classList.remove('active');
+
 hexInput.value = '#00b894';
 hexInput.dispatchEvent(new Event('change'));
 
@@ -300,16 +305,23 @@ tabSwitcher.addEventListener('click', (e) => {
     document.querySelectorAll('.tab-option').forEach(t => t.classList.remove('active'));
     e.target.classList.add('active');
     
-    const root = document.documentElement;
     if (tab === 'solid') {
       solidPicker.classList.remove('hidden');
       gradientEditor.classList.remove('active');
       
-      // Keep current solid color state instead of using gradient stop color
-      updateColorPicker(currentHue, currentSaturation, currentValue, false);
+      // Apply current solid color
+      const rgb = hsvToRgb(currentHue, currentSaturation, currentValue);
+      const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+      document.documentElement.style.setProperty('--accent-color', hex);
+      document.documentElement.style.setProperty('--accent-darker', rgbToHex(
+        rgb.r * 0.7,
+        rgb.g * 0.7,
+        rgb.b * 0.7
+      ));
     } else {
       solidPicker.classList.add('hidden');
       gradientEditor.classList.add('active');
+      renderGradientStops();
       updateGradientPreview();
     }
   }
@@ -330,6 +342,7 @@ function updateGradientPreview() {
     .map(stop => `${stop.color} ${stop.position}%`)
     .join(', ')})`;
   
+  gradientPreview.style.background = gradient;
   document.documentElement.style.setProperty('--accent-gradient', gradient);
   
   // Update color picker with active stop color
@@ -340,14 +353,6 @@ function updateGradientPreview() {
   currentSaturation = hsv.s;
   currentValue = hsv.v;
   updateColorPicker(currentHue, currentSaturation, currentValue, true);
-  
-  // Calculate text color based on the average brightness of gradient stops
-  const avgBrightness = gradientStopsData.reduce((sum, stop) => {
-    const rgb = hexToRgb(stop.color);
-    return sum + getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
-  }, 0) / gradientStopsData.length;
-  
-  document.documentElement.style.setProperty('--accent-text', avgBrightness < 180 ? '#ffffff' : '#000000');
   
   hexInputGradient.value = activeStop.color;
   rgbInputGradient.value = `${rgb.r},${rgb.g},${rgb.b}`;
