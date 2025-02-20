@@ -84,6 +84,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 24px;
+  padding-bottom: 32px;
   display: none;
   backdrop-filter: blur(10px);
   width: 300px;
@@ -322,10 +323,10 @@ body {
   width: 100%;
   height: 24px;
   border-radius: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   position: relative;
   cursor: pointer;
-  background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-darker) 100%);
+  background: var(--accent-gradient);
 }
 
 .gradient-stops {
@@ -389,4 +390,21 @@ body {
 
 .solid-picker.hidden {
   display: none;
+}
+
+.gradient-stop {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  bottom: 50%;
+}
+
+.gradient-stop.active {
+  border-color: var(--accent-color);
+  z-index: 1;
 }
