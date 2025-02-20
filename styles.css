@@ -312,7 +312,6 @@ body {
 
 .gradient-editor {
   display: none;
-  height: 420px;
 }
 
 .gradient-editor.active {
@@ -385,7 +384,6 @@ body {
 
 .solid-picker {
   display: block;
-  height: 420px;
 }
 
 .solid-picker.hidden {
