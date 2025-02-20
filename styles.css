@@ -312,10 +312,15 @@ body {
 
 .gradient-editor {
   display: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
 }
 
 .gradient-editor.active {
   display: block;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .gradient-preview {
@@ -384,10 +389,15 @@ body {
 
 .solid-picker {
   display: block;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.2s;
 }
 
 .solid-picker.hidden {
   display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .gradient-stop {
