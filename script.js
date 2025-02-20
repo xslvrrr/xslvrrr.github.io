@@ -188,14 +188,14 @@ function updateColorPicker(h, s, v, isGradient = false) {
     const isDark = brightness < 180;
     
     // Update CSS variables for solid color
-    const root = document.documentElement;
-    root.style.setProperty('--accent-color', hex);
-    root.style.setProperty('--accent-darker', rgbToHex(
+    document.documentElement.style.setProperty('--accent-gradient', `linear-gradient(90deg, ${hex} 0%, ${hex} 100%)`);
+    document.documentElement.style.setProperty('--accent-color', hex);
+    document.documentElement.style.setProperty('--accent-darker', rgbToHex(
       rgb.r * 0.7,
       rgb.g * 0.7,
       rgb.b * 0.7
     ));
-    root.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
+    document.documentElement.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
   }
 }
 
@@ -247,7 +247,7 @@ document.addEventListener('mousemove', (e) => {
   }
 });
 
-// Handle hex input
+// Handle hex input for solid picker
 hexInput.addEventListener('change', (e) => {
   const hex = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value;
   if (/^#[0-9A-F]{6}$/i.test(hex)) {
@@ -256,11 +256,11 @@ hexInput.addEventListener('change', (e) => {
     currentHue = hsv.h;
     currentSaturation = hsv.s;
     currentValue = hsv.v;
-    updateColorPicker(currentHue, currentSaturation, currentValue);
+    updateColorPicker(currentHue, currentSaturation, currentValue, false);
   }
 });
 
-// Handle RGB input
+// Handle RGB input for solid picker
 rgbInput.addEventListener('change', (e) => {
   const values = e.target.value.split(',').map(v => parseInt(v.trim()));
   if (values.length === 3 && values.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
@@ -309,15 +309,21 @@ tabSwitcher.addEventListener('click', (e) => {
       solidPicker.classList.remove('hidden');
       gradientEditor.classList.remove('active');
       
-      // Apply current solid color
+      // Keep current solid color state
       const rgb = hsvToRgb(currentHue, currentSaturation, currentValue);
       const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+      const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
+      const isDark = brightness < 180;
+      
+      document.documentElement.style.setProperty('--accent-gradient', `linear-gradient(90deg, ${hex} 0%, ${hex} 100%)`);
       document.documentElement.style.setProperty('--accent-color', hex);
       document.documentElement.style.setProperty('--accent-darker', rgbToHex(
         rgb.r * 0.7,
         rgb.g * 0.7,
         rgb.b * 0.7
       ));
+      document.documentElement.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
+      updateColorPicker(currentHue, currentSaturation, currentValue, false);
     } else {
       solidPicker.classList.add('hidden');
       gradientEditor.classList.add('active');
