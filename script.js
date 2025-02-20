@@ -201,26 +201,62 @@ function updateColorPicker(h, s, v, isGradient = false) {
 
 // Handle color area interactions for both pickers
 function setupColorAreaEvents(colorArea, isGradient) {
+  let isDragging = false;
+
   colorArea.addEventListener('mousedown', (e) => {
+    isDragging = true;
     isDraggingColor = true;
-    const rect = colorArea.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    currentSaturation = (1 - x) * 100;
-    currentValue = 100 - (y * 100);
-    updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+    updateColorFromEvent(e, colorArea, isGradient);
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      updateColorFromEvent(e, colorArea, isGradient);
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    isDraggingColor = false;
   });
 }
 
 // Handle hue slider interactions for both pickers
 function setupHueSliderEvents(hueSlider, isGradient) {
+  let isDragging = false;
+
   hueSlider.addEventListener('mousedown', (e) => {
+    isDragging = true;
     isDraggingHue = true;
-    const rect = hueSlider.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    currentHue = x * 360;
-    updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+    updateHueFromEvent(e, hueSlider, isGradient);
   });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      updateHueFromEvent(e, hueSlider, isGradient);
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    isDraggingHue = false;
+  });
+}
+
+function updateColorFromEvent(e, colorArea, isGradient) {
+  const rect = colorArea.getBoundingClientRect();
+  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+  currentSaturation = (1 - x) * 100;
+  currentValue = 100 - (y * 100);
+  updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+}
+
+function updateHueFromEvent(e, hueSlider, isGradient) {
+  const rect = hueSlider.getBoundingClientRect();
+  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  currentHue = x * 360;
+  updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
 }
 
 // Setup events for both color pickers
@@ -228,24 +264,6 @@ setupColorAreaEvents(colorArea, false);
 setupColorAreaEvents(colorAreaGradient, true);
 setupHueSliderEvents(hueSlider, false);
 setupHueSliderEvents(hueSliderGradient, true);
-
-// Handle mouse movement for both pickers
-document.addEventListener('mousemove', (e) => {
-  if (isDraggingHue) {
-    const rect = (solidPicker.classList.contains('hidden') ? hueSliderGradient : hueSlider).getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    currentHue = x * 360;
-    updateColorPicker(currentHue, currentSaturation, currentValue, solidPicker.classList.contains('hidden'));
-  }
-  if (isDraggingColor) {
-    const rect = (solidPicker.classList.contains('hidden') ? colorAreaGradient : colorArea).getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    currentSaturation = (1 - x) * 100;
-    currentValue = 100 - (y * 100);
-    updateColorPicker(currentHue, currentSaturation, currentValue, solidPicker.classList.contains('hidden'));
-  }
-});
 
 // Handle hex input for solid picker
 hexInput.addEventListener('change', (e) => {
