@@ -384,11 +384,16 @@ function updateGradientPreview() {
 // Render gradient stops
 function renderGradientStops() {
   gradientStops.innerHTML = '';
+  // Sort stops by position
+  gradientStopsData.sort((a, b) => a.position - b.position);
+  
   gradientStopsData.forEach((stop, index) => {
     const stopElement = createStopElement(stop.position, stop.color);
     if (index === activeStopIndex) {
       stopElement.classList.add('active');
     }
+    // Set z-index based on whether it's active (highest) or position (higher = more priority)
+    stopElement.style.zIndex = index === activeStopIndex ? 1000 : index;
     gradientStops.appendChild(stopElement);
   });
   removeStopBtn.disabled = gradientStopsData.length <= 2;
@@ -401,6 +406,10 @@ gradientStops.addEventListener('mousedown', (e) => {
     isDraggingStop = true;
     const stops = Array.from(gradientStops.children);
     activeStopIndex = stops.indexOf(e.target);
+    // Update z-index of all stops
+    stops.forEach((stop, index) => {
+      stop.style.zIndex = index === activeStopIndex ? 1000 : index;
+    });
     renderGradientStops();
     updateGradientPreview();
   }
@@ -411,6 +420,10 @@ document.addEventListener('mousemove', (e) => {
     const rect = gradientPreview.getBoundingClientRect();
     const position = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
     gradientStopsData[activeStopIndex].position = position;
+    // Sort stops by position and find new active index
+    const oldStop = gradientStopsData[activeStopIndex];
+    gradientStopsData.sort((a, b) => a.position - b.position);
+    activeStopIndex = gradientStopsData.findIndex(stop => stop === oldStop);
     renderGradientStops();
     updateGradientPreview();
   }
