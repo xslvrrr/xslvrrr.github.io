@@ -5,6 +5,16 @@
   --accent-darker: #01976d;
   --accent-text: #ffffff;
   --text-gray: rgb(122, 117, 128);
+  
+  /* Golden ratio based units */
+  --gr: 1.618;
+  --base: 16px;
+  --xs: calc(var(--base) / var(--gr));  /* ~10px */
+  --sm: var(--base);                     /* 16px */
+  --md: calc(var(--base) * var(--gr));   /* ~26px */
+  --lg: calc(var(--md) * var(--gr));     /* ~42px */
+  --xl: calc(var(--lg) * var(--gr));     /* ~68px */
+  --xxl: calc(var(--xl) * var(--gr));    /* ~110px */
 }
 
 * {
@@ -28,11 +38,11 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 104px;
+  height: var(--xxl);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 160px;
+  padding: 0 var(--xl);
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px) brightness(0.8);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
@@ -41,28 +51,28 @@ body {
 }
 
 .logo {
-  height: 28px;
+  height: calc(var(--md) * 1.1);
 }
 
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--sm);
 }
 
 .settings-btn {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: var(--xs);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .settings-btn svg {
-  width: 24px;
-  height: 24px;
+  width: var(--md);
+  height: var(--md);
   fill: rgb(122, 117, 128);
   transition: fill 0.3s, transform 0.3s;
 }
@@ -78,16 +88,16 @@ body {
 
 .settings-popup {
   position: absolute;
-  top: calc(100% + 16px);
-  right: 160px;
+  top: calc(100% + var(--sm));
+  right: var(--xl);
   background: rgba(15, 15, 15, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 24px;
-  padding-bottom: 32px;
+  border-radius: var(--sm);
+  padding: var(--md);
+  padding-bottom: calc(var(--md) * 1.2);
   display: none;
   backdrop-filter: blur(10px);
-  width: 300px;
+  width: calc(var(--xxl) * 2.7);
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -99,20 +109,20 @@ body {
 .settings-popup h2 {
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 1.2rem;
-  margin-bottom: 16px;
+  font-size: calc(var(--md) * 0.8);
+  margin-bottom: var(--sm);
 }
 
 .custom-color-picker {
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: var(--sm);
 }
 
 .hue-slider {
   width: 100%;
-  height: 12px;
-  border-radius: 6px;
-  margin-bottom: 16px;
+  height: var(--sm);
+  border-radius: calc(var(--xs) * 1.2);
+  margin-bottom: var(--sm);
   background: linear-gradient(to right, 
     #ff0000 0%, #ffff00 17%, 
     #00ff00 33%, #00ffff 50%, 
@@ -140,8 +150,8 @@ body {
   width: 100%;
   padding-bottom: 100%;
   position: relative;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  border-radius: calc(var(--xs) * 1.5);
+  margin-bottom: var(--sm);
   cursor: pointer;
 }
 
@@ -218,10 +228,10 @@ body {
   background: var(--accent-gradient);
   color: var(--accent-text);
   text-decoration: none;
-  font-size: 1rem;
+  font-size: var(--sm);
   font-weight: 600;
-  padding: 14px 28px;
-  border-radius: 12px;
+  padding: calc(var(--sm) * 0.875) calc(var(--md) * 1.1);
+  border-radius: var(--sm);
   transition: all 0.3s;
 }
 
@@ -235,16 +245,16 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  height: calc(100vh - 104px);
-  padding: 0 160px;
+  height: calc(100vh - var(--xxl));
+  padding: 0 var(--xl);
   text-align: left;
 }
 
 .title {
-  font-size: 5.5rem;
+  font-size: calc(var(--xl) * 1.4);
   font-weight: 600;
   line-height: 1.2;
-  margin-bottom: 10px;
+  margin-bottom: calc(var(--xs) * 1.5);
 }
 
 .title .reimagined {
@@ -255,19 +265,19 @@ body {
 }
 
 .subtitle {
-  font-size: 1.4rem;
-  margin-bottom: 20px;
+  font-size: calc(var(--md) * 0.9);
+  margin-bottom: var(--md);
   color: var(--text-gray);
   font-weight: 500;
 }
 
 .learn-more {
   display: inline-block;
-  font-size: 1.2rem;
+  font-size: calc(var(--md) * 0.8);
   color: transparent;
   text-decoration: none;
   border: 2px solid transparent;
-  padding: 14px 32px;
+  padding: calc(var(--sm) * 0.875) var(--md);
   font-weight: 600;
   background: var(--accent-gradient);
   -webkit-background-clip: text;
@@ -325,9 +335,9 @@ body {
 
 .gradient-preview {
   width: 100%;
-  height: 24px;
-  border-radius: 6px;
-  margin-bottom: 24px;
+  height: var(--md);
+  border-radius: calc(var(--xs) * 1.2);
+  margin-bottom: var(--md);
   position: relative;
   cursor: pointer;
   background: var(--accent-gradient);
@@ -343,14 +353,14 @@ body {
 
 .gradient-controls {
   display: grid;
-  grid-template-columns: auto 60px 1fr;
-  gap: 8px;
-  margin-bottom: 16px;
+  grid-template-columns: auto calc(var(--xl) * 0.9) 1fr;
+  gap: var(--xs);
+  margin-bottom: var(--sm);
   align-items: center;
 }
 
 .gradient-angle {
-  width: 60px;
+  width: calc(var(--xl) * 0.9);
   text-align: right;
 }
 
@@ -361,19 +371,19 @@ body {
 
 .gradient-buttons {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--xs);
+  margin-top: var(--xs);
   grid-column: 1 / -1;
 }
 
 .gradient-button {
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: calc(var(--xs) * 1.2) var(--sm);
+  border-radius: calc(var(--xs) * 1.2);
   border: none;
   background: rgba(255, 255, 255, 0.1);
   color: white;
   font-family: 'Poppins', sans-serif;
-  font-size: 0.9rem;
+  font-size: calc(var(--sm) * 0.9);
   cursor: pointer;
   transition: background 0.2s;
 }
