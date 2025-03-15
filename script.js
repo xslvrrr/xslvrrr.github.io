@@ -42,6 +42,9 @@ let gradientStopsData = [
 let activeStopIndex = 0;
 let isDraggingStop = false;
 
+// Handle gradient stop drag with better event tracking
+let currentDragTarget = null;
+
 // Toggle settings popup
 settingsBtn.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -357,14 +360,96 @@ tabSwitcher.addEventListener('click', (e) => {
       ));
       document.documentElement.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
       updateColorPicker(currentHue, currentSaturation, currentValue, false);
+      
     } else if (tab === 'gradient') {
-      solidPicker.classList.add('hidden');
+      // First add the active class, then remove hidden (order matters for visibility)
       gradientEditor.classList.add('active');
-      renderGradientStops();
-      updateGradientPreview();
+      solidPicker.classList.add('hidden');
+      
+      // Ensure gradient stops are properly initialized
+      requestAnimationFrame(() => {
+        initializeGradientEditor();
+        
+        // Force reflow to ensure visibility
+        gradientEditor.offsetHeight;
+        
+        // Update UI
+        updateGradientPreview();
+      });
     }
   }
 });
+
+// Handle gradient stop drag with better event tracking
+gradientStops.addEventListener('mousedown', (e) => {
+  if (e.target.classList.contains('gradient-stop')) {
+    e.stopPropagation();
+    currentDragTarget = e.target;
+    isDraggingStop = true;
+    
+    const stops = Array.from(gradientStops.children);
+    activeStopIndex = stops.indexOf(e.target);
+    
+    // Update active state and z-index
+    stops.forEach((stop, index) => {
+      if (index === activeStopIndex) {
+        stop.classList.add('active');
+        stop.style.zIndex = 1000;
+      } else {
+        stop.classList.remove('active');
+        stop.style.zIndex = index;
+      }
+    });
+    
+    updateGradientPreview();
+  }
+});
+
+// Dedicated mousemove handler for gradient stops
+function handleGradientStopDrag(e) {
+  if (isDraggingStop && currentDragTarget) {
+    const rect = gradientPreview.getBoundingClientRect();
+    const position = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    
+    // Update the data
+    gradientStopsData[activeStopIndex].position = position;
+    
+    // Sort stops by position and update active index
+    const oldStop = gradientStopsData[activeStopIndex];
+    gradientStopsData.sort((a, b) => a.position - b.position);
+    activeStopIndex = gradientStopsData.findIndex(stop => stop === oldStop);
+    
+    // Update visual positions for all stops
+    requestAnimationFrame(() => {
+      // Update DOM elements
+      Array.from(gradientStops.children).forEach((stopEl, index) => {
+        stopEl.style.left = `${gradientStopsData[index].position}%`;
+        stopEl.style.zIndex = index === activeStopIndex ? 1000 : index;
+        if (index === activeStopIndex) {
+          stopEl.classList.add('active');
+        } else {
+          stopEl.classList.remove('active');
+        }
+      });
+      
+      // Update the preview
+      updateGradientPreview();
+    });
+  }
+}
+
+// Handle stop drag end
+function handleGradientStopDragEnd() {
+  if (isDraggingStop) {
+    isDraggingStop = false;
+    currentDragTarget = null;
+    renderGradientStops();
+  }
+}
+
+// Add global event listeners
+document.addEventListener('mousemove', handleGradientStopDrag);
+document.addEventListener('mouseup', handleGradientStopDragEnd);
 
 // Create gradient stop element
 function createStopElement(position, color) {
@@ -502,40 +587,6 @@ function renderGradientStops() {
   removeStopBtn.disabled = gradientStopsData.length <= 2;
 }
 
-// Handle gradient stop drag
-gradientStops.addEventListener('mousedown', (e) => {
-  if (e.target.classList.contains('gradient-stop')) {
-    e.stopPropagation();
-    isDraggingStop = true;
-    const stops = Array.from(gradientStops.children);
-    activeStopIndex = stops.indexOf(e.target);
-    // Update z-index of all stops
-    stops.forEach((stop, index) => {
-      stop.style.zIndex = index === activeStopIndex ? 1000 : index;
-    });
-    renderGradientStops();
-    updateGradientPreview();
-  }
-});
-
-document.addEventListener('mousemove', (e) => {
-  if (isDraggingStop) {
-    const rect = gradientPreview.getBoundingClientRect();
-    const position = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-    gradientStopsData[activeStopIndex].position = position;
-    // Sort stops by position and find new active index
-    const oldStop = gradientStopsData[activeStopIndex];
-    gradientStopsData.sort((a, b) => a.position - b.position);
-    activeStopIndex = gradientStopsData.findIndex(stop => stop === oldStop);
-    renderGradientStops();
-    updateGradientPreview();
-  }
-});
-
-document.addEventListener('mouseup', () => {
-  isDraggingStop = false;
-});
-
 // Add new gradient stop
 addStopBtn.addEventListener('click', () => {
   const stops = gradientStopsData.sort((a, b) => a.position - b.position);
@@ -633,14 +684,23 @@ rgbInputGradient.addEventListener('change', (e) => {
 
 // Initialize gradient editor - ensure stops are visible from the start
 function initializeGradientEditor() {
-  renderGradientStops();
-  updateGradientPreview();
+  gradientStops.innerHTML = '';
   
-  // Make sure the gradient stops are immediately visible
-  const stopElements = gradientStops.querySelectorAll('.gradient-stop');
-  stopElements.forEach(stop => {
-    stop.style.color = stop.style.backgroundColor;
+  // Create stops and append directly
+  gradientStopsData.forEach((stop, index) => {
+    const stopElement = createStopElement(stop.position, stop.color);
+    if (index === activeStopIndex) {
+      stopElement.classList.add('active');
+    }
+    stopElement.style.zIndex = index === activeStopIndex ? 1000 : index;
+    gradientStops.appendChild(stopElement);
   });
+  
+  // Force style recalculation to ensure visibility
+  gradientStops.offsetHeight;
+  
+  updateGradientPreview();
+  removeStopBtn.disabled = gradientStopsData.length <= 2;
 }
 
 // Initialize with default color and solid tab
@@ -657,6 +717,17 @@ function initializePicker() {
 
   // Initialize gradient editor
   initializeGradientEditor();
+  
+  // Force a visibility check
+  setTimeout(() => {
+    const stopElements = gradientStops.querySelectorAll('.gradient-stop');
+    if (stopElements.length > 0) {
+      console.log("Stops initialized:", stopElements.length);
+    } else {
+      console.log("No stops found, reinitializing...");
+      initializeGradientEditor();
+    }
+  }, 100);
 }
 
 // Initialize when DOM is loaded
