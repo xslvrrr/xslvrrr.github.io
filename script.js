@@ -262,19 +262,44 @@ function setupHueSliderEvents(hueSlider, isGradient) {
 }
 
 function updateColorFromEvent(e, colorArea, isGradient) {
-  const rect = colorArea.getBoundingClientRect();
-  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-  currentSaturation = (1 - x) * 100;
-  currentValue = 100 - (y * 100);
-  updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+  // Use requestAnimationFrame for smoother updates
+  if (!window.colorUpdateScheduled) {
+    window.colorUpdateScheduled = true;
+    
+    requestAnimationFrame(() => {
+      const rect = colorArea.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+      
+      currentSaturation = (1 - x) * 100;
+      currentValue = 100 - (y * 100);
+      
+      // Preserve hue when at extreme values
+      if (currentValue < 3 || (currentSaturation < 3 && currentValue > 97)) {
+        // Keep current hue at extremes
+      } else {
+        // Normal processing
+      }
+      
+      updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+      window.colorUpdateScheduled = false;
+    });
+  }
 }
 
 function updateHueFromEvent(e, hueSlider, isGradient) {
-  const rect = hueSlider.getBoundingClientRect();
-  const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  currentHue = x * 360;
-  updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+  // Use requestAnimationFrame for smoother updates
+  if (!window.hueUpdateScheduled) {
+    window.hueUpdateScheduled = true;
+    
+    requestAnimationFrame(() => {
+      const rect = hueSlider.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      currentHue = x * 360;
+      updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+      window.hueUpdateScheduled = false;
+    });
+  }
 }
 
 // Setup events for both color pickers
@@ -314,6 +339,9 @@ gradientEditor.classList.remove('active');
 
 hexInput.value = '#00b894';
 hexInput.dispatchEvent(new Event('change'));
+
+// Initialize gradient editor
+initializeGradientEditor();
 
 // Tab switching
 tabSwitcher.addEventListener('click', (e) => {
@@ -356,15 +384,72 @@ function createStopElement(position, color) {
   stop.className = 'gradient-stop';
   stop.style.left = `${position}%`;
   stop.style.backgroundColor = color;
+  stop.style.color = color;
   return stop;
 }
 
-// Update gradient preview
+// Update gradient preview with curved transitions
 function updateGradientPreview() {
-  const gradient = `linear-gradient(${angleInput.value}deg, ${gradientStopsData
-    .map(stop => `${stop.color} ${stop.position}%`)
-    .join(', ')})`;
+  // Sort by position
+  gradientStopsData.sort((a, b) => a.position - b.position);
   
+  // Create gradient using bezier-curve easing for smoother transitions
+  let gradientString;
+  
+  if (gradientStopsData.length <= 2) {
+    // Simple two-color gradient
+    gradientString = gradientStopsData
+      .map(stop => `${stop.color} ${stop.position}%`)
+      .join(', ');
+  } else {
+    // Create smoother multi-stop gradient with control points
+    const segments = [];
+    
+    for (let i = 0; i < gradientStopsData.length - 1; i++) {
+      const current = gradientStopsData[i];
+      const next = gradientStopsData[i + 1];
+      
+      // Add the starting color
+      segments.push(`${current.color} ${current.position}%`);
+      
+      // Calculate control points for smooth transition (only for segments with enough space)
+      if (next.position - current.position > 10) {
+        const midPoint = (current.position + next.position) / 2;
+        
+        // Create color interpolation for control point
+        const currentRgb = hexToRgb(current.color);
+        const nextRgb = hexToRgb(next.color);
+        
+        // Create intermediate colors for smoother transitions
+        const p1 = current.position + (next.position - current.position) * 0.33;
+        const p2 = current.position + (next.position - current.position) * 0.66;
+        
+        const color1 = rgbToHex(
+          Math.round(currentRgb.r * 0.75 + nextRgb.r * 0.25),
+          Math.round(currentRgb.g * 0.75 + nextRgb.g * 0.25),
+          Math.round(currentRgb.b * 0.75 + nextRgb.b * 0.25)
+        );
+        
+        const color2 = rgbToHex(
+          Math.round(currentRgb.r * 0.25 + nextRgb.r * 0.75),
+          Math.round(currentRgb.g * 0.25 + nextRgb.g * 0.75),
+          Math.round(currentRgb.b * 0.25 + nextRgb.b * 0.75)
+        );
+        
+        segments.push(`${color1} ${p1}%`);
+        segments.push(`${color2} ${p2}%`);
+      }
+    }
+    
+    // Add the final color
+    segments.push(`${gradientStopsData[gradientStopsData.length - 1].color} ${gradientStopsData[gradientStopsData.length - 1].position}%`);
+    
+    gradientString = segments.join(', ');
+  }
+  
+  const gradient = `linear-gradient(${angleInput.value}deg, ${gradientString})`;
+  
+  // Apply gradient
   gradientPreview.style.background = gradient;
   document.documentElement.style.setProperty('--accent-gradient', gradient);
   
@@ -377,8 +462,38 @@ function updateGradientPreview() {
   currentValue = hsv.v;
   updateColorPicker(currentHue, currentSaturation, currentValue, true);
   
+  // Calculate text color based on the average of gradient stops
+  updateTextColorFromGradient();
+  
   hexInputGradient.value = activeStop.color;
   rgbInputGradient.value = `${rgb.r},${rgb.g},${rgb.b}`;
+}
+
+// Update text color based on gradient
+function updateTextColorFromGradient() {
+  // Calculate average brightness of gradient
+  let totalBrightness = 0;
+  let weightedTotal = 0;
+  
+  for (let i = 0; i < gradientStopsData.length - 1; i++) {
+    const current = gradientStopsData[i];
+    const next = gradientStopsData[i + 1];
+    const segmentWidth = next.position - current.position;
+    
+    const currentRgb = hexToRgb(current.color);
+    const nextRgb = hexToRgb(next.color);
+    
+    const currentBrightness = getPerceivedBrightness(currentRgb.r, currentRgb.g, currentRgb.b);
+    const nextBrightness = getPerceivedBrightness(nextRgb.r, nextRgb.g, nextRgb.b);
+    
+    // Average brightness of this segment weighted by its width
+    const segmentBrightness = (currentBrightness + nextBrightness) / 2;
+    totalBrightness += segmentBrightness * segmentWidth;
+    weightedTotal += segmentWidth;
+  }
+  
+  const avgBrightness = totalBrightness / weightedTotal;
+  document.documentElement.style.setProperty('--accent-text', avgBrightness < 180 ? '#ffffff' : '#000000');
 }
 
 // Render gradient stops
@@ -528,6 +643,19 @@ rgbInputGradient.addEventListener('change', (e) => {
   }
 });
 
-// Initialize gradient editor
-renderGradientStops();
-updateGradientPreview();
+// Initialize gradient editor - ensure stops are visible from the start
+function initializeGradientEditor() {
+  renderGradientStops();
+  updateGradientPreview();
+  
+  // Make sure the gradient stops are immediately visible
+  const stopElements = gradientStops.querySelectorAll('.gradient-stop');
+  stopElements.forEach(stop => {
+    stop.style.color = stop.style.backgroundColor;
+  });
+}
+
+// Call after all DOM elements are loaded
+window.addEventListener('DOMContentLoaded', () => {
+  initializeGradientEditor();
+});
