@@ -45,6 +45,9 @@ let isDraggingStop = false;
 // Handle gradient stop drag with better event tracking
 let currentDragTarget = null;
 
+// Track current tab to handle state preservation
+let currentTab = 'solid';
+
 // Toggle settings popup
 settingsBtn.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -354,15 +357,22 @@ rgbInput.addEventListener('change', (e) => {
   }
 });
 
-// Tab switching
+// Tab switching with better state management
 tabSwitcher.addEventListener('click', (e) => {
   if (e.target.classList.contains('tab-option')) {
     const tab = e.target.dataset.tab;
+    
+    // Don't re-initialize if already on this tab
+    if (currentTab === tab) return;
+    
     document.querySelectorAll('.tab-option').forEach(t => t.classList.remove('active'));
     e.target.classList.add('active');
     
     // Update indicator position
     updateTabIndicator();
+    
+    // Save current tab
+    currentTab = tab;
     
     if (tab === 'solid') {
       solidPicker.classList.remove('hidden');
@@ -382,23 +392,32 @@ tabSwitcher.addEventListener('click', (e) => {
         rgb.b * 0.7
       ));
       document.documentElement.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
-      updateColorPicker(currentHue, currentSaturation, currentValue, false);
+      
+      // Force update color picker UI
+      requestAnimationFrame(() => {
+        updateColorPicker(currentHue, currentSaturation, currentValue, false);
+      });
       
     } else if (tab === 'gradient') {
-      // First add the active class, then remove hidden (order matters for visibility)
-      gradientEditor.classList.add('active');
+      // First remove hidden, then add active (order matters for visibility)
       solidPicker.classList.add('hidden');
       
-      // Ensure gradient stops are properly initialized
-      requestAnimationFrame(() => {
+      // Use setTimeout to ensure DOM updates first
+      setTimeout(() => {
+        gradientEditor.classList.add('active');
+        
+        // Ensure gradient stops are properly initialized
         initializeGradientEditor();
         
-        // Force reflow to ensure visibility
+        // Force reflow and update UI
         gradientEditor.offsetHeight;
         
-        // Update UI
+        // Update angle input interactivity
+        angleInput.disabled = false;
+        
+        // Update gradient preview
         updateGradientPreview();
-      });
+      }, 50);
     }
   }
 });
@@ -626,7 +645,7 @@ function renderGradientStops() {
   removeStopBtn.disabled = gradientStopsData.length <= 2;
 }
 
-// Add new gradient stop
+// Add new gradient stop with improved state handling
 addStopBtn.addEventListener('click', () => {
   const stops = gradientStopsData.sort((a, b) => a.position - b.position);
   let newPosition;
@@ -668,10 +687,15 @@ addStopBtn.addEventListener('click', () => {
     );
   }
   
+  // Add the new stop
   gradientStopsData.push({ position: newPosition, color: newColor });
   activeStopIndex = gradientStopsData.length - 1;
+  
+  // Force update UI
   renderGradientStops();
   updateGradientPreview();
+  
+  console.log("Added new stop:", gradientStopsData);
 });
 
 // Remove active gradient stop
@@ -721,9 +745,12 @@ rgbInputGradient.addEventListener('change', (e) => {
   }
 });
 
-// Initialize gradient editor - ensure stops are visible from the start
+// Initialize gradient editor with improved reliability
 function initializeGradientEditor() {
+  // Clear existing stops
   gradientStops.innerHTML = '';
+  
+  console.log("Initializing gradient editor with stops:", gradientStopsData);
   
   // Create stops and append directly
   gradientStopsData.forEach((stop, index) => {
@@ -738,8 +765,18 @@ function initializeGradientEditor() {
   // Force style recalculation to ensure visibility
   gradientStops.offsetHeight;
   
+  // Enable the angle input
+  if (angleInput) {
+    angleInput.disabled = false;
+  }
+  
+  // Update button state
+  if (removeStopBtn) {
+    removeStopBtn.disabled = gradientStopsData.length <= 2;
+  }
+  
+  // Update gradient preview
   updateGradientPreview();
-  removeStopBtn.disabled = gradientStopsData.length <= 2;
 }
 
 // Add presets for solid and gradient colors
@@ -816,8 +853,19 @@ const gradientPresets = [
   }
 ];
 
-// Create preset elements and add to the picker
+// Create presets elements and add to the picker
 function createPresets() {
+  // Check if presets already exist to avoid duplicates
+  const existingSolidPresets = solidPicker.querySelector('.presets-container');
+  const existingGradientPresets = gradientEditor.querySelector('.presets-container');
+  
+  if (existingSolidPresets || existingGradientPresets) {
+    console.log("Presets already exist, skipping creation");
+    return;
+  }
+  
+  console.log("Creating color presets");
+  
   // Create solid presets container
   const solidPresetsContainer = document.createElement('div');
   solidPresetsContainer.className = 'presets-container';
@@ -897,7 +945,8 @@ function createPresets() {
     
     // Add click handler
     presetElement.addEventListener('click', () => {
-      gradientStopsData = [...preset.stops];
+      // Make a deep copy of the preset stops to avoid reference issues
+      gradientStopsData = JSON.parse(JSON.stringify(preset.stops));
       angleInput.value = preset.angle;
       activeStopIndex = 0;
       renderGradientStops();
@@ -910,43 +959,21 @@ function createPresets() {
   gradientPresetsContainer.appendChild(gradientPresetsTitle);
   gradientPresetsContainer.appendChild(gradientPresetsGrid);
   gradientEditor.appendChild(gradientPresetsContainer);
+  
+  console.log("Presets created successfully");
 }
 
-// Initialize with default color and solid tab
-function initializePicker() {
-  // Set initial tab state
-  document.querySelector('[data-tab="solid"]').classList.add('active');
-  document.querySelector('[data-tab="gradient"]').classList.remove('active');
-  solidPicker.classList.remove('hidden');
-  gradientEditor.classList.remove('active');
-
-  // Set initial color
-  hexInput.value = '#00b894';
-  hexInput.dispatchEvent(new Event('change'));
-
-  // Initialize gradient editor
-  initializeGradientEditor();
-  
-  // Create presets
-  createPresets();
-  
-  // Initialize tab indicator
-  initializeTabIndicator();
-  
-  // Force a visibility check
-  setTimeout(() => {
-    const stopElements = gradientStops.querySelectorAll('.gradient-stop');
-    if (stopElements.length > 0) {
-      console.log("Stops initialized:", stopElements.length);
-    } else {
-      console.log("No stops found, reinitializing...");
-      initializeGradientEditor();
-    }
-  }, 100);
-}
-
-// Tab indicator slide effect
+// Tab indicator slide effect with improved initialization
 function initializeTabIndicator() {
+  // Check if indicator already exists
+  const existingIndicator = document.querySelector('.tab-indicator');
+  if (existingIndicator) {
+    console.log("Tab indicator already exists, updating position");
+    updateTabIndicator();
+    return;
+  }
+  
+  console.log("Creating tab indicator");
   const tabContainer = document.querySelector('.tab-switcher');
   const indicator = document.createElement('div');
   indicator.className = 'tab-indicator';
@@ -961,12 +988,69 @@ function updateTabIndicator() {
   const indicator = document.querySelector('.tab-indicator');
   
   if (activeTab && indicator) {
+    console.log("Updating tab indicator to match:", activeTab.dataset.tab);
     indicator.style.left = `${activeTab.offsetLeft}px`;
     indicator.style.width = `${activeTab.offsetWidth}px`;
+  } else {
+    console.warn("Could not find active tab or indicator");
   }
 }
 
 // Initialize when DOM is loaded
 window.addEventListener('DOMContentLoaded', () => {
-  initializePicker();
+  console.log("DOM loaded, initializing picker");
+  
+  // Set initial tab state
+  const solidTab = document.querySelector('[data-tab="solid"]');
+  const gradientTab = document.querySelector('[data-tab="gradient"]');
+  
+  if (solidTab && gradientTab) {
+    solidTab.classList.add('active');
+    gradientTab.classList.remove('active');
+    
+    // Set current tab
+    currentTab = 'solid';
+    
+    // Show solid picker, hide gradient
+    if (solidPicker) solidPicker.classList.remove('hidden');
+    if (gradientEditor) gradientEditor.classList.remove('active');
+    
+    // Initialize tab indicator
+    initializeTabIndicator();
+    
+    // Set initial color
+    if (hexInput) {
+      hexInput.value = '#00b894';
+      hexInput.dispatchEvent(new Event('change'));
+    }
+    
+    // Initialize gradient editor
+    initializeGradientEditor();
+    
+    // Create presets
+    createPresets();
+    
+    // Debug check
+    setTimeout(() => {
+      console.log("=== Debug: Initialization Check ===");
+      console.log("Tab indicator:", document.querySelector('.tab-indicator') ? "exists" : "missing");
+      console.log("Solid presets:", solidPicker.querySelector('.presets-container') ? "exists" : "missing");
+      console.log("Gradient presets:", gradientEditor.querySelector('.presets-container') ? "exists" : "missing");
+      console.log("Gradient stops:", gradientStops.querySelectorAll('.gradient-stop').length);
+      console.log("=== End Debug ===");
+      
+      // Force reinitialize if needed
+      if (!document.querySelector('.tab-indicator')) {
+        console.log("Tab indicator missing, reinitializing");
+        initializeTabIndicator();
+      }
+      
+      if (!solidPicker.querySelector('.presets-container') || !gradientEditor.querySelector('.presets-container')) {
+        console.log("Presets missing, reinitializing");
+        createPresets();
+      }
+    }, 500);
+  } else {
+    console.error("Tab elements not found");
+  }
 });
