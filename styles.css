@@ -108,6 +108,7 @@ body {
   width: calc(var(--xxl) * 2.7);
   max-height: 80vh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .settings-popup.active {
@@ -351,11 +352,11 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
-  max-height: 540px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px;
-  padding-bottom: calc(var(--md) * 1.2);
+  max-height: none;
+  overflow-y: visible;
+  overflow-x: visible;
+  padding-right: 0;
+  padding-bottom: 0;
 }
 
 .gradient-editor.active {
@@ -368,11 +369,11 @@ body {
   display: block;
   opacity: 1;
   pointer-events: auto;
-  max-height: 540px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px;
-  padding-bottom: calc(var(--md) * 1.2);
+  max-height: none;
+  overflow-y: visible;
+  overflow-x: visible;
+  padding-right: 0;
+  padding-bottom: 0;
   transition: opacity 0.2s;
 }
 
