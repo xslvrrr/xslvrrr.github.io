@@ -350,9 +350,10 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -10px;
-  height: 20px;
+  bottom: -12px;
+  height: 24px;
   pointer-events: none;
+  z-index: 5;
 }
 
 .gradient-controls {
@@ -426,10 +427,13 @@ body {
   bottom: 50%;
   background-color: currentColor;
   pointer-events: auto;
+  z-index: 10;
+  will-change: left;
 }
 
 .gradient-stop.active {
   border-color: var(--accent-color);
   border-width: 3px;
   z-index: 100;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.3), 0 0 5px rgba(255,255,255,0.5);
 }
