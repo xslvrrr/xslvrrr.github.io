@@ -18,6 +18,11 @@
   
   /* Restored paddings */
   --side-padding: calc(var(--xl) * 2.35); /* ~160px */
+  
+  /* Consistent border radius based on golden ratio */
+  --radius-xs: calc(var(--xs) * 0.8);     /* ~8px */
+  --radius-sm: var(--xs);                 /* ~10px */
+  --radius-md: calc(var(--xs) * var(--gr)); /* ~16px */
 }
 
 * {
@@ -95,7 +100,7 @@ body {
   right: var(--xl);
   background: rgba(15, 15, 15, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--sm);
+  border-radius: var(--radius-md);
   padding: var(--md);
   padding-bottom: calc(var(--md) * 1.2);
   display: none;
@@ -124,7 +129,7 @@ body {
 .hue-slider {
   width: 100%;
   height: var(--sm);
-  border-radius: calc(var(--xs) * 1.2);
+  border-radius: var(--radius-sm);
   margin-bottom: var(--sm);
   background: linear-gradient(to right, 
     #ff0000 0%, #ffff00 17%, 
@@ -134,6 +139,7 @@ body {
   );
   position: relative;
   cursor: pointer;
+  touch-action: none;
 }
 
 .hue-slider-thumb {
@@ -147,15 +153,18 @@ body {
   border: 2px solid white;
   box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
   cursor: grab;
+  will-change: left;
+  touch-action: none;
 }
 
 .color-area {
   width: 100%;
   padding-bottom: 100%;
   position: relative;
-  border-radius: calc(var(--xs) * 1.5);
+  border-radius: var(--radius-sm);
   margin-bottom: var(--sm);
   cursor: pointer;
+  touch-action: none;
 }
 
 .color-area-inner {
@@ -164,7 +173,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -195,6 +204,7 @@ body {
   box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
   transform: translate(-50%, -50%);
   pointer-events: none;
+  will-change: left, top;
 }
 
 .color-inputs {
@@ -220,7 +230,7 @@ body {
   width: 100%;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   padding: 8px;
   color: white;
   font-family: 'Poppins', sans-serif;
@@ -234,7 +244,7 @@ body {
   font-size: var(--sm);
   font-weight: 600;
   padding: calc(var(--sm) * 0.875) calc(var(--md) * 1.1);
-  border-radius: var(--sm);
+  border-radius: var(--radius-sm);
   transition: all 0.3s;
 }
 
@@ -301,9 +311,11 @@ body {
 .tab-switcher {
   display: flex;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   padding: 4px;
   margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
 .tab-option {
@@ -314,13 +326,24 @@ body {
   font-weight: 500;
   color: var(--text-gray);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   transition: all 0.2s;
+  position: relative;
+  z-index: 2;
 }
 
 .tab-option.active {
-  background: rgba(255, 255, 255, 0.1);
   color: white;
+}
+
+.tab-indicator {
+  position: absolute;
+  height: calc(100% - 8px);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xs);
+  transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 1;
+  top: 4px;
 }
 
 .gradient-editor {
@@ -328,6 +351,11 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
+  max-height: 540px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  padding-bottom: calc(var(--md) * 1.2);
 }
 
 .gradient-editor.active {
@@ -336,10 +364,28 @@ body {
   pointer-events: auto;
 }
 
+.solid-picker {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+  max-height: 540px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  padding-bottom: calc(var(--md) * 1.2);
+  transition: opacity 0.2s;
+}
+
+.solid-picker.hidden {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .gradient-preview {
   width: 100%;
   height: var(--md);
-  border-radius: calc(var(--xs) * 1.2);
+  border-radius: var(--radius-sm);
   margin-bottom: var(--md);
   position: relative;
   cursor: pointer;
@@ -383,7 +429,7 @@ body {
 
 .gradient-button {
   padding: calc(var(--xs) * 1.2) var(--sm);
-  border-radius: calc(var(--xs) * 1.2);
+  border-radius: var(--radius-xs);
   border: none;
   background: rgba(255, 255, 255, 0.1);
   color: white;
@@ -402,19 +448,6 @@ body {
   cursor: not-allowed;
 }
 
-.solid-picker {
-  display: block;
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.2s;
-}
-
-.solid-picker.hidden {
-  display: none !important;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .gradient-stop {
   position: absolute;
   width: 16px;
@@ -429,6 +462,7 @@ body {
   pointer-events: auto;
   z-index: 10;
   will-change: left;
+  touch-action: none;
 }
 
 .gradient-stop.active {
@@ -436,4 +470,52 @@ body {
   border-width: 3px;
   z-index: 100;
   box-shadow: 0 0 0 2px rgba(0,0,0,0.3), 0 0 5px rgba(255,255,255,0.5);
+}
+
+/* Preset styles */
+.presets-container {
+  margin-top: var(--md);
+  padding-top: var(--sm);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.presets-title {
+  font-size: calc(var(--sm) * 1.1);
+  font-weight: 600;
+  margin-bottom: var(--sm);
+  color: var(--text-gray);
+}
+
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--xs);
+}
+
+.preset-item {
+  cursor: pointer;
+  transition: transform 0.2s;
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.preset-item:hover {
+  transform: scale(1.05);
+}
+
+.preset-preview {
+  aspect-ratio: 1.618 / 1;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+}
+
+.preset-label {
+  padding: calc(var(--xs) * 0.8);
+  font-size: calc(var(--xs) * 1.1);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
