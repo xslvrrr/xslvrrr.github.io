@@ -18,7 +18,7 @@ const colorAreaGradient = document.querySelector('.gradient-editor .color-area')
 const colorAreaInnerGradient = document.querySelector('.gradient-editor .color-area-inner');
 const colorAreaThumbGradient = document.querySelector('.gradient-editor .color-area-thumb');
 const hueSliderGradient = document.querySelector('.gradient-editor .hue-slider');
-const hueThumbGradient = document.querySelector('.gradient-editor .hue-slider-thumb');
+const hueSliderThumb = document.querySelector('.gradient-editor .hue-slider-thumb');
 
 const gradientPreview = document.querySelector('.gradient-preview');
 const gradientStops = document.querySelector('.gradient-stops');
@@ -176,7 +176,7 @@ function smoothTabTransition(fromTab, toTab) {
           colorAreaInnerGradient.style.backgroundColor = `hsl(${hsv.h}, 100%, 50%)`;
           
           // Update thumbs
-          if (colorAreaThumbGradient && hueThumbGradient) {
+          if (colorAreaThumbGradient && hueSliderThumb) {
             const colorAreaWidth = colorAreaGradient.offsetWidth || 200;
             const colorAreaHeight = colorAreaGradient.offsetHeight || 200;
             const hueSliderWidth = hueSliderGradient.offsetWidth || 200;
@@ -188,7 +188,7 @@ function smoothTabTransition(fromTab, toTab) {
             colorAreaThumbGradient.style.left = `${saturationX}px`;
             colorAreaThumbGradient.style.top = `${valueY}px`;
             colorAreaThumbGradient.style.backgroundColor = stop.color;
-            hueThumbGradient.style.left = `${hueX}px`;
+            hueSliderThumb.style.left = `${hueX}px`;
           }
         }
       }
@@ -204,7 +204,7 @@ function updateColorPicker(h, s, v, isGradient = false) {
       colorAreaInner: colorAreaInnerGradient,
       colorAreaThumb: colorAreaThumbGradient,
       hueSlider: hueSliderGradient,
-      hueThumb: hueThumbGradient,
+      hueThumb: hueSliderThumb,
       hexInput: hexInputGradient,
       rgbInput: rgbInputGradient
     } : {
@@ -678,7 +678,7 @@ function updateGradientPreview() {
         // Update gradient color area and hue slider without updating gradient again
         if (colorAreaInnerGradient) colorAreaInnerGradient.style.backgroundColor = `hsl(${hsv.h}, 100%, 50%)`;
         
-        if (colorAreaThumbGradient && colorAreaGradient && hueThumbGradient && hueSliderGradient) {
+        if (colorAreaThumbGradient && colorAreaGradient && hueSliderThumb && hueSliderGradient) {
           // Dimensions with fallbacks
           const colorAreaWidth = colorAreaGradient.offsetWidth || 200;
           const colorAreaHeight = colorAreaGradient.offsetHeight || 200;
@@ -692,7 +692,7 @@ function updateGradientPreview() {
           colorAreaThumbGradient.style.left = `${saturationX}px`;
           colorAreaThumbGradient.style.top = `${valueY}px`;
           colorAreaThumbGradient.style.backgroundColor = activeStop.color;
-          hueThumbGradient.style.left = `${hueX}px`;
+          hueSliderThumb.style.left = `${hueX}px`;
         }
       }
     }
@@ -947,134 +947,142 @@ function initializeGradientEditor() {
   }
 }
 
-// Add presets for solid and gradient colors
+// Enhanced presets for solid colors - creative names with unique colors
 const solidPresets = [
-  { name: "Teal", color: "#00b894" },
-  { name: "Purple", color: "#6c5ce7" },
-  { name: "Rose", color: "#fd79a8" },
-  { name: "Orange", color: "#e17055" },
-  { name: "Blue", color: "#0984e3" },
-  { name: "Green", color: "#00b894" },
-  { name: "Yellow", color: "#fdcb6e" },
-  { name: "Red", color: "#d63031" }
+  { name: "Ocean Breeze", color: "#38b6ff" },
+  { name: "Emerald Isle", color: "#00c07f" },
+  { name: "Sunset Orange", color: "#ff7043" },
+  { name: "Royal Purple", color: "#9c56c4" },
+  { name: "Ruby Red", color: "#e53935" },
+  { name: "Sunflower", color: "#ffca28" },
+  { name: "Mint Fresh", color: "#26a69a" },
+  { name: "Coral Pink", color: "#ff5e94" },
+  { name: "Midnight Blue", color: "#1a237e" },
+  { name: "Olive Green", color: "#7cb342" },
+  { name: "Coffee Brown", color: "#795548" },
+  { name: "Slate Gray", color: "#607d8b" }
 ];
 
+// Enhanced gradient presets with creative multi-point gradients
 const gradientPresets = [
   { 
-    name: "Sunset", 
+    name: "Cosmic Aurora", 
     stops: [
-      { position: 0, color: "#f5576c" },
-      { position: 50, color: "#f093fb" },
-      { position: 100, color: "#f5576c" }
-    ],
-    angle: 120
-  },
-  { 
-    name: "Ocean", 
-    stops: [
-      { position: 0, color: "#4facfe" },
-      { position: 50, color: "#00f2fe" },
-      { position: 100, color: "#015de1" }
+      { position: 0, color: "#3d3393" },
+      { position: 16, color: "#2b76b9" },
+      { position: 42, color: "#2cacd1" },
+      { position: 60, color: "#35eb93" },
+      { position: 85, color: "#f8d90f" },
+      { position: 100, color: "#f08c2e" }
     ],
     angle: 135
   },
   { 
-    name: "Forest", 
+    name: "Sunset Blaze", 
     stops: [
-      { position: 0, color: "#00b894" },
-      { position: 33, color: "#6ac47c" },
-      { position: 66, color: "#78e08f" },
-      { position: 100, color: "#b8e994" }
+      { position: 0, color: "#ff416c" },
+      { position: 48, color: "#ff6b6b" },
+      { position: 100, color: "#fda085" }
     ],
-    angle: 90
-  },
-  { 
-    name: "Dusk", 
-    stops: [
-      { position: 0, color: "#243949" },
-      { position: 50, color: "#517fa4" },
-      { position: 100, color: "#8badd2" }
-    ],
-    angle: 180
+    angle: 160
   },
   { 
     name: "Northern Lights", 
     stops: [
-      { position: 0, color: "#0ff0b3" },
-      { position: 33, color: "#20e3b2" },
-      { position: 66, color: "#0cebeb" },
-      { position: 100, color: "#31A3D1" }
+      { position: 0, color: "#43cea2" },
+      { position: 31, color: "#1894a8" },
+      { position: 75, color: "#3858b3" },
+      { position: 100, color: "#2b5876" }
     ],
     angle: 215
   },
   { 
-    name: "Vibrant", 
+    name: "Berry Smoothie", 
     stops: [
-      { position: 0, color: "#FF0080" },
-      { position: 20, color: "#FF8C00" },
-      { position: 40, color: "#FFEE00" },
-      { position: 60, color: "#00FF80" },
-      { position: 80, color: "#00FFFF" },
-      { position: 100, color: "#9D00FF" }
+      { position: 0, color: "#e570e7" },
+      { position: 24, color: "#c85ec7" },
+      { position: 50, color: "#ac3ba3" },
+      { position: 79, color: "#8a307f" },
+      { position: 100, color: "#6b2255" }
     ],
     angle: 45
+  },
+  { 
+    name: "Deep Ocean", 
+    stops: [
+      { position: 0, color: "#0f0c29" },
+      { position: 30, color: "#302b63" },
+      { position: 80, color: "#24243e" },
+      { position: 100, color: "#1c1b33" }
+    ],
+    angle: 180
+  },
+  { 
+    name: "Lush Meadow", 
+    stops: [
+      { position: 0, color: "#56ab2f" },
+      { position: 40, color: "#a8e063" },
+      { position: 70, color: "#c5d170" },
+      { position: 100, color: "#ebd834" }
+    ],
+    angle: 90
+  },
+  { 
+    name: "Candy Cotton", 
+    stops: [
+      { position: 0, color: "#ffafbd" },
+      { position: 50, color: "#ffc3a0" },
+      { position: 100, color: "#ffafbd" }
+    ],
+    angle: 120
+  },
+  { 
+    name: "Nebula", 
+    stops: [
+      { position: 0, color: "#0f2027" },
+      { position: 20, color: "#203a43" },
+      { position: 60, color: "#2c5364" },
+      { position: 100, color: "#051e31" }
+    ],
+    angle: 225
   }
 ];
 
-// Create presets elements and add to the picker
+// Create presets elements and add to the picker with glassmorphism design
 function createPresets() {
   try {
-    console.log("Creating color presets");
+    console.log("Creating color presets with glassmorphism design");
     
-    // Check if presets already exist to avoid duplicates
+    // Remove any existing presets
     const existingSolidPresets = solidPicker.querySelector('.presets-container');
     const existingGradientPresets = gradientEditor.querySelector('.presets-container');
     
-    // Remove any existing presets to avoid duplicates
-    if (existingSolidPresets) {
-      existingSolidPresets.remove();
-    }
-    
-    if (existingGradientPresets) {
-      existingGradientPresets.remove();
-    }
+    if (existingSolidPresets) existingSolidPresets.remove();
+    if (existingGradientPresets) existingGradientPresets.remove();
     
     // Create solid presets container
     const solidPresetsContainer = document.createElement('div');
     solidPresetsContainer.className = 'presets-container';
-    solidPresetsContainer.style.display = 'block';
-    solidPresetsContainer.style.visibility = 'visible';
-    solidPresetsContainer.style.marginTop = '26px';
     
     const solidPresetsTitle = document.createElement('h3');
-    solidPresetsTitle.textContent = 'Presets';
+    solidPresetsTitle.textContent = 'Solid Color Presets';
     solidPresetsTitle.className = 'presets-title';
     
     const solidPresetsGrid = document.createElement('div');
     solidPresetsGrid.className = 'presets-grid';
-    solidPresetsGrid.style.display = 'grid';
-    solidPresetsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    solidPresetsGrid.style.gap = '16px';
     
     // Create solid presets
     solidPresets.forEach(preset => {
       const presetElement = document.createElement('div');
       presetElement.className = 'preset-item';
-      presetElement.style.display = 'block';
-      presetElement.style.visibility = 'visible';
       
       const presetPreview = document.createElement('div');
       presetPreview.className = 'preset-preview';
       presetPreview.style.backgroundColor = preset.color;
-      presetPreview.style.aspectRatio = '1.618 / 1';
-      presetPreview.style.borderRadius = 'var(--radius-xs) var(--radius-xs) 0 0';
       
       const presetLabel = document.createElement('div');
       presetLabel.className = 'preset-label';
       presetLabel.textContent = preset.name;
-      presetLabel.style.padding = 'calc(var(--xs) * 0.8)';
-      presetLabel.style.textAlign = 'center';
-      presetLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
       
       presetElement.appendChild(presetPreview);
       presetElement.appendChild(presetLabel);
@@ -1082,11 +1090,13 @@ function createPresets() {
       // Add click handler
       presetElement.addEventListener('click', () => {
         const rgb = hexToRgb(preset.color);
-        const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
-        currentHue = hsv.h;
-        currentSaturation = hsv.s;
-        currentValue = hsv.v;
-        updateColorPicker(currentHue, currentSaturation, currentValue, false);
+        if (rgb) {
+          const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+          currentHue = hsv.h;
+          currentSaturation = hsv.s;
+          currentValue = hsv.v;
+          updateColorPicker(currentHue, currentSaturation, currentValue, false);
+        }
       });
       
       solidPresetsGrid.appendChild(presetElement);
@@ -1099,33 +1109,23 @@ function createPresets() {
     // Create gradient presets container
     const gradientPresetsContainer = document.createElement('div');
     gradientPresetsContainer.className = 'presets-container';
-    gradientPresetsContainer.style.display = 'block';
-    gradientPresetsContainer.style.visibility = 'visible';
-    gradientPresetsContainer.style.marginTop = '26px';
     
     const gradientPresetsTitle = document.createElement('h3');
-    gradientPresetsTitle.textContent = 'Presets';
+    gradientPresetsTitle.textContent = 'Gradient Presets';
     gradientPresetsTitle.className = 'presets-title';
     
     const gradientPresetsGrid = document.createElement('div');
     gradientPresetsGrid.className = 'presets-grid';
-    gradientPresetsGrid.style.display = 'grid';
-    gradientPresetsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    gradientPresetsGrid.style.gap = '16px';
     
     // Create gradient presets
     gradientPresets.forEach(preset => {
       const presetElement = document.createElement('div');
       presetElement.className = 'preset-item';
-      presetElement.style.display = 'block';
-      presetElement.style.visibility = 'visible';
       
       const presetPreview = document.createElement('div');
       presetPreview.className = 'preset-preview';
-      presetPreview.style.aspectRatio = '1.618 / 1';
-      presetPreview.style.borderRadius = 'var(--radius-xs) var(--radius-xs) 0 0';
       
-      // Create gradient string
+      // Create gradient string with enhanced points
       const gradientString = preset.stops.map(stop => 
         `${stop.color} ${stop.position}%`
       ).join(', ');
@@ -1135,21 +1135,39 @@ function createPresets() {
       const presetLabel = document.createElement('div');
       presetLabel.className = 'preset-label';
       presetLabel.textContent = preset.name;
-      presetLabel.style.padding = 'calc(var(--xs) * 0.8)';
-      presetLabel.style.textAlign = 'center';
-      presetLabel.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
       
       presetElement.appendChild(presetPreview);
       presetElement.appendChild(presetLabel);
       
-      // Add click handler
+      // Add click handler with proper error handling
       presetElement.addEventListener('click', () => {
-        // Make a deep copy of the preset stops to avoid reference issues
-        gradientStopsData = JSON.parse(JSON.stringify(preset.stops));
-        angleInput.value = preset.angle;
-        activeStopIndex = 0;
-        renderGradientStops();
-        updateGradientPreview();
+        try {
+          // Make a deep copy of the preset stops to avoid reference issues
+          gradientStopsData = JSON.parse(JSON.stringify(preset.stops));
+          angleInput.value = preset.angle;
+          activeStopIndex = 0;
+          
+          renderGradientStops();
+          updateGradientPreview();
+          
+          // Update the active stop's color in the gradient color picker
+          const activeStop = gradientStopsData[activeStopIndex];
+          if (activeStop && hexInputGradient) {
+            hexInputGradient.value = activeStop.color;
+            
+            // Update the gradient color picker UI
+            const rgb = hexToRgb(activeStop.color);
+            if (rgb) {
+              const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+              currentHue = hsv.h;
+              currentSaturation = hsv.s;
+              currentValue = hsv.v;
+              updateColorPicker(currentHue, currentSaturation, currentValue, true);
+            }
+          }
+        } catch (e) {
+          console.error("Error applying gradient preset:", e);
+        }
       });
       
       gradientPresetsGrid.appendChild(presetElement);
@@ -1159,169 +1177,168 @@ function createPresets() {
     gradientPresetsContainer.appendChild(gradientPresetsGrid);
     gradientEditor.appendChild(gradientPresetsContainer);
     
-    console.log("Presets created successfully - Solid presets:", solidPicker.querySelector('.presets-container') ? "✓" : "✗", 
-                "Gradient presets:", gradientEditor.querySelector('.presets-container') ? "✓" : "✗");
+    console.log("Presets created successfully with glassmorphism design");
   } catch (e) {
     console.error("Error creating presets:", e);
   }
 }
 
-// Tab indicator slide effect with improved initialization
+// Update tab indicator function to use transform instead of left/width
+function updateTabIndicator() {
+  const activeTab = document.querySelector('.tab-option.active');
+  const indicator = document.querySelector('.tab-indicator');
+  
+  if (activeTab && indicator) {
+    const tabName = activeTab.dataset.tab;
+    
+    // Add the data-tab attribute to the indicator
+    indicator.setAttribute('data-tab', tabName);
+    
+    // Use transform for smoother animation
+    if (tabName === 'gradient') {
+      indicator.style.transform = 'translateX(100%)';
+    } else {
+      indicator.style.transform = 'translateX(0)';
+    }
+    
+    console.log(`Tab indicator updated to ${tabName} tab`);
+  } else {
+    console.warn("Could not find active tab or indicator");
+  }
+}
+
+// Initialize tab indicator
 function initializeTabIndicator() {
   // Check if indicator already exists
   const existingIndicator = document.querySelector('.tab-indicator');
   if (existingIndicator) {
     console.log("Tab indicator already exists, updating position");
     updateTabIndicator();
-    return;
+    return existingIndicator;
   }
   
   console.log("Creating tab indicator");
   const tabContainer = document.querySelector('.tab-switcher');
   const indicator = document.createElement('div');
   indicator.className = 'tab-indicator';
+  
+  // Set initial state based on active tab
+  const activeTab = document.querySelector('.tab-option.active');
+  if (activeTab) {
+    indicator.setAttribute('data-tab', activeTab.dataset.tab);
+  } else {
+    // Default to solid if no active tab
+    indicator.setAttribute('data-tab', 'solid');
+  }
+  
   tabContainer.appendChild(indicator);
   
   // Set initial position
   updateTabIndicator();
+  return indicator;
 }
 
-function updateTabIndicator() {
-  const activeTab = document.querySelector('.tab-option.active');
-  const indicator = document.querySelector('.tab-indicator');
-  
-  if (activeTab && indicator) {
-    console.log("Updating tab indicator to match:", activeTab.dataset.tab);
-    indicator.style.left = `${activeTab.offsetLeft}px`;
-    indicator.style.width = `${activeTab.offsetWidth}px`;
-  } else {
-    console.warn("Could not find active tab or indicator");
-  }
-}
-
-// Enhance event binding with error handling
-function safeAddEventListener(element, event, handler) {
-  if (element) {
-    try {
-      element.addEventListener(event, handler);
-    } catch (e) {
-      console.error(`Error adding ${event} event listener:`, e);
-    }
-  } else {
-    console.warn(`Cannot add ${event} event listener: element not found`);
-  }
-}
-
-// Initialize when DOM is loaded with improved error handling
-window.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM loaded, initializing picker");
-  
+// Event listener for DOMContentLoaded - updated for reliability
+document.addEventListener('DOMContentLoaded', function() {
   try {
-    // Wait for everything to be properly loaded
+    console.log("DOM fully loaded, initializing color picker with glassmorphism design");
+    
+    // Delay execution slightly to ensure DOM is ready
     setTimeout(() => {
-      // Force create tab indicator immediately
-      initializeTabIndicator();
-      
-      // Set initial tab state
+      // Initialize tabs
       const solidTab = document.querySelector('[data-tab="solid"]');
       const gradientTab = document.querySelector('[data-tab="gradient"]');
+      const solidPicker = document.querySelector('.solid-picker');
+      const gradientEditor = document.querySelector('.gradient-editor');
       
-      if (solidTab && gradientTab) {
+      if (!solidTab || !gradientTab || !solidPicker || !gradientEditor) {
+        console.error("Critical UI elements are missing!");
+        return;
+      }
+      
+      // Force create tab indicator immediately
+      const tabIndicator = initializeTabIndicator();
+      if (!tabIndicator) {
+        console.error("Failed to create tab indicator!");
+      }
+      
+      // Set initial tab state
+      solidTab.classList.add('active');
+      gradientTab.classList.remove('active');
+      solidPicker.classList.remove('hidden');
+      solidPicker.style.display = 'block';
+      gradientEditor.classList.remove('active');
+      gradientEditor.style.display = 'none';
+      
+      // Initialize solid color picker
+      initializeColorPicker(false);
+      
+      // Initialize gradient editor
+      initializeGradientEditor();
+      
+      // Set initial color
+      updateColorPicker(currentHue, currentSaturation, currentValue, false);
+      
+      // Create presets immediately
+      createPresets();
+      
+      // Add tab click event listener
+      solidTab.addEventListener('click', () => {
         solidTab.classList.add('active');
         gradientTab.classList.remove('active');
-        
-        // Set current tab
-        currentTab = 'solid';
-        
-        // Show solid picker, hide gradient
-        if (solidPicker) solidPicker.classList.remove('hidden');
-        if (gradientEditor) gradientEditor.classList.remove('active');
-        
-        // Set initial color
-        if (hexInput) {
-          hexInput.value = '#00b894';
-          hexInput.dispatchEvent(new Event('change'));
-        }
-        
-        // Initialize gradient editor
-        initializeGradientEditor();
-        
-        // Create presets immediately
-        createPresets();
-        
-        // Force update tab indicator
+        solidPicker.classList.remove('hidden');
+        solidPicker.style.display = 'block';
+        gradientEditor.classList.remove('active');
+        gradientEditor.style.display = 'none';
+        updateTabIndicator();
+      });
+      
+      gradientTab.addEventListener('click', () => {
+        solidTab.classList.remove('active');
+        gradientTab.classList.add('active');
+        solidPicker.classList.add('hidden');
+        solidPicker.style.display = 'none';
+        gradientEditor.classList.add('active');
+        gradientEditor.style.display = 'block';
         updateTabIndicator();
         
-        // Ensure proper setup of color pickers
-        setupColorAreaEvents(colorArea, false);
-        setupColorAreaEvents(colorAreaGradient, true);
-        setupHueSliderEvents(hueSlider, false);
-        setupHueSliderEvents(hueSliderGradient, true);
+        // Make sure gradient is updated
+        updateGradientPreview();
+      });
+      
+      console.log("Color picker initialized successfully");
+      
+      // Check for important elements again after a short delay
+      setTimeout(() => {
+        // Post-initialization check
+        const tabIndicatorCheck = document.querySelector('.tab-indicator');
+        const solidPresetsCheck = document.querySelector('.solid-picker .presets-container');
+        const gradientPresetsCheck = document.querySelector('.gradient-editor .presets-container');
         
-        // Do a second check after everything should be initialized
-        setTimeout(() => {
-          try {
-            console.log("=== Debug: Initialization Check ===");
-            
-            const tabIndicator = document.querySelector('.tab-indicator');
-            console.log("Tab indicator:", tabIndicator ? "exists" : "missing");
-            
-            if (!tabIndicator) {
-              console.log("Creating missing tab indicator");
-              const tabContainer = document.querySelector('.tab-switcher');
-              if (tabContainer) {
-                const indicator = document.createElement('div');
-                indicator.className = 'tab-indicator';
-                indicator.style.display = 'block';
-                indicator.style.visibility = 'visible';
-                indicator.style.background = 'rgba(255, 255, 255, 0.2)';
-                tabContainer.appendChild(indicator);
-                updateTabIndicator();
-              }
-            }
-            
-            const solidPresetsContainer = solidPicker.querySelector('.presets-container');
-            console.log("Solid presets:", solidPresetsContainer ? "exists" : "missing");
-            
-            const gradientPresetsContainer = gradientEditor.querySelector('.presets-container');
-            console.log("Gradient presets:", gradientPresetsContainer ? "exists" : "missing");
-            
-            console.log("Gradient stops:", gradientStops.querySelectorAll('.gradient-stop').length);
-            
-            // Force reinitialize if needed
-            if (!solidPresetsContainer || !gradientPresetsContainer) {
-              console.log("Presets missing, recreating");
-              createPresets();
-            }
-            
-            // Force rerender gradient stops if they're missing
-            if (gradientStops.querySelectorAll('.gradient-stop').length === 0) {
-              console.log("Gradient stops missing, forcing recreation");
-              renderGradientStops();
-            }
-            
-            // Force update color pickers to ensure they're displayed correctly
-            updateColorPicker(currentHue, currentSaturation, currentValue, false);
-            
-            // Force redraw the tab indicator
-            if (tabIndicator) {
-              tabIndicator.style.opacity = '0.99';
-              setTimeout(() => {
-                tabIndicator.style.opacity = '1';
-              }, 10);
-            }
-            
-            console.log("=== Initialization Complete ===");
-          } catch (e) {
-            console.error("Error during post-initialization check:", e);
-          }
-        }, 500);
-      } else {
-        console.error("Tab elements not found");
-      }
-    }, 100); // Small delay to ensure DOM is properly loaded
+        console.log("Post-initialization check:", 
+                  "Tab indicator:", tabIndicatorCheck ? "✓" : "✗",
+                  "Solid presets:", solidPresetsCheck ? "✓" : "✗",
+                  "Gradient presets:", gradientPresetsCheck ? "✓" : "✗");
+        
+        // Re-create anything missing
+        if (!tabIndicatorCheck) {
+          console.warn("Tab indicator missing after initialization, recreating...");
+          initializeTabIndicator();
+        }
+        
+        if (!solidPresetsCheck || !gradientPresetsCheck) {
+          console.warn("Presets missing after initialization, recreating...");
+          createPresets();
+        }
+        
+        // Final update to ensure everything is drawn
+        updateColorPicker(currentHue, currentSaturation, currentValue, false);
+        updateGradientPreview();
+        updateTabIndicator();
+      }, 500);
+    }, 100);
   } catch (e) {
-    console.error("Error during initialization:", e);
+    console.error("Error during color picker initialization:", e);
   }
 });
 
@@ -1347,3 +1364,93 @@ rgbInput.addEventListener('change', (e) => {
     hexInput.dispatchEvent(new Event('change'));
   }
 });
+
+// Initialize the color picker with improved error handling
+function initializeColorPicker(isGradient) {
+  try {
+    const targetColorArea = isGradient ? colorAreaGradient : colorArea;
+    const targetHueSlider = isGradient ? hueSliderGradient : hueSlider;
+    const targetThumb = isGradient ? colorAreaThumbGradient : colorAreaThumb;
+    const targetHueThumb = isGradient ? hueSliderThumb : hueThumb;
+    
+    console.log(`Initializing ${isGradient ? 'gradient' : 'solid'} color picker elements`);
+    
+    // Setup all the event listeners for the color area
+    if (targetColorArea) {
+      setupColorAreaEvents(targetColorArea, isGradient);
+      console.log(`Color area events set up for ${isGradient ? 'gradient' : 'solid'} picker`);
+    } else {
+      console.error(`Color area element not found for ${isGradient ? 'gradient' : 'solid'} picker`);
+    }
+    
+    // Setup all the event listeners for the hue slider
+    if (targetHueSlider) {
+      setupHueSliderEvents(targetHueSlider, isGradient);
+      console.log(`Hue slider events set up for ${isGradient ? 'gradient' : 'solid'} picker`);
+    } else {
+      console.error(`Hue slider element not found for ${isGradient ? 'gradient' : 'solid'} picker`);
+    }
+    
+    // Setup hex input event listener
+    const targetHexInput = isGradient ? hexInputGradient : hexInput;
+    if (targetHexInput) {
+      targetHexInput.addEventListener('change', function() {
+        const value = this.value.trim();
+        if (value.startsWith('#') && /^#[0-9A-Fa-f]{6}$/.test(value)) {
+          // Valid hex value
+          const rgb = hexToRgb(value);
+          if (rgb) {
+            const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+            currentHue = hsv.h;
+            currentSaturation = hsv.s;
+            currentValue = hsv.v;
+            updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+            
+            if (isGradient && activeStopIndex !== null) {
+              gradientStopsData[activeStopIndex].color = value;
+              updateGradientPreview();
+            }
+          }
+        }
+      });
+      console.log(`Hex input events set up for ${isGradient ? 'gradient' : 'solid'} picker`);
+    } else {
+      console.error(`Hex input element not found for ${isGradient ? 'gradient' : 'solid'} picker`);
+    }
+    
+    // Setup RGB input event listener
+    const targetRgbInput = isGradient ? rgbInputGradient : rgbInput;
+    if (targetRgbInput) {
+      targetRgbInput.addEventListener('change', function() {
+        const value = this.value.trim();
+        const rgbParts = value.split(',').map(part => parseInt(part.trim(), 10));
+        
+        if (rgbParts.length === 3 && 
+            !isNaN(rgbParts[0]) && !isNaN(rgbParts[1]) && !isNaN(rgbParts[2]) &&
+            rgbParts[0] >= 0 && rgbParts[0] <= 255 &&
+            rgbParts[1] >= 0 && rgbParts[1] <= 255 &&
+            rgbParts[2] >= 0 && rgbParts[2] <= 255) {
+          
+          // Valid RGB values
+          const r = rgbParts[0];
+          const g = rgbParts[1];
+          const b = rgbParts[2];
+          
+          // Update hex input
+          const hex = rgbToHex(r, g, b);
+          if (targetHexInput) {
+            targetHexInput.value = hex;
+            targetHexInput.dispatchEvent(new Event('change'));
+          }
+        }
+      });
+      console.log(`RGB input events set up for ${isGradient ? 'gradient' : 'solid'} picker`);
+    } else {
+      console.error(`RGB input element not found for ${isGradient ? 'gradient' : 'solid'} picker`);
+    }
+    
+    console.log(`${isGradient ? 'Gradient' : 'Solid'} color picker initialized successfully`);
+  } catch (e) {
+    console.error(`Error initializing ${isGradient ? 'gradient' : 'solid'} color picker:`, e);
+  }
+}
