@@ -15,6 +15,9 @@
   --lg: calc(var(--md) * var(--gr));     /* ~42px */
   --xl: calc(var(--lg) * var(--gr));     /* ~68px */
   --xxl: calc(var(--xl) * var(--gr));    /* ~110px */
+  
+  /* Restored paddings */
+  --side-padding: calc(var(--xl) * 2.35); /* ~160px */
 }
 
 * {
@@ -42,7 +45,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--xl);
+  padding: 0 var(--side-padding);
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px) brightness(0.8);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
@@ -246,7 +249,7 @@ body {
   justify-content: center;
   align-items: flex-start;
   height: calc(100vh - var(--xxl));
-  padding: 0 var(--xl);
+  padding: 0 var(--side-padding);
   text-align: left;
 }
 
@@ -349,6 +352,7 @@ body {
   right: 0;
   bottom: -10px;
   height: 20px;
+  pointer-events: none;
 }
 
 .gradient-controls {
@@ -420,9 +424,12 @@ body {
   transform: translate(-50%, -50%);
   cursor: grab;
   bottom: 50%;
+  background-color: currentColor;
+  pointer-events: auto;
 }
 
 .gradient-stop.active {
   border-color: var(--accent-color);
-  z-index: 1;
+  border-width: 3px;
+  z-index: 100;
 }
