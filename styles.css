@@ -331,7 +331,7 @@ body {
 }
 
 .gradient-editor.active {
-  display: block;
+  display: block !important;
   opacity: 1;
   pointer-events: auto;
 }
@@ -409,7 +409,7 @@ body {
 }
 
 .solid-picker.hidden {
-  display: none;
+  display: none !important;
   opacity: 0;
   pointer-events: none;
 }
