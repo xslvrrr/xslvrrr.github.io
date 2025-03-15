@@ -14,7 +14,7 @@
   --md: calc(var(--base) * var(--gr));   /* ~26px */
   --lg: calc(var(--md) * var(--gr));     /* ~42px */
   --xl: calc(var(--lg) * var(--gr));     /* ~68px */
-  --xxl: calc(var(--xl) * var(--gr));    /* ~110px */
+  --xxl: calc(var(--xl) * var(--gr));     /* ~110px */
   
   /* Restored paddings */
   --side-padding: calc(var(--xl) * 2.35); /* ~160px */
@@ -109,6 +109,24 @@ body {
   max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 2000;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(15, 15, 15, 0);
+}
+
+.settings-popup::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-popup::-webkit-scrollbar-track {
+  background: rgba(15, 15, 15, 0);
+}
+
+.settings-popup::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
 }
 
 .settings-popup.active {
@@ -316,7 +334,7 @@ body {
   padding: 4px;
   margin-bottom: 16px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .tab-option {
@@ -340,29 +358,30 @@ body {
 .tab-indicator {
   position: absolute;
   height: calc(100% - 8px);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-xs);
   transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   z-index: 1;
   top: 4px;
+  left: 4px;
+  display: block !important;
+  visibility: visible !important;
 }
 
 .gradient-editor {
   display: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s;
-  max-height: none;
-  overflow-y: visible;
-  overflow-x: visible;
-  padding-right: 0;
-  padding-bottom: 0;
+  transition: opacity 0.3s;
+  height: auto;
+  width: 100%;
 }
 
 .gradient-editor.active {
   display: block !important;
   opacity: 1;
   pointer-events: auto;
+  height: auto;
 }
 
 .solid-picker {
@@ -381,6 +400,7 @@ body {
   display: none !important;
   opacity: 0;
   pointer-events: none;
+  height: 0;
 }
 
 .gradient-preview {
@@ -401,6 +421,8 @@ body {
   height: 24px;
   pointer-events: none;
   z-index: 5;
+  display: block;
+  overflow: visible;
 }
 
 .gradient-controls {
@@ -464,6 +486,8 @@ body {
   z-index: 10;
   will-change: left;
   touch-action: none;
+  display: block !important;
+  visibility: visible !important;
 }
 
 .gradient-stop.active {
@@ -475,8 +499,10 @@ body {
 
 /* Preset styles */
 .presets-container {
-  margin-top: var(--md);
-  padding-top: var(--sm);
+  display: block !important;
+  visibility: visible !important;
+  margin-top: var(--md) !important;
+  padding-top: var(--sm) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -488,12 +514,15 @@ body {
 }
 
 .presets-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--xs);
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: var(--xs) !important;
+  visibility: visible !important;
 }
 
 .preset-item {
+  display: block !important;
+  visibility: visible !important;
   cursor: pointer;
   transition: transform 0.2s;
   border-radius: var(--radius-xs);
@@ -519,4 +548,34 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Force visibility for gradient editor */
+.gradient-editor.active .gradient-stops {
+  visibility: visible !important;
+  display: block !important;
+  height: 24px !important;
+  overflow: visible !important;
+  z-index: 50 !important;
+}
+
+.gradient-editor.active .gradient-stop {
+  visibility: visible !important;
+  display: block !important;
+  z-index: 100 !important;
+  pointer-events: auto !important;
+}
+
+/* Fix for color pickers */
+.color-area, .hue-slider {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.color-area-thumb, .hue-slider-thumb {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: none !important;
 }
