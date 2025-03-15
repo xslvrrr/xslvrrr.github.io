@@ -220,89 +220,109 @@ function updateColorPicker(h, s, v, isGradient = false) {
   }
 }
 
-// Handle color area interactions for both pickers
+// Performance optimization - use pointer events for smoother dragging
 function setupColorAreaEvents(colorArea, isGradient) {
   let isDragging = false;
 
-  colorArea.addEventListener('mousedown', (e) => {
+  colorArea.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     isDragging = true;
     isDraggingColor = true;
+    colorArea.setPointerCapture(e.pointerId);
     updateColorFromEvent(e, colorArea, isGradient);
   });
 
-  document.addEventListener('mousemove', (e) => {
+  colorArea.addEventListener('pointermove', (e) => {
     if (isDragging) {
       updateColorFromEvent(e, colorArea, isGradient);
     }
   });
 
-  document.addEventListener('mouseup', () => {
+  colorArea.addEventListener('pointerup', (e) => {
+    if (isDragging) {
+      isDragging = false;
+      isDraggingColor = false;
+      colorArea.releasePointerCapture(e.pointerId);
+    }
+  });
+
+  colorArea.addEventListener('pointercancel', (e) => {
     isDragging = false;
     isDraggingColor = false;
+    colorArea.releasePointerCapture(e.pointerId);
   });
 }
 
-// Handle hue slider interactions for both pickers
+// Handle hue slider interactions using pointer events
 function setupHueSliderEvents(hueSlider, isGradient) {
   let isDragging = false;
 
-  hueSlider.addEventListener('mousedown', (e) => {
+  hueSlider.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     isDragging = true;
     isDraggingHue = true;
+    hueSlider.setPointerCapture(e.pointerId);
     updateHueFromEvent(e, hueSlider, isGradient);
   });
 
-  document.addEventListener('mousemove', (e) => {
+  hueSlider.addEventListener('pointermove', (e) => {
     if (isDragging) {
       updateHueFromEvent(e, hueSlider, isGradient);
     }
   });
 
-  document.addEventListener('mouseup', () => {
+  hueSlider.addEventListener('pointerup', (e) => {
+    if (isDragging) {
+      isDragging = false;
+      isDraggingHue = false;
+      hueSlider.releasePointerCapture(e.pointerId);
+    }
+  });
+
+  hueSlider.addEventListener('pointercancel', (e) => {
     isDragging = false;
     isDraggingHue = false;
+    hueSlider.releasePointerCapture(e.pointerId);
   });
 }
 
+// Optimize color updates with rAF and debouncing
+let colorUpdateRAF = null;
 function updateColorFromEvent(e, colorArea, isGradient) {
-  // Use requestAnimationFrame for smoother updates
-  if (!window.colorUpdateScheduled) {
-    window.colorUpdateScheduled = true;
+  if (colorUpdateRAF) return;
+  
+  colorUpdateRAF = requestAnimationFrame(() => {
+    const rect = colorArea.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
     
-    requestAnimationFrame(() => {
-      const rect = colorArea.getBoundingClientRect();
-      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-      
-      currentSaturation = (1 - x) * 100;
-      currentValue = 100 - (y * 100);
-      
-      // Preserve hue when at extreme values
-      if (currentValue < 3 || (currentSaturation < 3 && currentValue > 97)) {
-        // Keep current hue at extremes
-      } else {
-        // Normal processing
-      }
-      
-      updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
-      window.colorUpdateScheduled = false;
-    });
-  }
+    currentSaturation = (1 - x) * 100;
+    currentValue = 100 - (y * 100);
+    
+    // Preserve hue when at extreme values
+    if (currentValue < 3 || (currentSaturation < 3 && currentValue > 97)) {
+      // Keep current hue at extremes
+    } else {
+      // Normal processing
+    }
+    
+    updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+    colorUpdateRAF = null;
+  });
 }
 
+// Optimize hue updates with rAF and debouncing
+let hueUpdateRAF = null;
 function updateHueFromEvent(e, hueSlider, isGradient) {
-  // Use requestAnimationFrame for smoother updates
-  if (!window.hueUpdateScheduled) {
-    window.hueUpdateScheduled = true;
-    
-    requestAnimationFrame(() => {
-      const rect = hueSlider.getBoundingClientRect();
-      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      currentHue = x * 360;
-      updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
-      window.hueUpdateScheduled = false;
-    });
-  }
+  if (hueUpdateRAF) return;
+  
+  hueUpdateRAF = requestAnimationFrame(() => {
+    const rect = hueSlider.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    currentHue = x * 360;
+    updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+    hueUpdateRAF = null;
+  });
 }
 
 // Setup events for both color pickers
@@ -340,6 +360,9 @@ tabSwitcher.addEventListener('click', (e) => {
     const tab = e.target.dataset.tab;
     document.querySelectorAll('.tab-option').forEach(t => t.classList.remove('active'));
     e.target.classList.add('active');
+    
+    // Update indicator position
+    updateTabIndicator();
     
     if (tab === 'solid') {
       solidPicker.classList.remove('hidden');
@@ -380,12 +403,13 @@ tabSwitcher.addEventListener('click', (e) => {
   }
 });
 
-// Handle gradient stop drag with better event tracking
-gradientStops.addEventListener('mousedown', (e) => {
+// Handle gradient stop drag using pointer events
+gradientStops.addEventListener('pointerdown', (e) => {
   if (e.target.classList.contains('gradient-stop')) {
     e.stopPropagation();
     currentDragTarget = e.target;
     isDraggingStop = true;
+    currentDragTarget.setPointerCapture(e.pointerId);
     
     const stops = Array.from(gradientStops.children);
     activeStopIndex = stops.indexOf(e.target);
@@ -405,22 +429,24 @@ gradientStops.addEventListener('mousedown', (e) => {
   }
 });
 
-// Dedicated mousemove handler for gradient stops
+// Handle gradient stop drag with pointer events
+let stopDragRAF = null;
 function handleGradientStopDrag(e) {
   if (isDraggingStop && currentDragTarget) {
-    const rect = gradientPreview.getBoundingClientRect();
-    const position = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    if (stopDragRAF) return;
     
-    // Update the data
-    gradientStopsData[activeStopIndex].position = position;
-    
-    // Sort stops by position and update active index
-    const oldStop = gradientStopsData[activeStopIndex];
-    gradientStopsData.sort((a, b) => a.position - b.position);
-    activeStopIndex = gradientStopsData.findIndex(stop => stop === oldStop);
-    
-    // Update visual positions for all stops
-    requestAnimationFrame(() => {
+    stopDragRAF = requestAnimationFrame(() => {
+      const rect = gradientPreview.getBoundingClientRect();
+      const position = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      
+      // Update the data
+      gradientStopsData[activeStopIndex].position = position;
+      
+      // Sort stops by position and update active index
+      const oldStop = gradientStopsData[activeStopIndex];
+      gradientStopsData.sort((a, b) => a.position - b.position);
+      activeStopIndex = gradientStopsData.findIndex(stop => stop === oldStop);
+      
       // Update DOM elements
       Array.from(gradientStops.children).forEach((stopEl, index) => {
         stopEl.style.left = `${gradientStopsData[index].position}%`;
@@ -434,22 +460,35 @@ function handleGradientStopDrag(e) {
       
       // Update the preview
       updateGradientPreview();
+      stopDragRAF = null;
     });
   }
 }
 
-// Handle stop drag end
-function handleGradientStopDragEnd() {
-  if (isDraggingStop) {
+// Use pointer events for gradient stops
+gradientStops.addEventListener('pointermove', handleGradientStopDrag);
+
+gradientStops.addEventListener('pointerup', (e) => {
+  if (isDraggingStop && currentDragTarget) {
     isDraggingStop = false;
+    currentDragTarget.releasePointerCapture(e.pointerId);
     currentDragTarget = null;
     renderGradientStops();
   }
-}
+});
 
-// Add global event listeners
-document.addEventListener('mousemove', handleGradientStopDrag);
-document.addEventListener('mouseup', handleGradientStopDragEnd);
+gradientStops.addEventListener('pointercancel', (e) => {
+  if (isDraggingStop && currentDragTarget) {
+    isDraggingStop = false;
+    currentDragTarget.releasePointerCapture(e.pointerId);
+    currentDragTarget = null;
+    renderGradientStops();
+  }
+});
+
+// Remove old mouse event listeners
+document.removeEventListener('mousemove', handleGradientStopDrag);
+document.removeEventListener('mouseup', handleGradientStopDragEnd);
 
 // Create gradient stop element
 function createStopElement(position, color) {
@@ -703,6 +742,176 @@ function initializeGradientEditor() {
   removeStopBtn.disabled = gradientStopsData.length <= 2;
 }
 
+// Add presets for solid and gradient colors
+const solidPresets = [
+  { name: "Teal", color: "#00b894" },
+  { name: "Purple", color: "#6c5ce7" },
+  { name: "Rose", color: "#fd79a8" },
+  { name: "Orange", color: "#e17055" },
+  { name: "Blue", color: "#0984e3" },
+  { name: "Green", color: "#00b894" },
+  { name: "Yellow", color: "#fdcb6e" },
+  { name: "Red", color: "#d63031" }
+];
+
+const gradientPresets = [
+  { 
+    name: "Sunset", 
+    stops: [
+      { position: 0, color: "#f5576c" },
+      { position: 50, color: "#f093fb" },
+      { position: 100, color: "#f5576c" }
+    ],
+    angle: 120
+  },
+  { 
+    name: "Ocean", 
+    stops: [
+      { position: 0, color: "#4facfe" },
+      { position: 50, color: "#00f2fe" },
+      { position: 100, color: "#015de1" }
+    ],
+    angle: 135
+  },
+  { 
+    name: "Forest", 
+    stops: [
+      { position: 0, color: "#00b894" },
+      { position: 33, color: "#6ac47c" },
+      { position: 66, color: "#78e08f" },
+      { position: 100, color: "#b8e994" }
+    ],
+    angle: 90
+  },
+  { 
+    name: "Dusk", 
+    stops: [
+      { position: 0, color: "#243949" },
+      { position: 50, color: "#517fa4" },
+      { position: 100, color: "#8badd2" }
+    ],
+    angle: 180
+  },
+  { 
+    name: "Northern Lights", 
+    stops: [
+      { position: 0, color: "#0ff0b3" },
+      { position: 33, color: "#20e3b2" },
+      { position: 66, color: "#0cebeb" },
+      { position: 100, color: "#31A3D1" }
+    ],
+    angle: 215
+  },
+  { 
+    name: "Vibrant", 
+    stops: [
+      { position: 0, color: "#FF0080" },
+      { position: 20, color: "#FF8C00" },
+      { position: 40, color: "#FFEE00" },
+      { position: 60, color: "#00FF80" },
+      { position: 80, color: "#00FFFF" },
+      { position: 100, color: "#9D00FF" }
+    ],
+    angle: 45
+  }
+];
+
+// Create preset elements and add to the picker
+function createPresets() {
+  // Create solid presets container
+  const solidPresetsContainer = document.createElement('div');
+  solidPresetsContainer.className = 'presets-container';
+  
+  const solidPresetsTitle = document.createElement('h3');
+  solidPresetsTitle.textContent = 'Presets';
+  solidPresetsTitle.className = 'presets-title';
+  
+  const solidPresetsGrid = document.createElement('div');
+  solidPresetsGrid.className = 'presets-grid';
+  
+  // Create solid presets
+  solidPresets.forEach(preset => {
+    const presetElement = document.createElement('div');
+    presetElement.className = 'preset-item';
+    
+    const presetPreview = document.createElement('div');
+    presetPreview.className = 'preset-preview';
+    presetPreview.style.backgroundColor = preset.color;
+    
+    const presetLabel = document.createElement('div');
+    presetLabel.className = 'preset-label';
+    presetLabel.textContent = preset.name;
+    
+    presetElement.appendChild(presetPreview);
+    presetElement.appendChild(presetLabel);
+    
+    // Add click handler
+    presetElement.addEventListener('click', () => {
+      const rgb = hexToRgb(preset.color);
+      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      currentHue = hsv.h;
+      currentSaturation = hsv.s;
+      currentValue = hsv.v;
+      updateColorPicker(currentHue, currentSaturation, currentValue, false);
+    });
+    
+    solidPresetsGrid.appendChild(presetElement);
+  });
+  
+  solidPresetsContainer.appendChild(solidPresetsTitle);
+  solidPresetsContainer.appendChild(solidPresetsGrid);
+  solidPicker.appendChild(solidPresetsContainer);
+  
+  // Create gradient presets container
+  const gradientPresetsContainer = document.createElement('div');
+  gradientPresetsContainer.className = 'presets-container';
+  
+  const gradientPresetsTitle = document.createElement('h3');
+  gradientPresetsTitle.textContent = 'Presets';
+  gradientPresetsTitle.className = 'presets-title';
+  
+  const gradientPresetsGrid = document.createElement('div');
+  gradientPresetsGrid.className = 'presets-grid';
+  
+  // Create gradient presets
+  gradientPresets.forEach(preset => {
+    const presetElement = document.createElement('div');
+    presetElement.className = 'preset-item';
+    
+    const presetPreview = document.createElement('div');
+    presetPreview.className = 'preset-preview';
+    
+    // Create gradient string
+    const gradientString = preset.stops.map(stop => 
+      `${stop.color} ${stop.position}%`
+    ).join(', ');
+    
+    presetPreview.style.background = `linear-gradient(${preset.angle}deg, ${gradientString})`;
+    
+    const presetLabel = document.createElement('div');
+    presetLabel.className = 'preset-label';
+    presetLabel.textContent = preset.name;
+    
+    presetElement.appendChild(presetPreview);
+    presetElement.appendChild(presetLabel);
+    
+    // Add click handler
+    presetElement.addEventListener('click', () => {
+      gradientStopsData = [...preset.stops];
+      angleInput.value = preset.angle;
+      activeStopIndex = 0;
+      renderGradientStops();
+      updateGradientPreview();
+    });
+    
+    gradientPresetsGrid.appendChild(presetElement);
+  });
+  
+  gradientPresetsContainer.appendChild(gradientPresetsTitle);
+  gradientPresetsContainer.appendChild(gradientPresetsGrid);
+  gradientEditor.appendChild(gradientPresetsContainer);
+}
+
 // Initialize with default color and solid tab
 function initializePicker() {
   // Set initial tab state
@@ -718,6 +927,12 @@ function initializePicker() {
   // Initialize gradient editor
   initializeGradientEditor();
   
+  // Create presets
+  createPresets();
+  
+  // Initialize tab indicator
+  initializeTabIndicator();
+  
   // Force a visibility check
   setTimeout(() => {
     const stopElements = gradientStops.querySelectorAll('.gradient-stop');
@@ -728,6 +943,27 @@ function initializePicker() {
       initializeGradientEditor();
     }
   }, 100);
+}
+
+// Tab indicator slide effect
+function initializeTabIndicator() {
+  const tabContainer = document.querySelector('.tab-switcher');
+  const indicator = document.createElement('div');
+  indicator.className = 'tab-indicator';
+  tabContainer.appendChild(indicator);
+  
+  // Set initial position
+  updateTabIndicator();
+}
+
+function updateTabIndicator() {
+  const activeTab = document.querySelector('.tab-option.active');
+  const indicator = document.querySelector('.tab-indicator');
+  
+  if (activeTab && indicator) {
+    indicator.style.left = `${activeTab.offsetLeft}px`;
+    indicator.style.width = `${activeTab.offsetWidth}px`;
+  }
 }
 
 // Initialize when DOM is loaded
