@@ -102,11 +102,11 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: var(--md);
-  padding-bottom: calc(var(--md) * 1.2);
+  padding-bottom: calc(var(--md) * 2);
   display: none;
   backdrop-filter: blur(10px);
   width: calc(var(--xxl) * 2.7);
-  max-height: 80vh;
+  max-height: 75vh;
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -159,6 +159,10 @@ body {
   position: relative;
   cursor: pointer;
   touch-action: none;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .hue-slider-thumb {
@@ -184,6 +188,11 @@ body {
   margin-bottom: var(--sm);
   cursor: pointer;
   touch-action: none;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  overflow: visible !important;
 }
 
 .color-area-inner {
@@ -194,6 +203,8 @@ body {
   bottom: 0;
   border-radius: var(--radius-sm);
   overflow: hidden;
+  display: block !important;
+  visibility: visible !important;
 }
 
 .color-area-white {
@@ -358,7 +369,7 @@ body {
 .tab-indicator {
   position: absolute;
   height: calc(100% - 8px);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-xs);
   transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   z-index: 1;
@@ -366,6 +377,7 @@ body {
   left: 4px;
   display: block !important;
   visibility: visible !important;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .gradient-editor {
@@ -482,7 +494,7 @@ body {
   cursor: grab;
   bottom: 50%;
   background-color: currentColor;
-  pointer-events: auto;
+  pointer-events: auto !important;
   z-index: 10;
   will-change: left;
   touch-action: none;
@@ -502,6 +514,7 @@ body {
   display: block !important;
   visibility: visible !important;
   margin-top: var(--md) !important;
+  margin-bottom: var(--md) !important;
   padding-top: var(--sm) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -515,8 +528,8 @@ body {
 
 .presets-grid {
   display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
-  gap: var(--xs) !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: var(--sm) !important;
   visibility: visible !important;
 }
 
@@ -557,6 +570,7 @@ body {
   height: 24px !important;
   overflow: visible !important;
   z-index: 50 !important;
+  pointer-events: visible !important;
 }
 
 .gradient-editor.active .gradient-stop {
