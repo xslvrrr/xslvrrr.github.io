@@ -147,7 +147,7 @@ body {
 
 .hue-slider {
   width: 100%;
-  height: var(--sm);
+  height: 20px;
   border-radius: var(--radius-sm);
   margin-bottom: var(--sm);
   background: linear-gradient(to right, 
@@ -159,25 +159,32 @@ body {
   position: relative;
   cursor: pointer;
   touch-action: none;
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.hue-slider-thumb {
-  width: 20px;
-  height: 20px;
+.hue-slider-thumb, .color-area-thumb {
+  width: 22px;
+  height: 22px;
   background: white;
   border-radius: 50%;
   position: absolute;
-  top: 50%;
   transform: translate(-50%, -50%);
   border: 2px solid white;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
-  cursor: grab;
-  will-change: left;
-  touch-action: none;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 5;
+  will-change: left, top;
+  pointer-events: none;
+}
+
+.color-area-thumb {
+  top: 50%;
+  left: 50%;
+}
+
+.hue-slider-thumb {
+  top: 50%;
+  left: 0;
 }
 
 .color-area {
@@ -188,11 +195,9 @@ body {
   margin-bottom: var(--sm);
   cursor: pointer;
   touch-action: none;
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  overflow: visible !important;
+  overflow: visible;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .color-area-inner {
@@ -223,18 +228,6 @@ body {
   right: 0;
   bottom: 0;
   background: linear-gradient(to bottom, transparent 0%, black 100%);
-}
-
-.color-area-thumb {
-  width: 20px;
-  height: 20px;
-  position: absolute;
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  will-change: left, top;
 }
 
 .color-inputs {
@@ -338,48 +331,188 @@ body {
   border-color: transparent;
 }
 
+/* Tab Switcher with glassmorphism effect */
 .tab-switcher {
   display: flex;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-xs);
-  padding: 4px;
-  margin-bottom: 16px;
   position: relative;
-  overflow: visible;
+  background: rgba(30, 30, 30, 0.5);
+  border-radius: var(--radius-md);
+  padding: 5px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1;
 }
 
 .tab-option {
   flex: 1;
-  padding: 8px 16px;
   text-align: center;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-gray);
+  padding: 10px 15px;
   cursor: pointer;
-  border-radius: var(--radius-xs);
-  transition: all 0.2s;
   position: relative;
   z-index: 2;
+  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
 }
 
 .tab-option.active {
   color: white;
 }
 
-.tab-indicator {
-  position: absolute;
-  height: calc(100% - 8px);
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: var(--radius-xs);
-  transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  z-index: 1;
-  top: 4px;
-  left: 4px;
-  display: block !important;
-  visibility: visible !important;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+.tab-option:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
 }
 
+.tab-indicator {
+  position: absolute;
+  height: calc(100% - 10px);
+  width: calc(50% - 10px);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  z-index: 1;
+  top: 5px;
+  left: 5px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tab-indicator[data-tab="gradient"] {
+  transform: translateX(100%);
+}
+
+.tab-indicator[data-tab="solid"] {
+  transform: translateX(0);
+}
+
+/* Content containers with fade in animation */
+.tab-content {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Presets Container with glassmorphism design */
+.presets-container {
+  width: 100%;
+  margin: 24px 0;
+  padding: 16px;
+  background: rgba(30, 30, 30, 0.4);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fadeIn 0.4s ease-out;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.presets-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.presets-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.presets-container::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.presets-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* Preset Item with glassmorphism design */
+.preset-item {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  height: 100%;
+}
+
+.preset-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.preset-preview {
+  flex: 1;
+  aspect-ratio: 1.618 / 1;
+  position: relative;
+}
+
+/* Glass overlay for color preview */
+.preset-preview::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+  pointer-events: none;
+}
+
+.preset-label {
+  padding: 10px;
+  background: rgba(20, 20, 20, 0.7);
+  color: white;
+  font-size: 14px;
+  text-align: center;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+/* Fix for color pickers */
+.color-area, .hue-slider {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.color-area-thumb, .hue-slider-thumb {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+}
+
+/* Gradient Editor Components */
 .gradient-editor {
   display: none;
   opacity: 0;
@@ -417,22 +550,24 @@ body {
 
 .gradient-preview {
   width: 100%;
-  height: var(--md);
+  height: 36px;
   border-radius: var(--radius-sm);
-  margin-bottom: var(--md);
+  margin-bottom: 32px;
   position: relative;
   cursor: pointer;
-  background: var(--accent-gradient);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(90deg, #3d3393, #2b76b9, #2cacd1, #35eb93);
 }
 
 .gradient-stops {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -12px;
-  height: 24px;
+  bottom: -16px;
+  height: 32px;
   pointer-events: none;
-  z-index: 5;
+  z-index: 50;
   display: block;
   overflow: visible;
 }
@@ -471,25 +606,27 @@ body {
   font-family: 'Poppins', sans-serif;
   font-size: calc(var(--sm) * 0.9);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .gradient-button:hover {
   background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
 .gradient-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .gradient-stop {
   position: absolute;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 2px solid white;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.3);
   transform: translate(-50%, -50%);
   cursor: grab;
   bottom: 50%;
@@ -498,98 +635,13 @@ body {
   z-index: 10;
   will-change: left;
   touch-action: none;
-  display: block !important;
-  visibility: visible !important;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
 .gradient-stop.active {
-  border-color: var(--accent-color);
-  border-width: 3px;
+  transform: translate(-50%, -50%) scale(1.2);
+  border-color: white;
+  border-width: 2px;
   z-index: 100;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.3), 0 0 5px rgba(255,255,255,0.5);
-}
-
-/* Preset styles */
-.presets-container {
-  display: block !important;
-  visibility: visible !important;
-  margin-top: var(--md) !important;
-  margin-bottom: var(--md) !important;
-  padding-top: var(--sm) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.presets-title {
-  font-size: calc(var(--sm) * 1.1);
-  font-weight: 600;
-  margin-bottom: var(--sm);
-  color: var(--text-gray);
-}
-
-.presets-grid {
-  display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  gap: var(--sm) !important;
-  visibility: visible !important;
-}
-
-.preset-item {
-  display: block !important;
-  visibility: visible !important;
-  cursor: pointer;
-  transition: transform 0.2s;
-  border-radius: var(--radius-xs);
-  overflow: hidden;
-}
-
-.preset-item:hover {
-  transform: scale(1.05);
-}
-
-.preset-preview {
-  aspect-ratio: 1.618 / 1;
-  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
-}
-
-.preset-label {
-  padding: calc(var(--xs) * 0.8);
-  font-size: calc(var(--xs) * 1.1);
-  text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
-  color: rgba(255, 255, 255, 0.8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Force visibility for gradient editor */
-.gradient-editor.active .gradient-stops {
-  visibility: visible !important;
-  display: block !important;
-  height: 24px !important;
-  overflow: visible !important;
-  z-index: 50 !important;
-  pointer-events: visible !important;
-}
-
-.gradient-editor.active .gradient-stop {
-  visibility: visible !important;
-  display: block !important;
-  z-index: 100 !important;
-  pointer-events: auto !important;
-}
-
-/* Fix for color pickers */
-.color-area, .hue-slider {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-}
-
-.color-area-thumb, .hue-slider-thumb {
-  display: block !important;
-  visibility: visible !important;
-  pointer-events: none !important;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.3);
 }
