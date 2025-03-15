@@ -331,18 +331,6 @@ rgbInput.addEventListener('change', (e) => {
   }
 });
 
-// Initialize with default color and solid tab
-document.querySelector('[data-tab="solid"]').classList.add('active');
-document.querySelector('[data-tab="gradient"]').classList.remove('active');
-solidPicker.classList.remove('hidden');
-gradientEditor.classList.remove('active');
-
-hexInput.value = '#00b894';
-hexInput.dispatchEvent(new Event('change'));
-
-// Initialize gradient editor
-initializeGradientEditor();
-
 // Tab switching
 tabSwitcher.addEventListener('click', (e) => {
   if (e.target.classList.contains('tab-option')) {
@@ -369,7 +357,7 @@ tabSwitcher.addEventListener('click', (e) => {
       ));
       document.documentElement.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
       updateColorPicker(currentHue, currentSaturation, currentValue, false);
-    } else {
+    } else if (tab === 'gradient') {
       solidPicker.classList.add('hidden');
       gradientEditor.classList.add('active');
       renderGradientStops();
@@ -655,7 +643,23 @@ function initializeGradientEditor() {
   });
 }
 
-// Call after all DOM elements are loaded
-window.addEventListener('DOMContentLoaded', () => {
+// Initialize with default color and solid tab
+function initializePicker() {
+  // Set initial tab state
+  document.querySelector('[data-tab="solid"]').classList.add('active');
+  document.querySelector('[data-tab="gradient"]').classList.remove('active');
+  solidPicker.classList.remove('hidden');
+  gradientEditor.classList.remove('active');
+
+  // Set initial color
+  hexInput.value = '#00b894';
+  hexInput.dispatchEvent(new Event('change'));
+
+  // Initialize gradient editor
   initializeGradientEditor();
+}
+
+// Initialize when DOM is loaded
+window.addEventListener('DOMContentLoaded', () => {
+  initializePicker();
 });
