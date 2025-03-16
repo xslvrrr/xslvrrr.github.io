@@ -299,12 +299,8 @@ function updateGradientPreview() {
   const angle = angleInput ? parseInt(angleInput.value, 10) || 90 : 90;
   const gradient = `linear-gradient(${angle}deg, ${gradientString})`;
   
-  // Apply to gradient preview
-  if (gradientPreview) {
-    gradientPreview.style.background = gradient;
-  }
-  
-  // Update CSS variable
+  // Apply to gradient preview using a CSS variable
+  document.documentElement.style.setProperty('--current-gradient', gradient);
   document.documentElement.style.setProperty('--accent-gradient', gradient);
   
   // Update gradient stops UI
