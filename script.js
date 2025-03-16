@@ -56,6 +56,7 @@ settingsBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   settingsBtn.classList.toggle('active');
   settingsPopup.classList.toggle('active');
+  setTimeout(positionGradientStopsPortal, 10);
 });
 
 // Close popup when clicking outside
@@ -337,7 +338,34 @@ function renderGradientStops() {
   if (removeStopBtn) {
     removeStopBtn.disabled = gradientStopsData.length <= 2;
   }
+  
+  // Position the gradient stops portal
+  positionGradientStopsPortal();
 }
+
+// Position the gradient stops portal to match the gradient preview
+function positionGradientStopsPortal() {
+  const portal = document.getElementById('gradientStopsPortal');
+  if (!portal || !gradientPreview) return;
+  
+  const rect = gradientPreview.getBoundingClientRect();
+  const stopsContainer = document.querySelector('.gradient-stops');
+  
+  if (stopsContainer) {
+    // Move the stops container to the portal
+    portal.innerHTML = '';
+    portal.appendChild(stopsContainer);
+    
+    // Position the stops container relative to the gradient preview
+    stopsContainer.style.position = 'fixed';
+    stopsContainer.style.left = `${rect.left}px`;
+    stopsContainer.style.width = `${rect.width}px`;
+    stopsContainer.style.top = `${rect.bottom + 16}px`;
+  }
+}
+
+// Update the window resize event to reposition the portal
+window.addEventListener('resize', positionGradientStopsPortal);
 
 // Handle gradient stop drag
 function handleGradientStopDrag(e) {
@@ -423,12 +451,22 @@ tabSwitcher.addEventListener('click', (e) => {
       
       // Make sure gradient is properly initialized
       updateGradientPreview();
+      
+      // Position the gradient stops portal
+      setTimeout(positionGradientStopsPortal, 10);
     }
     
     // Update tab indicator
     const indicator = document.querySelector('.tab-indicator');
     if (indicator) {
-      indicator.setAttribute('data-tab', targetTab);
+      // Reset animation by removing and re-adding the element
+      const parent = indicator.parentNode;
+      const clone = indicator.cloneNode(true);
+      clone.setAttribute('data-tab', targetTab);
+      parent.removeChild(indicator);
+      setTimeout(() => {
+        parent.appendChild(clone);
+      }, 10);
     }
   }
 });
