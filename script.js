@@ -37,7 +37,9 @@ let currentTab = 'solid';
 // Gradient state
 let gradientStopsData = [
   { position: 0, color: '#3d3393' },
-  { position: 100, color: '#2cacd1' }
+  { position: 33, color: '#2b76b9' },
+  { position: 66, color: '#2cacd1' },
+  { position: 100, color: '#35eb93' }
 ];
 let activeStopIndex = 0;
 
@@ -383,13 +385,11 @@ tabSwitcher.addEventListener('click', (e) => {
     
     // Update tab panels
     if (targetTab === 'solid') {
-      solidPicker.style.display = 'block';
-      gradientEditor.style.display = 'none';
+      solidPicker.classList.remove('hidden');
       gradientEditor.classList.remove('active');
       currentTab = 'solid';
     } else {
-      solidPicker.style.display = 'none';
-      gradientEditor.style.display = 'block';
+      solidPicker.classList.add('hidden');
       gradientEditor.classList.add('active');
       currentTab = 'gradient';
       
