@@ -582,27 +582,7 @@ addStopBtn.addEventListener('click', () => {
 });
 
 // Remove gradient stop
-removeStopBtn.addEventListener('click', () => {
-  if (gradientStopsData.length <= 2) return; // Need at least 2 stops
-  
-  // Remove active stop
-  gradientStopsData.splice(activeStopIndex, 1);
-  
-  // Update active stop index
-  activeStopIndex = Math.min(activeStopIndex, gradientStopsData.length - 1);
-  
-  // Update UI
-  updateGradientPreview();
-  
-  // Update color picker UI with the new active stop's color
-  const activeStop = gradientStopsData[activeStopIndex];
-  const rgb = hexToRgb(activeStop.color);
-  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
-  currentHue = hsv.h;
-  currentSaturation = hsv.s;
-  currentValue = hsv.v;
-  updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
-});
+removeStopBtn.addEventListener('click', removeGradientStop);
 
 // Gradient stops interaction
 gradientStops.addEventListener('mousedown', (e) => {
@@ -1301,8 +1281,10 @@ function addGradientStop() {
   }
 }
 
-// Remove active gradient stop
+// Remove gradient stop
+let isRemovingStop = false;
 function removeGradientStop() {
+  if (isRemovingStop) return; // Prevent double removal
   if (gradientStopsData.length <= 2) {
     console.log('Cannot remove stop, minimum 2 stops required');
     return;
@@ -1314,6 +1296,8 @@ function removeGradientStop() {
   }
   
   try {
+    isRemovingStop = true;
+    
     // Remove the active stop
     gradientStopsData.splice(activeStopIndex, 1);
     
@@ -1336,8 +1320,14 @@ function removeGradientStop() {
       updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
     }
     
+    // Allow removal again after a short delay
+    setTimeout(() => {
+      isRemovingStop = false;
+    }, 300);
+    
     console.log('Removed gradient stop');
   } catch (error) {
+    isRemovingStop = false;
     console.error('Error removing gradient stop:', error);
   }
 }
