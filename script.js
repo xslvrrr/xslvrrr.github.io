@@ -348,6 +348,12 @@ function positionGradientStopsPortal() {
   const portal = document.getElementById('gradientStopsPortal');
   if (!portal || !gradientPreview) return;
   
+  // Only show gradient stops in gradient mode
+  if (currentTab !== 'gradient') {
+    portal.innerHTML = '';
+    return;
+  }
+  
   const rect = gradientPreview.getBoundingClientRect();
   const stopsContainer = document.querySelector('.gradient-stops');
   
@@ -360,12 +366,25 @@ function positionGradientStopsPortal() {
     stopsContainer.style.position = 'fixed';
     stopsContainer.style.left = `${rect.left}px`;
     stopsContainer.style.width = `${rect.width}px`;
-    stopsContainer.style.top = `${rect.bottom + 16}px`;
+    stopsContainer.style.top = `${rect.bottom - 16}px`;
+    stopsContainer.style.height = '32px';
   }
 }
 
 // Update the window resize event to reposition the portal
 window.addEventListener('resize', positionGradientStopsPortal);
+
+// Call positionGradientStopsPortal when the settings popup is shown or hidden
+settingsBtn.addEventListener('click', () => {
+  setTimeout(positionGradientStopsPortal, 50);
+});
+
+// Also reposition when tab is switched
+tabSwitcher.addEventListener('click', (e) => {
+  if (e.target.classList.contains('tab-option')) {
+    setTimeout(positionGradientStopsPortal, 50);
+  }
+});
 
 // Handle gradient stop drag
 function handleGradientStopDrag(e) {
@@ -451,22 +470,12 @@ tabSwitcher.addEventListener('click', (e) => {
       
       // Make sure gradient is properly initialized
       updateGradientPreview();
-      
-      // Position the gradient stops portal
-      setTimeout(positionGradientStopsPortal, 10);
     }
     
     // Update tab indicator
     const indicator = document.querySelector('.tab-indicator');
     if (indicator) {
-      // Reset animation by removing and re-adding the element
-      const parent = indicator.parentNode;
-      const clone = indicator.cloneNode(true);
-      clone.setAttribute('data-tab', targetTab);
-      parent.removeChild(indicator);
-      setTimeout(() => {
-        parent.appendChild(clone);
-      }, 10);
+      indicator.setAttribute('data-tab', targetTab);
     }
   }
 });
