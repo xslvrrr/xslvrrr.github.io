@@ -764,7 +764,7 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
   
   const toggle = document.createElement('span');
   toggle.className = 'presets-toggle';
-  toggle.textContent = 'Show';
+  // Using icon instead of text
   
   header.appendChild(titleEl);
   header.appendChild(toggle);
@@ -815,8 +815,6 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
           
           updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
         }
-        
-        console.log('Applied gradient preset:', preset.name);
       });
     } else {
       presetItem = createPresetItem(preset.name, preset.color);
@@ -831,8 +829,6 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
         currentValue = hsv.v;
         
         updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
-        
-        console.log('Applied solid preset:', preset.name);
       });
     }
     
@@ -843,7 +839,6 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
   header.addEventListener('click', () => {
     const isExpanded = header.classList.toggle('expanded');
     grid.classList.toggle('expanded', isExpanded);
-    toggle.textContent = isExpanded ? 'Hide' : 'Show';
   });
   
   // Assemble the container
@@ -853,7 +848,6 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
   // Expand by default
   header.classList.add('expanded');
   grid.classList.add('expanded');
-  toggle.textContent = 'Hide';
   
   return container;
 }
