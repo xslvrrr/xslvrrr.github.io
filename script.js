@@ -638,148 +638,220 @@ gradientStops.addEventListener('mousedown', (e) => {
 // Presets
 // =======================================
 
-// Solid color presets
+// Define preset colors
 const solidPresets = [
-  { name: "Ocean Breeze", color: "#38b6ff" },
-  { name: "Emerald Isle", color: "#00c07f" },
-  { name: "Sunset Orange", color: "#ff7043" },
-  { name: "Royal Purple", color: "#9c56c4" },
-  { name: "Ruby Red", color: "#e53935" },
-  { name: "Sunflower", color: "#ffca28" },
-  { name: "Mint Fresh", color: "#26a69a" },
-  { name: "Coral Pink", color: "#ff5e94" }
+  { name: "Pure White", color: "#ffffff" },
+  { name: "Midnight Black", color: "#000000" },
+  { name: "Ruby Red", color: "#e61919" },
+  { name: "Sapphire Blue", color: "#1947e6" },
+  { name: "Emerald Green", color: "#19e635" },
+  { name: "Amethyst Purple", color: "#8a19e6" },
+  { name: "Ocean Breeze", color: "#19b3e6" },
+  { name: "Sunset Orange", color: "#e67819" },
+  { name: "Lemon Yellow", color: "#e6d219" },
+  { name: "Bubblegum Pink", color: "#e619b3" }
 ];
 
-// Gradient presets
+// Define preset gradients with diverse colors
 const gradientPresets = [
-  {
-    name: "Cosmic Aurora",
+  { 
+    name: "Cosmic Aurora", 
     stops: [
-      { position: 0, color: "#3d3393" },
-      { position: 33, color: "#2b76b9" },
-      { position: 66, color: "#2cacd1" },
-      { position: 100, color: "#35eb93" }
+      { color: "#3d3393", position: 0 },
+      { color: "#2b76b9", position: 30 },
+      { color: "#2cacd1", position: 65 },
+      { color: "#35eb93", position: 100 }
+    ],
+    angle: 90
+  },
+  { 
+    name: "Sunset Blaze", 
+    stops: [
+      { color: "#f56217", position: 0 },
+      { color: "#ec2f4b", position: 100 }
+    ],
+    angle: 45
+  },
+  { 
+    name: "Electric Violet", 
+    stops: [
+      { color: "#4776E6", position: 0 },
+      { color: "#8E54E9", position: 100 }
     ],
     angle: 135
   },
-  {
-    name: "Sunset Blaze",
+  { 
+    name: "Emerald Ocean", 
     stops: [
-      { position: 0, color: "#ff416c" },
-      { position: 50, color: "#ff6b6b" },
-      { position: 100, color: "#fda085" }
+      { color: "#11998e", position: 0 },
+      { color: "#38ef7d", position: 100 }
     ],
-    angle: 160
+    angle: 90
   },
-  {
-    name: "Northern Lights",
+  { 
+    name: "Crimson Blush", 
     stops: [
-      { position: 0, color: "#43cea2" },
-      { position: 50, color: "#1894a8" },
-      { position: 100, color: "#3858b3" }
+      { color: "#642B73", position: 0 },
+      { color: "#C6426E", position: 100 }
     ],
-    angle: 215
+    angle: 70
   },
-  {
-    name: "Berry Smoothie",
+  { 
+    name: "Golden Hour", 
     stops: [
-      { position: 0, color: "#e570e7" },
-      { position: 50, color: "#ac3ba3" },
-      { position: 100, color: "#6b2255" }
+      { color: "#ff9966", position: 0 },
+      { color: "#ff5e62", position: 100 }
     ],
-    angle: 45
+    angle: 120
+  },
+  { 
+    name: "Northern Lights", 
+    stops: [
+      { color: "#00c3ff", position: 0 },
+      { color: "#77e190", position: 50 },
+      { color: "#ffff1c", position: 100 }
+    ],
+    angle: 315
+  },
+  { 
+    name: "Mystic Dusk", 
+    stops: [
+      { color: "#281760", position: 0 },
+      { color: "#65379b", position: 50 },
+      { color: "#8d44ad", position: 100 }
+    ],
+    angle: 180
   }
 ];
 
-// Create preset item
-function createPresetItem(name, color) {
-  const item = document.createElement('div');
-  item.className = 'preset-item';
-  item.title = name;
+// Create a preset item with the specified preview and label
+function createPresetItem(name, previewStyle) {
+  const presetItem = document.createElement('div');
+  presetItem.className = 'preset-item';
   
-  const preview = document.createElement('div');
-  preview.className = 'preset-preview';
-  preview.style.background = color;
+  const presetPreview = document.createElement('div');
+  presetPreview.className = 'preset-preview';
   
-  const label = document.createElement('div');
-  label.className = 'preset-label';
-  label.textContent = name;
-  
-  item.appendChild(preview);
-  item.appendChild(label);
-  
-  return item;
-}
-
-// Create presets
-function createPresets() {
-  // Get containers
-  const solidPresetGrid = document.querySelector('.solid-picker .presets-grid');
-  const gradientPresetGrid = document.querySelector('.gradient-editor .presets-grid');
-  
-  if (!solidPresetGrid || !gradientPresetGrid) {
-    console.error('Preset containers not found');
-    return;
+  // Apply the style (either background-color or background-image)
+  if (typeof previewStyle === 'string') {
+    presetPreview.style.backgroundColor = previewStyle;
+  } else if (typeof previewStyle === 'object') {
+    presetPreview.style.backgroundImage = generateGradientCSS(previewStyle.stops, previewStyle.angle);
   }
   
-  // Clear existing presets
-  solidPresetGrid.innerHTML = '';
-  gradientPresetGrid.innerHTML = '';
+  const presetLabel = document.createElement('div');
+  presetLabel.className = 'preset-label';
+  presetLabel.textContent = name;
   
-  // Add solid presets
-  solidPresets.forEach(preset => {
-    const item = createPresetItem(preset.name, preset.color);
+  presetItem.appendChild(presetPreview);
+  presetItem.appendChild(presetLabel);
+  
+  return presetItem;
+}
+
+// Create a collapsible section for presets
+function createCollapsiblePresets(title, presets, isGradient = false) {
+  const container = document.createElement('div');
+  container.className = 'presets-container';
+  
+  // Create header
+  const header = document.createElement('div');
+  header.className = 'presets-header';
+  
+  const titleEl = document.createElement('h4');
+  titleEl.className = 'presets-title';
+  titleEl.textContent = title;
+  
+  const toggle = document.createElement('span');
+  toggle.className = 'presets-toggle';
+  toggle.textContent = 'Show';
+  
+  header.appendChild(titleEl);
+  header.appendChild(toggle);
+  
+  // Create grid
+  const grid = document.createElement('div');
+  grid.className = 'presets-grid';
+  
+  // Add presets to grid
+  presets.forEach(preset => {
+    let presetItem;
     
-    item.addEventListener('click', () => {
-      const rgb = hexToRgb(preset.color);
-      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+    if (isGradient) {
+      presetItem = createPresetItem(preset.name, {
+        stops: preset.stops,
+        angle: preset.angle
+      });
       
-      currentHue = hsv.h;
-      currentSaturation = hsv.s;
-      currentValue = hsv.v;
+      // Event listener for gradient preset
+      presetItem.addEventListener('click', () => {
+        gradientStopsData = [...preset.stops];
+        gradientAngle = preset.angle;
+        
+        // Update gradient UI
+        renderGradientStops();
+        updateGradientPreview();
+        
+        // Update angle input
+        const angleInput = document.getElementById('gradientAngle');
+        if (angleInput) {
+          angleInput.value = gradientAngle;
+        }
+      });
+    } else {
+      presetItem = createPresetItem(preset.name, preset.color);
       
-      updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
-    });
+      // Event listener for solid preset
+      presetItem.addEventListener('click', () => {
+        const rgb = hexToRgb(preset.color);
+        const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+        
+        currentHue = hsv.h;
+        currentSaturation = hsv.s;
+        currentValue = hsv.v;
+        
+        updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
+      });
+    }
     
-    solidPresetGrid.appendChild(item);
+    grid.appendChild(presetItem);
   });
   
-  // Add gradient presets
-  gradientPresets.forEach(preset => {
-    const gradientString = preset.stops.map(stop => `${stop.color} ${stop.position}%`).join(', ');
-    const gradientBg = `linear-gradient(${preset.angle}deg, ${gradientString})`;
-    
-    const item = createPresetItem(preset.name, gradientBg);
-    
-    item.addEventListener('click', () => {
-      // Copy the stops array
-      gradientStopsData = JSON.parse(JSON.stringify(preset.stops));
-      
-      // Update angle
-      if (angleInput) {
-        angleInput.value = preset.angle;
-      }
-      
-      // Set first stop as active
-      activeStopIndex = 0;
-      
-      // Update UI
-      updateGradientPreview();
-      
-      // Update color picker with first stop
-      const firstStop = preset.stops[0];
-      const rgb = hexToRgb(firstStop.color);
-      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
-      
-      currentHue = hsv.h;
-      currentSaturation = hsv.s;
-      currentValue = hsv.v;
-      
-      updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
-    });
-    
-    gradientPresetGrid.appendChild(item);
+  // Toggle functionality
+  header.addEventListener('click', () => {
+    const isExpanded = header.classList.toggle('expanded');
+    grid.classList.toggle('expanded', isExpanded);
+    toggle.textContent = isExpanded ? 'Hide' : 'Show';
   });
+  
+  // Assemble the container
+  container.appendChild(header);
+  container.appendChild(grid);
+  
+  return container;
+}
+
+// Create presets for both solid colors and gradients
+function createPresets() {
+  // Get containers
+  const solidPresetContainer = document.getElementById('solidPresets');
+  const gradientPresetContainer = document.getElementById('gradientPresets');
+  
+  // Clear existing content
+  if (solidPresetContainer) solidPresetContainer.innerHTML = '';
+  if (gradientPresetContainer) gradientPresetContainer.innerHTML = '';
+  
+  // Create collapsible solid presets and append to container
+  if (solidPresetContainer) {
+    const solidPresetsSection = createCollapsiblePresets('Solid Color Presets', solidPresets);
+    solidPresetContainer.appendChild(solidPresetsSection);
+  }
+  
+  // Create collapsible gradient presets and append to container
+  if (gradientPresetContainer) {
+    const gradientPresetsSection = createCollapsiblePresets('Gradient Presets', gradientPresets, true);
+    gradientPresetContainer.appendChild(gradientPresetsSection);
+  }
 }
 
 // =======================================
@@ -797,20 +869,147 @@ function initTabIndicator() {
 }
 
 // Initialize everything
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('Initializing color picker...');
+document.addEventListener('DOMContentLoaded', function() {
+  // Initial setup for color picker
+  updateColorPicker();
   
-  // Initialize tab indicator
-  initTabIndicator();
+  // Setup tab switching
+  setupTabSwitching();
   
-  // Set initial colors
-  updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
-  
-  // Initialize gradient
-  updateGradientPreview();
+  // Setup settings button
+  setupSettingsButton();
   
   // Create presets
   createPresets();
   
-  console.log('Color picker initialized successfully');
+  // Setup event listeners
+  setupEventListeners();
 });
+
+// Setup tab switching
+function setupTabSwitching() {
+  const tabOptions = document.querySelectorAll('.tab-option');
+  const tabIndicator = document.querySelector('.tab-indicator');
+  const solidPicker = document.querySelector('.solid-picker');
+  const gradientEditor = document.querySelector('.gradient-editor');
+  
+  tabOptions.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active class from all tabs
+      tabOptions.forEach(t => t.classList.remove('active'));
+      
+      // Add active class to clicked tab
+      tab.classList.add('active');
+      
+      // Update tab indicator
+      const tabType = tab.getAttribute('data-tab');
+      tabIndicator.setAttribute('data-tab', tabType);
+      
+      // Show the appropriate content
+      if (tabType === 'solid') {
+        solidPicker.classList.remove('hidden');
+        gradientEditor.classList.remove('active');
+      } else {
+        solidPicker.classList.add('hidden');
+        gradientEditor.classList.add('active');
+        // Update gradient preview when switching to gradient tab
+        updateGradientPreview();
+      }
+    });
+  });
+}
+
+// Setup settings button
+function setupSettingsButton() {
+  const settingsBtn = document.querySelector('.settings-btn');
+  const settingsPopup = document.querySelector('.settings-popup');
+  
+  // Initial setup - hide popup
+  if (settingsPopup) {
+    settingsPopup.style.display = 'none';
+  }
+  
+  // Toggle settings popup
+  if (settingsBtn && settingsPopup) {
+    settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (settingsPopup.style.display === 'none') {
+        settingsPopup.style.display = 'block';
+      } else {
+        settingsPopup.style.display = 'none';
+      }
+    });
+    
+    // Close settings popup when clicking outside
+    document.addEventListener('click', (e) => {
+      if (settingsPopup.style.display === 'block' && 
+          !settingsPopup.contains(e.target) && 
+          e.target !== settingsBtn) {
+        settingsPopup.style.display = 'none';
+      }
+    });
+  }
+}
+
+// Setup all event listeners
+function setupEventListeners() {
+  setupColorAreaEvents();
+  setupHueSliderEvents();
+  setupColorInputEvents();
+  setupGradientEvents();
+}
+
+// Setup color area events
+function setupColorAreaEvents() {
+  const colorArea = document.querySelectorAll('.color-area');
+  
+  colorArea.forEach(area => {
+    area.addEventListener('pointerdown', startColorDrag);
+  });
+}
+
+// Setup hue slider events
+function setupHueSliderEvents() {
+  const hueSliders = document.querySelectorAll('.hue-slider');
+  
+  hueSliders.forEach(slider => {
+    slider.addEventListener('pointerdown', startHueDrag);
+  });
+}
+
+// Setup input events for HEX and RGB
+function setupColorInputEvents() {
+  const hexInputs = document.querySelectorAll('#hex-input, #hex-input-gradient');
+  const rgbInputs = document.querySelectorAll('#rgb-input, #rgb-input-gradient');
+  
+  hexInputs.forEach(input => {
+    input.addEventListener('input', handleHexInput);
+    input.addEventListener('blur', validateHexInput);
+  });
+  
+  rgbInputs.forEach(input => {
+    input.addEventListener('input', handleRgbInput);
+    input.addEventListener('blur', validateRgbInput);
+  });
+}
+
+// Setup gradient-specific events
+function setupGradientEvents() {
+  // Angle input
+  const angleInput = document.getElementById('angleInput');
+  if (angleInput) {
+    angleInput.addEventListener('input', handleAngleInput);
+  }
+  
+  // Add stop button
+  const addStopBtn = document.getElementById('add-stop');
+  if (addStopBtn) {
+    addStopBtn.addEventListener('click', addGradientStop);
+  }
+  
+  // Remove stop button
+  const removeStopBtn = document.getElementById('remove-stop');
+  if (removeStopBtn) {
+    removeStopBtn.addEventListener('click', removeGradientStop);
+  }
+}
