@@ -102,12 +102,12 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: var(--md);
-  padding-bottom: calc(var(--md) * 2);
+  padding-bottom: calc(var(--md) * 1.5);
   display: none;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   width: calc(var(--xxl) * 2.7);
-  max-height: 60vh;
+  max-height: 75vh;
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -182,7 +182,7 @@ body {
 .color-area {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 220px;
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
   overflow: hidden;
@@ -396,7 +396,7 @@ body {
 }
 
 .tab-indicator[data-tab="gradient"] {
-  transform: translateX(100%);
+  transform: translateX(calc(100% - 0px));
 }
 
 .tab-indicator[data-tab="solid"] {
@@ -415,7 +415,7 @@ body {
 
 /* Presets styling */
 .presets-container {
-  margin: 10px 0 25px;
+  margin: 10px 0 15px;
   width: 100%;
   display: block !important;
   visibility: visible !important;
@@ -448,9 +448,13 @@ body {
 }
 
 .presets-toggle {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 16px;
+  height: 16px;
+  background-image: url('Assets/down-arrow.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .presets-header.expanded .presets-toggle {
@@ -460,7 +464,7 @@ body {
 .presets-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 8px;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -469,8 +473,10 @@ body {
 }
 
 .presets-grid.expanded {
-  max-height: 500px;
-  margin-top: 12px;
+  max-height: 300px;
+  margin-top: 10px;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .preset-item {
@@ -495,7 +501,7 @@ body {
 .preset-preview {
   width: 100%;
   height: 0;
-  padding-bottom: 61.8%; /* Golden ratio - 1:1.618 */
+  padding-bottom: 50%; /* Reduced height ratio */
   border-top-left-radius: var(--radius-sm);
   border-top-right-radius: var(--radius-sm);
   border-bottom-left-radius: 0;
@@ -506,10 +512,10 @@ body {
 }
 
 .preset-label {
-  padding: 8px 10px;
+  padding: 6px 8px;
   text-align: center;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 12px;
+  font-size: 11px;
   background: rgba(30, 30, 30, 0.8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -545,7 +551,7 @@ body {
   width: 100%;
   height: 48px;
   border-radius: var(--radius-sm);
-  margin-bottom: 30px;
+  margin-bottom: 26px;
   position: relative;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -567,8 +573,8 @@ body {
 
 .gradient-stop {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.3);
@@ -596,27 +602,30 @@ body {
 }
 
 .gradient-controls {
-  display: grid;
-  grid-template-columns: auto 70px 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
+  display: flex;
   align-items: center;
+  margin-bottom: 20px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .gradient-angle-label {
   color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
+  margin-right: 4px;
+  white-space: nowrap;
 }
 
 .gradient-angle {
-  width: 70px;
+  width: 60px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .gradient-buttons {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .gradient-button {
