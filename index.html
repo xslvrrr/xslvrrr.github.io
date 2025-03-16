@@ -10,91 +10,100 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="navbar">
+  <header class="navbar" role="banner">
     <img src="Assets/Millennium Logo.png" alt="Millennium Logo" class="logo">
     <div class="nav-right">
-      <button class="settings-btn" aria-label="Settings">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <button class="settings-btn" aria-label="Open Color Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <title>Settings Icon</title>
           <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.65.07-.97 0-.32-.03-.65-.07-.97l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65c-.04-.24-.25-.42-.5-.42h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 12c-.04.32-.07.65-.07.97 0 .32.03.65.07.97l-2.11 1.63c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.31.61.22l2.49-1c.52.39 1.06.73 1.69.98l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.25 1.17-.59 1.69-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.63Z"/>
         </svg>
       </button>
-      <div class="settings-popup">
-        <h2>Colour Picker</h2>
-        <div class="tab-switcher">
-          <div class="tab-option active" data-tab="solid">Solid</div>
-          <div class="tab-option" data-tab="gradient">Gradient</div>
+      <div class="settings-popup" role="dialog" aria-label="Color Settings">
+        <h2 id="colorPickerTitle">Colour Picker</h2>
+        <div class="tab-switcher" role="tablist" aria-label="Color Picker Modes">
+          <div class="tab-option active" role="tab" aria-selected="true" aria-controls="solidPicker" data-tab="solid" tabindex="0">Solid</div>
+          <div class="tab-option" role="tab" aria-selected="false" aria-controls="gradientEditor" data-tab="gradient" tabindex="0">Gradient</div>
         </div>
-        <div class="solid-picker">
-          <div class="custom-color-picker">
-            <div class="color-area">
+        <div id="solidPicker" class="solid-picker" role="tabpanel" aria-labelledby="colorPickerTitle">
+          <form class="custom-color-picker">
+            <div class="color-area" role="slider" aria-label="Color Area" tabindex="0">
               <div class="color-area-inner">
                 <div class="color-area-white"></div>
                 <div class="color-area-black"></div>
               </div>
-              <div class="color-area-thumb"></div>
+              <div class="color-area-thumb" role="presentation"></div>
             </div>
-            <div class="hue-slider">
-              <div class="hue-slider-thumb"></div>
+            <div class="hue-slider" role="slider" aria-label="Hue Slider" tabindex="0">
+              <div class="hue-slider-thumb" role="presentation"></div>
             </div>
             <div class="color-inputs">
               <div class="color-input-group">
-                <label class="color-input-label" for="hex-input">HEX</label>
-                <input type="text" class="color-input" id="hex-input" placeholder="#HEX">
+                <label class="color-input-label" for="hex-input" id="hexLabel">HEX</label>
+                <input type="text" class="color-input" id="hex-input" placeholder="#HEX" aria-labelledby="hexLabel">
               </div>
               <div class="color-input-group">
-                <label class="color-input-label" for="rgb-input">RGB</label>
-                <input type="text" class="color-input" id="rgb-input" placeholder="R,G,B">
+                <label class="color-input-label" for="rgb-input" id="rgbLabel">RGB</label>
+                <input type="text" class="color-input" id="rgb-input" placeholder="R,G,B" aria-labelledby="rgbLabel">
               </div>
             </div>
+          </form>
+          <div class="presets-container" role="region" aria-label="Solid Color Presets">
+            <h3 class="presets-title">Solid Color Presets</h3>
+            <div class="presets-grid"></div>
           </div>
         </div>
-        <div class="gradient-editor">
-          <div class="gradient-preview">
-            <div class="gradient-stops"></div>
+        <div id="gradientEditor" class="gradient-editor" role="tabpanel" aria-labelledby="colorPickerTitle">
+          <div class="gradient-preview" role="img" aria-label="Gradient Preview">
+            <div class="gradient-stops" role="group" aria-label="Gradient Stops"></div>
           </div>
-          <div class="gradient-controls">
-            <span class="gradient-angle-label">Angle</span>
-            <input type="number" class="color-input gradient-angle" value="90" min="0" max="360">
+          <form class="gradient-controls">
+            <label for="angleInput" class="gradient-angle-label">Angle</label>
+            <input type="number" id="angleInput" class="color-input gradient-angle" value="90" min="0" max="360" aria-label="Gradient Angle">
             <div class="gradient-buttons">
-              <button class="gradient-button" id="add-stop">Add Stop</button>
-              <button class="gradient-button" id="remove-stop" disabled>Remove Stop</button>
+              <button type="button" class="gradient-button" id="add-stop">Add Stop</button>
+              <button type="button" class="gradient-button" id="remove-stop" disabled>Remove Stop</button>
             </div>
-          </div>
-          <div class="custom-color-picker">
-            <div class="color-area">
+          </form>
+          <form class="custom-color-picker">
+            <div class="color-area" role="slider" aria-label="Color Area" tabindex="0">
               <div class="color-area-inner">
                 <div class="color-area-white"></div>
                 <div class="color-area-black"></div>
               </div>
-              <div class="color-area-thumb"></div>
+              <div class="color-area-thumb" role="presentation"></div>
             </div>
-            <div class="hue-slider">
-              <div class="hue-slider-thumb"></div>
+            <div class="hue-slider" role="slider" aria-label="Hue Slider" tabindex="0">
+              <div class="hue-slider-thumb" role="presentation"></div>
             </div>
             <div class="color-inputs">
               <div class="color-input-group">
-                <label class="color-input-label" for="hex-input-gradient">HEX</label>
-                <input type="text" class="color-input" id="hex-input-gradient" placeholder="#HEX">
+                <label class="color-input-label" for="hex-input-gradient" id="hexLabelGradient">HEX</label>
+                <input type="text" class="color-input" id="hex-input-gradient" placeholder="#HEX" aria-labelledby="hexLabelGradient">
               </div>
               <div class="color-input-group">
-                <label class="color-input-label" for="rgb-input-gradient">RGB</label>
-                <input type="text" class="color-input" id="rgb-input-gradient" placeholder="R,G,B">
+                <label class="color-input-label" for="rgb-input-gradient" id="rgbLabelGradient">RGB</label>
+                <input type="text" class="color-input" id="rgb-input-gradient" placeholder="R,G,B" aria-labelledby="rgbLabelGradient">
               </div>
             </div>
+          </form>
+          <div class="presets-container" role="region" aria-label="Gradient Presets">
+            <h3 class="presets-title">Gradient Presets</h3>
+            <div class="presets-grid"></div>
           </div>
         </div>
       </div>
-      <a href="#" class="login">Login</a>
+      <a href="#" class="login" role="button">Login</a>
     </div>
   </header>
 
-  <main class="content">
+  <main class="content" role="main">
     <h1 class="title">
       Millennium<br>
       <span class="reimagined">reimagined</span>
     </h1>
     <p class="subtitle">A complete redesign of the millennium portal,<br>say goodbye to bad UI!</p>
-    <a href="#" class="learn-more">Learn more ›</a>
+    <a href="#" class="learn-more" role="button">Learn more ›</a>
   </main>
   
   <script src="script.js"></script>
