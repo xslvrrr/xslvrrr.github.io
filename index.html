@@ -14,10 +14,7 @@
     <img src="Assets/Millennium Logo.png" alt="Millennium Logo" class="logo">
     <div class="nav-right">
       <button class="settings-btn" aria-label="Open Color Settings">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-hidden="true">
-          <title>Settings Icon</title>
-          <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.65.07-.97 0-.32-.03-.65-.07-.97l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65c-.04-.24-.25-.42-.5-.42h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 12c-.04.32-.07.65-.07.97 0 .32.03.65.07.97l-2.11 1.63c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.31.61.22l2.49-1c.52.39 1.06.73 1.69.98l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.25 1.17-.59 1.69-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.63Z"/>
-        </svg>
+        <img src="Assets/settings.svg" alt="Settings" class="settings-icon">
       </button>
       <div class="settings-popup" role="dialog" aria-label="Color Settings">
         <h2 id="colorPickerTitle">Colour Picker</h2>
@@ -60,8 +57,12 @@
             <label for="angleInput" class="gradient-angle-label">Angle</label>
             <input type="number" id="angleInput" class="color-input gradient-angle" value="90" min="0" max="360" aria-label="Gradient Angle">
             <div class="gradient-buttons">
-              <button type="button" class="gradient-button" id="add-stop">Add Stop</button>
-              <button type="button" class="gradient-button" id="remove-stop" disabled>Remove Stop</button>
+              <button type="button" class="gradient-button" id="add-stop">
+                <img src="Assets/plus.svg" alt="Add Stop" class="button-icon">
+              </button>
+              <button type="button" class="gradient-button" id="remove-stop" disabled>
+                <img src="Assets/cross.svg" alt="Remove Stop" class="button-icon">
+              </button>
             </div>
           </form>
           <form class="custom-color-picker">
