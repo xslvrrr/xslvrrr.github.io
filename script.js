@@ -351,33 +351,38 @@ function handleGradientStopDrag(e) {
   const index = parseInt(activeDragElement.dataset.index, 10);
   if (isNaN(index) || index < 0 || index >= gradientStopsData.length) return;
   
-  // Get the current stops
-  const currentStops = [...gradientStopsData];
+  // Store the original positions of all stops before making changes
+  const originalPositions = gradientStopsData.map(stop => stop.position);
   
-  // Update the position
+  // Update only the dragged stop's position
   gradientStopsData[index].position = newPosition;
   
-  // Get the sorted indices to prevent dragging other stops
-  const sortedIndices = gradientStopsData
-    .map((stop, i) => ({ position: stop.position, index: i }))
-    .sort((a, b) => a.position - b.position)
-    .map(item => item.index);
-    
-  // Find the new index of the dragged stop
-  const newIndex = sortedIndices.indexOf(index);
+  // Sort stops by position to get the new order
+  const sortedStops = [...gradientStopsData]
+    .map((stop, i) => ({ ...stop, originalIndex: i }))
+    .sort((a, b) => a.position - b.position);
   
-  // Ensure we maintain minimum distances between stops (1% gap)
-  if (newIndex > 0) {
-    const prevIndex = sortedIndices[newIndex - 1];
-    if (gradientStopsData[index].position - gradientStopsData[prevIndex].position < 1) {
-      gradientStopsData[index].position = gradientStopsData[prevIndex].position + 1;
+  // Find where our dragged stop is in the new order
+  const newOrderIndex = sortedStops.findIndex(stop => stop.originalIndex === index);
+  
+  // Check if we need to enforce minimum distance
+  const MIN_DISTANCE = 1; // 1% minimum distance
+  
+  // Check distance with previous stop
+  if (newOrderIndex > 0) {
+    const prevStop = sortedStops[newOrderIndex - 1];
+    if (newPosition - prevStop.position < MIN_DISTANCE) {
+      // Don't allow getting closer than MIN_DISTANCE
+      gradientStopsData[index].position = prevStop.position + MIN_DISTANCE;
     }
   }
   
-  if (newIndex < sortedIndices.length - 1) {
-    const nextIndex = sortedIndices[newIndex + 1];
-    if (gradientStopsData[nextIndex].position - gradientStopsData[index].position < 1) {
-      gradientStopsData[index].position = gradientStopsData[nextIndex].position - 1;
+  // Check distance with next stop
+  if (newOrderIndex < sortedStops.length - 1) {
+    const nextStop = sortedStops[newOrderIndex + 1];
+    if (nextStop.position - newPosition < MIN_DISTANCE) {
+      // Don't allow getting closer than MIN_DISTANCE
+      gradientStopsData[index].position = nextStop.position - MIN_DISTANCE;
     }
   }
   
