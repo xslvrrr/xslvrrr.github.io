@@ -277,7 +277,7 @@ function updateColorPicker(h, s, v, isGradient = false) {
 let colorUpdateRAF = null;
 function updateColorFromEvent(e, colorArea, isGradient) {
   if (colorUpdateRAF) {
-    cancelAnimationFrame(colorUpdateRAF); // Cancel previous frame
+    cancelAnimationFrame(colorUpdateRAF);
   }
   
   colorUpdateRAF = requestAnimationFrame(() => {
@@ -287,13 +287,8 @@ function updateColorFromEvent(e, colorArea, isGradient) {
       const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
       
       // Calculate new saturation and value
-      const newSaturation = (1 - x) * 100;
-      const newValue = 100 - (y * 100);
-      
-      // Prevent hue locking at extremes (white/black)
-      // Only update current saturation and value, preserving hue
-      currentSaturation = newSaturation;
-      currentValue = newValue;
+      currentSaturation = x * 100; // Changed from (1-x) to x for more intuitive interaction
+      currentValue = 100 - (y * 100);
       
       updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
       colorUpdateRAF = null;
@@ -308,7 +303,7 @@ function updateColorFromEvent(e, colorArea, isGradient) {
 let hueUpdateRAF = null;
 function updateHueFromEvent(e, hueSlider, isGradient) {
   if (hueUpdateRAF) {
-    cancelAnimationFrame(hueUpdateRAF); // Cancel previous frame
+    cancelAnimationFrame(hueUpdateRAF);
   }
   
   hueUpdateRAF = requestAnimationFrame(() => {
@@ -316,7 +311,15 @@ function updateHueFromEvent(e, hueSlider, isGradient) {
       const rect = hueSlider.getBoundingClientRect();
       const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       currentHue = x * 360;
+      
+      // Update color picker immediately
       updateColorPicker(currentHue, currentSaturation, currentValue, isGradient);
+      
+      // Update gradient if needed
+      if (isGradient && activeStopIndex !== null) {
+        updateGradientStopColor(currentHue, currentSaturation, currentValue);
+      }
+      
       hueUpdateRAF = null;
     } catch (e) {
       console.error("Error updating hue from event:", e);
@@ -765,50 +768,67 @@ function renderGradientStops() {
   removeStopBtn.disabled = gradientStopsData.length <= 2;
 }
 
-// Add new gradient stop with improved error handling
-addStopBtn.addEventListener('click', () => {
-  console.log("Add stop button clicked");
+// Update gradient angle with improved handling
+let angleUpdateTimeout;
+angleInput.addEventListener('input', (e) => {
+  clearTimeout(angleUpdateTimeout);
   
+  const angle = parseFloat(e.target.value);
+  if (!isNaN(angle)) {
+    // Update immediately for smoother interaction
+    updateGradientPreview();
+    
+    // Debounce the final update
+    angleUpdateTimeout = setTimeout(() => {
+      try {
+        // Normalize angle to 0-360 range
+        const normalizedAngle = ((angle % 360) + 360) % 360;
+        e.target.value = normalizedAngle;
+        updateGradientPreview();
+      } catch (error) {
+        console.error("Error updating angle:", error);
+      }
+    }, 100);
+  }
+});
+
+// Add new gradient stop with improved positioning
+addStopBtn.addEventListener('click', () => {
   try {
-    // First ensure we have a valid gradient preview
-    if (!gradientPreview) {
-      console.error("Gradient preview element not found");
+    if (gradientStopsData.length >= 5) {
+      console.warn("Maximum number of stops reached (5)");
       return;
     }
     
+    // Sort stops by position
     const stops = [...gradientStopsData].sort((a, b) => a.position - b.position);
-    let newPosition;
     
-    if (stops.length < 2) {
-      newPosition = 50;
-    } else {
-      // Find largest gap between stops
-      let maxGap = 0;
-      let gapPosition = 50;
-      
-      for (let i = 0; i < stops.length - 1; i++) {
-        const gap = stops[i + 1].position - stops[i].position;
-        if (gap > maxGap) {
-          maxGap = gap;
-          gapPosition = stops[i].position + gap / 2;
-        }
+    // Find largest gap
+    let maxGap = 0;
+    let insertPosition = 50;
+    
+    for (let i = 0; i < stops.length - 1; i++) {
+      const gap = stops[i + 1].position - stops[i].position;
+      if (gap > maxGap) {
+        maxGap = gap;
+        insertPosition = stops[i].position + gap / 2;
       }
-      newPosition = gapPosition;
     }
     
-    // Interpolate color between adjacent stops
-    const prevStop = stops.find(s => s.position <= newPosition);
-    const nextStop = stops.find(s => s.position > newPosition);
-    let newColor;
+    // Interpolate color
+    const prevStop = stops.find(s => s.position <= insertPosition);
+    const nextStop = stops.find(s => s.position > insertPosition);
     
+    let newColor;
     if (!prevStop) {
       newColor = nextStop.color;
     } else if (!nextStop) {
       newColor = prevStop.color;
     } else {
-      const ratio = (newPosition - prevStop.position) / (nextStop.position - prevStop.position);
+      const ratio = (insertPosition - prevStop.position) / (nextStop.position - prevStop.position);
       const prevRgb = hexToRgb(prevStop.color);
       const nextRgb = hexToRgb(nextStop.color);
+      
       newColor = rgbToHex(
         Math.round(prevRgb.r + (nextRgb.r - prevRgb.r) * ratio),
         Math.round(prevRgb.g + (nextRgb.g - prevRgb.g) * ratio),
@@ -816,52 +836,51 @@ addStopBtn.addEventListener('click', () => {
       );
     }
     
-    // Add the new stop
-    gradientStopsData.push({ position: newPosition, color: newColor });
+    // Add new stop
+    gradientStopsData.push({
+      position: insertPosition,
+      color: newColor
+    });
+    
+    // Update active stop
     activeStopIndex = gradientStopsData.length - 1;
     
-    // Force update UI
+    // Update UI
     renderGradientStops();
     updateGradientPreview();
     
-    if (removeStopBtn) {
-      removeStopBtn.disabled = gradientStopsData.length <= 2;
-    }
+    // Enable remove button
+    removeStopBtn.disabled = false;
     
-    console.log("Added new stop:", gradientStopsData);
   } catch (e) {
     console.error("Error adding gradient stop:", e);
   }
 });
 
-// Remove active gradient stop
+// Remove gradient stop with improved handling
 removeStopBtn.addEventListener('click', () => {
-  if (gradientStopsData.length > 2) {
+  try {
+    if (gradientStopsData.length <= 2) {
+      console.warn("Cannot remove stop: minimum 2 stops required");
+      return;
+    }
+    
+    // Remove active stop
     gradientStopsData.splice(activeStopIndex, 1);
+    
+    // Update active index
     activeStopIndex = Math.max(0, activeStopIndex - 1);
+    
+    // Update UI
     renderGradientStops();
     updateGradientPreview();
+    
+    // Update remove button state
+    removeStopBtn.disabled = gradientStopsData.length <= 2;
+    
+  } catch (e) {
+    console.error("Error removing gradient stop:", e);
   }
-});
-
-// Update gradient angle with improved handling
-angleInput.addEventListener('input', (e) => {
-  clearTimeout(angleUpdateTimeout);
-  
-  // Make sure we have a valid number
-  const angle = parseFloat(e.target.value);
-  if (isNaN(angle)) {
-    e.target.value = "90";
-  }
-  
-  // Update with debounce
-  angleUpdateTimeout = setTimeout(() => {
-    try {
-      updateGradientPreview();
-    } catch (error) {
-      console.error("Error updating angle:", error);
-    }
-  }, 50);
 });
 
 // Update gradient stop color when color picker changes
