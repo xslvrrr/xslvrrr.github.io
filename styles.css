@@ -162,6 +162,7 @@ body {
   background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
 }
 
 .hue-slider-thumb {
@@ -171,8 +172,9 @@ body {
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
-  transform: translateX(-50%);
-  top: 0;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 0;
   pointer-events: none;
   z-index: 5;
 }
@@ -180,12 +182,13 @@ body {
 .color-area {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 180px;
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
 }
 
 .color-area-inner {
@@ -382,13 +385,12 @@ body {
 .tab-indicator {
   position: absolute;
   height: calc(100% - 10px);
-  width: 50%;
+  width: calc(50% - 10px);
   background: rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-sm);
   z-index: 1;
   top: 5px;
-  left: 0;
-  transform: translateX(0);
+  left: 5px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
@@ -543,77 +545,99 @@ body {
   width: 100%;
   height: 48px;
   border-radius: var(--radius-sm);
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   position: relative;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: linear-gradient(90deg, #3d3393, #2b76b9, #2cacd1, #35eb93);
 }
 
 .gradient-stops {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -10px;
-  height: 20px;
+  bottom: -12px;
+  height: 24px;
   pointer-events: none;
   z-index: 50;
   display: block;
   overflow: visible;
 }
 
+.gradient-stop {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.3);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  bottom: 50%;
+  background-color: currentColor;
+  pointer-events: auto !important;
+  z-index: 10;
+  will-change: left;
+  touch-action: none;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gradient-stop.active {
+  transform: translate(-50%, -50%) scale(1.2);
+  border-color: white;
+  border-width: 2px;
+  z-index: 100;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.gradient-stop:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
 .gradient-controls {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: auto 70px 1fr;
   gap: 10px;
-  flex-wrap: wrap;
+  margin-bottom: 20px;
+  align-items: center;
 }
 
 .gradient-angle-label {
   color: rgba(255, 255, 255, 0.8);
-  margin-right: 8px;
   font-size: 14px;
 }
 
 .gradient-angle {
-  width: 60px;
+  width: 70px;
   text-align: center;
 }
 
 .gradient-buttons {
   display: flex;
   gap: 10px;
-  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .gradient-button {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.85);
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  transition: all 0.2s ease;
 }
 
 .gradient-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
 }
 
 .gradient-button:active:not(:disabled) {
   transform: translateY(0);
-}
-
-.gradient-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Animations for tab transitions */
@@ -642,4 +666,18 @@ body {
   display: block !important;
   visibility: visible !important;
   pointer-events: none !important;
+}
+
+/* Fix presets visibility */
+.presets-section {
+  margin-top: 20px;
+  width: 100%;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Fix presets container for both solid and gradient */
+#solidPresets, #gradientPresets {
+  display: block !important;
+  visibility: visible !important;
 }
