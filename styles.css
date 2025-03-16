@@ -180,7 +180,6 @@ body {
   user-select: none;
   touch-action: none;
   z-index: 5;
-  isolation: isolate;
 }
 
 .hue-slider::after {
@@ -206,8 +205,9 @@ body {
   top: 50%;
   left: 0;
   pointer-events: none;
-  z-index: 5;
+  z-index: 10;
   will-change: transform;
+  background-color: #fff;
 }
 
 .color-area {
@@ -264,8 +264,9 @@ body {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
   transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 5;
+  z-index: 10;
   will-change: transform;
+  background-color: #fff;
 }
 
 .color-inputs {
@@ -431,41 +432,16 @@ body {
   z-index: 1;
   top: 5px;
   left: 5px;
-  transition: none;
+  transition: transform 0.2s ease-out;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  will-change: transform;
 }
 
 .tab-indicator[data-tab="gradient"] {
-  animation: slideToGradient 0.25s ease-out forwards;
+  transform: translateX(calc(100% - 0px));
 }
 
 .tab-indicator[data-tab="solid"] {
-  animation: slideToSolid 0.25s ease-out forwards;
-}
-
-@keyframes slideToGradient {
-  0% {
-    transform: translateX(0) scaleX(1);
-  }
-  40% {
-    transform: translateX(50%) scaleX(1.2);
-  }
-  100% {
-    transform: translateX(100%) scaleX(1);
-  }
-}
-
-@keyframes slideToSolid {
-  0% {
-    transform: translateX(100%) scaleX(1);
-  }
-  40% {
-    transform: translateX(50%) scaleX(1.2);
-  }
-  100% {
-    transform: translateX(0) scaleX(1);
-  }
+  transform: translateX(0);
 }
 
 /* Content containers with fade in animation */
@@ -656,8 +632,8 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -16px;
-  height: 24px;
+  bottom: 0;
+  height: 32px;
   pointer-events: none;
   z-index: 99999;
   overflow: visible;
@@ -672,7 +648,7 @@ body {
   box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.3);
   transform: translate(-50%, -50%);
   cursor: grab;
-  bottom: 50%;
+  top: 50%;
   background-color: currentColor;
   pointer-events: auto;
   z-index: 99999;
