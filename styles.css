@@ -78,19 +78,13 @@ body {
   justify-content: center;
 }
 
-.settings-btn svg {
+.settings-icon {
   width: var(--md);
   height: var(--md);
-  fill: rgb(122, 117, 128);
-  transition: fill 0.3s, transform 0.3s;
+  transition: transform 0.3s;
 }
 
-.settings-btn:hover svg {
-  fill: rgb(142, 137, 148);
-}
-
-.settings-btn.active svg {
-  fill: white;
+.settings-btn.active .settings-icon {
   transform: rotate(180deg);
 }
 
@@ -182,7 +176,7 @@ body {
 .color-area {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 280px;
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
   overflow: hidden;
@@ -450,11 +444,12 @@ body {
 .presets-toggle {
   width: 16px;
   height: 16px;
-  background-image: url('Assets/down-arrow.png');
+  background-image: url('Assets/angle-down.svg');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: brightness(0) invert(0.7);
 }
 
 .presets-header.expanded .presets-toggle {
@@ -547,22 +542,22 @@ body {
 
 .gradient-preview {
   width: 100%;
-  height: 40px;
+  height: 32px;
   border-radius: var(--radius-sm);
-  margin-bottom: 26px;
+  margin-bottom: 32px;
   position: relative;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(90deg, #3d3393, #2b76b9, #2cacd1, #35eb93);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .gradient-stops {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -12px;
+  bottom: -16px;
   height: 24px;
   pointer-events: none;
   z-index: 50;
@@ -601,7 +596,8 @@ body {
 }
 
 .gradient-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 60px 1fr;
   align-items: center;
   margin-bottom: 20px;
   gap: 10px;
@@ -623,11 +619,13 @@ body {
 .gradient-buttons {
   display: flex;
   gap: 10px;
-  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .gradient-button {
-  padding: 8px 12px;
+  width: 32px;
+  height: 32px;
+  padding: 6px;
   border-radius: var(--radius-sm);
   background: rgba(40, 40, 40, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -637,6 +635,15 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-icon {
+  width: 100%;
+  height: 100%;
+  filter: brightness(0) invert(1);
 }
 
 .gradient-button:hover:not(:disabled) {
