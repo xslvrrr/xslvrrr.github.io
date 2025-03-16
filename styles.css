@@ -119,6 +119,7 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(15, 15, 15, 0);
   transform-origin: top right;
   animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateZ(0);
 }
 
 @keyframes popIn {
@@ -165,25 +166,24 @@ body {
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
   background: linear-gradient(to right, 
-    hsl(0, 100%, 50%),
-    hsl(60, 100%, 50%),
-    hsl(120, 100%, 50%),
-    hsl(180, 100%, 50%),
-    hsl(240, 100%, 50%),
-    hsl(300, 100%, 50%),
-    hsl(360, 100%, 50%)
+    rgb(255, 0, 0),
+    rgb(255, 255, 0),
+    rgb(0, 255, 0),
+    rgb(0, 255, 255),
+    rgb(0, 0, 255),
+    rgb(255, 0, 255),
+    rgb(255, 0, 0)
   );
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   user-select: none;
   touch-action: none;
-  z-index: 20001;
+  z-index: 5;
   isolation: isolate;
-  opacity: 1 !important;
 }
 
-.hue-slider::before {
+.hue-slider::after {
   content: '';
   position: absolute;
   top: 0;
@@ -433,59 +433,38 @@ body {
   left: 5px;
   transition: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transform-origin: left center;
   will-change: transform;
 }
 
 .tab-indicator[data-tab="gradient"] {
-  animation: slideToGradient 0.25s ease-in-out forwards;
+  animation: slideToGradient 0.25s ease-out forwards;
 }
 
 .tab-indicator[data-tab="solid"] {
-  animation: slideToSolid 0.25s ease-in-out forwards;
+  animation: slideToSolid 0.25s ease-out forwards;
 }
 
 @keyframes slideToGradient {
-  0% { 
-    transform: scaleX(1);
-    transform-origin: left center;
+  0% {
+    transform: translateX(0) scaleX(1);
   }
-  50% { 
-    transform: scaleX(2);
-    transform-origin: left center;
+  40% {
+    transform: translateX(50%) scaleX(1.2);
   }
-  51% {
-    transform: scaleX(2);
-    transform-origin: right center;
-    left: calc(50% - 5px);
-  }
-  100% { 
-    transform: scaleX(1);
-    transform-origin: right center;
-    left: calc(50% - 5px);
+  100% {
+    transform: translateX(100%) scaleX(1);
   }
 }
 
 @keyframes slideToSolid {
-  0% { 
-    transform: scaleX(1);
-    transform-origin: right center;
-    left: calc(50% - 5px);
+  0% {
+    transform: translateX(100%) scaleX(1);
   }
-  50% { 
-    transform: scaleX(2);
-    transform-origin: right center;
-    left: calc(50% - 5px);
+  40% {
+    transform: translateX(50%) scaleX(1.2);
   }
-  51% {
-    transform: scaleX(2);
-    transform-origin: left center;
-    left: 5px;
-  }
-  100% { 
-    transform: scaleX(1);
-    transform-origin: left center;
-    left: 5px;
+  100% {
+    transform: translateX(0) scaleX(1);
   }
 }
 
@@ -624,8 +603,7 @@ body {
   height: auto;
   width: 100%;
   position: relative;
-  z-index: 20000;
-  isolation: isolate;
+  z-index: 1;
 }
 
 .gradient-editor.active {
@@ -649,7 +627,6 @@ body {
   touch-action: none;
   background-image: none;
   z-index: 3;
-  isolation: isolate;
 }
 
 .gradient-preview::before {
@@ -664,6 +641,17 @@ body {
   border-radius: var(--radius-sm);
 }
 
+/* Create a portal for gradient stops that's outside the stacking context */
+.gradient-stops-portal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 99999;
+}
+
 .gradient-stops {
   position: absolute;
   left: 0;
@@ -671,9 +659,8 @@ body {
   bottom: -16px;
   height: 24px;
   pointer-events: none;
-  z-index: 20002;
+  z-index: 99999;
   overflow: visible;
-  isolation: isolate;
 }
 
 .gradient-stop {
@@ -688,7 +675,7 @@ body {
   bottom: 50%;
   background-color: currentColor;
   pointer-events: auto;
-  z-index: 20003;
+  z-index: 99999;
   will-change: left;
   touch-action: none;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -698,7 +685,7 @@ body {
   transform: translate(-50%, -50%) scale(1.2);
   border-color: white;
   border-width: 2px;
-  z-index: 20004;
+  z-index: 99999;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
 }
 
