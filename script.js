@@ -351,14 +351,41 @@ function handleGradientStopDrag(e) {
   const index = parseInt(activeDragElement.dataset.index, 10);
   if (isNaN(index) || index < 0 || index >= gradientStopsData.length) return;
   
+  // Get the current stops
+  const currentStops = [...gradientStopsData];
+  
   // Update the position
   gradientStopsData[index].position = newPosition;
+  
+  // Get the sorted indices to prevent dragging other stops
+  const sortedIndices = gradientStopsData
+    .map((stop, i) => ({ position: stop.position, index: i }))
+    .sort((a, b) => a.position - b.position)
+    .map(item => item.index);
+    
+  // Find the new index of the dragged stop
+  const newIndex = sortedIndices.indexOf(index);
+  
+  // Ensure we maintain minimum distances between stops (1% gap)
+  if (newIndex > 0) {
+    const prevIndex = sortedIndices[newIndex - 1];
+    if (gradientStopsData[index].position - gradientStopsData[prevIndex].position < 1) {
+      gradientStopsData[index].position = gradientStopsData[prevIndex].position + 1;
+    }
+  }
+  
+  if (newIndex < sortedIndices.length - 1) {
+    const nextIndex = sortedIndices[newIndex + 1];
+    if (gradientStopsData[nextIndex].position - gradientStopsData[index].position < 1) {
+      gradientStopsData[index].position = gradientStopsData[nextIndex].position - 1;
+    }
+  }
   
   // Update the active index (might have changed due to reordering)
   activeStopIndex = index;
   
   // Update UI without full re-render for performance
-  activeDragElement.style.left = `${newPosition}%`;
+  activeDragElement.style.left = `${gradientStopsData[index].position}%`;
   
   // Update the gradient preview
   updateGradientPreview();
