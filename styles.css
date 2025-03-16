@@ -153,6 +153,9 @@ body {
 .custom-color-picker {
   width: 100%;
   margin-bottom: var(--sm);
+  position: relative;
+  z-index: 20000;
+  isolation: isolate;
 }
 
 .hue-slider {
@@ -161,12 +164,34 @@ body {
   height: 24px;
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
-  background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+  background: linear-gradient(to right, 
+    hsl(0, 100%, 50%),
+    hsl(60, 100%, 50%),
+    hsl(120, 100%, 50%),
+    hsl(180, 100%, 50%),
+    hsl(240, 100%, 50%),
+    hsl(300, 100%, 50%),
+    hsl(360, 100%, 50%)
+  );
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   user-select: none;
   touch-action: none;
+  z-index: 20001;
+  isolation: isolate;
+  opacity: 1 !important;
+}
+
+.hue-slider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--radius-sm);
+  background: inherit;
   z-index: 1;
 }
 
@@ -197,6 +222,8 @@ body {
   cursor: pointer;
   user-select: none;
   touch-action: none;
+  z-index: 20001;
+  isolation: isolate;
 }
 
 .color-area-inner {
@@ -411,50 +438,54 @@ body {
 }
 
 .tab-indicator[data-tab="gradient"] {
-  animation: slideToGradient 0.3s ease-out forwards;
-  transform-origin: right center;
+  animation: slideToGradient 0.25s ease-in-out forwards;
 }
 
 .tab-indicator[data-tab="solid"] {
-  animation: slideToSolid 0.3s ease-out forwards;
-  transform-origin: left center;
+  animation: slideToSolid 0.25s ease-in-out forwards;
 }
 
 @keyframes slideToGradient {
   0% { 
-    transform: translateX(0) scaleX(1);
-    transform-origin: right center;
-  }
-  45% { 
-    transform: translateX(0) scaleX(2);
-    transform-origin: right center;
-  }
-  55% {
-    transform: translateX(calc(100% - 0px)) scaleX(2);
+    transform: scaleX(1);
     transform-origin: left center;
+  }
+  50% { 
+    transform: scaleX(2);
+    transform-origin: left center;
+  }
+  51% {
+    transform: scaleX(2);
+    transform-origin: right center;
+    left: calc(50% - 5px);
   }
   100% { 
-    transform: translateX(calc(100% - 0px)) scaleX(1);
-    transform-origin: left center;
+    transform: scaleX(1);
+    transform-origin: right center;
+    left: calc(50% - 5px);
   }
 }
 
 @keyframes slideToSolid {
   0% { 
-    transform: translateX(calc(100% - 0px)) scaleX(1);
-    transform-origin: left center;
-  }
-  45% { 
-    transform: translateX(calc(100% - 0px)) scaleX(2);
-    transform-origin: left center;
-  }
-  55% {
-    transform: translateX(0) scaleX(2);
+    transform: scaleX(1);
     transform-origin: right center;
+    left: calc(50% - 5px);
+  }
+  50% { 
+    transform: scaleX(2);
+    transform-origin: right center;
+    left: calc(50% - 5px);
+  }
+  51% {
+    transform: scaleX(2);
+    transform-origin: left center;
+    left: 5px;
   }
   100% { 
-    transform: translateX(0) scaleX(1);
-    transform-origin: right center;
+    transform: scaleX(1);
+    transform-origin: left center;
+    left: 5px;
   }
 }
 
@@ -592,6 +623,9 @@ body {
   transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   height: auto;
   width: 100%;
+  position: relative;
+  z-index: 20000;
+  isolation: isolate;
 }
 
 .gradient-editor.active {
@@ -615,6 +649,7 @@ body {
   touch-action: none;
   background-image: none;
   z-index: 3;
+  isolation: isolate;
 }
 
 .gradient-preview::before {
@@ -636,8 +671,9 @@ body {
   bottom: -16px;
   height: 24px;
   pointer-events: none;
-  z-index: 10000;
+  z-index: 20002;
   overflow: visible;
+  isolation: isolate;
 }
 
 .gradient-stop {
@@ -652,7 +688,7 @@ body {
   bottom: 50%;
   background-color: currentColor;
   pointer-events: auto;
-  z-index: 10001;
+  z-index: 20003;
   will-change: left;
   touch-action: none;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -662,7 +698,7 @@ body {
   transform: translate(-50%, -50%) scale(1.2);
   border-color: white;
   border-width: 2px;
-  z-index: 10002;
+  z-index: 20004;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
 }
 
