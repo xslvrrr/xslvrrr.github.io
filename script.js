@@ -785,18 +785,38 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
       
       // Event listener for gradient preset
       presetItem.addEventListener('click', () => {
-        gradientStopsData = [...preset.stops];
-        gradientAngle = preset.angle;
+        // Copy the stops data to avoid modifying the preset
+        gradientStopsData = JSON.parse(JSON.stringify(preset.stops));
         
-        // Update gradient UI
-        renderGradientStops();
+        // Update angle
+        const angle = preset.angle || 90; // Default to 90 if not specified
+        
+        // Set the angle input value
+        const angleInput = document.getElementById('angleInput');
+        if (angleInput) {
+          angleInput.value = angle;
+        }
+        
+        // Make sure first stop is active
+        activeStopIndex = 0;
+        
+        // Update UI
         updateGradientPreview();
         
-        // Update angle input
-        const angleInput = document.getElementById('gradientAngle');
-        if (angleInput) {
-          angleInput.value = gradientAngle;
+        // Update color picker with first stop color
+        if (gradientStopsData.length > 0) {
+          const firstStop = gradientStopsData[0];
+          const rgb = hexToRgb(firstStop.color);
+          const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+          
+          currentHue = hsv.h;
+          currentSaturation = hsv.s;
+          currentValue = hsv.v;
+          
+          updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
         }
+        
+        console.log('Applied gradient preset:', preset.name);
       });
     } else {
       presetItem = createPresetItem(preset.name, preset.color);
@@ -811,6 +831,8 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
         currentValue = hsv.v;
         
         updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
+        
+        console.log('Applied solid preset:', preset.name);
       });
     }
     
@@ -827,6 +849,11 @@ function createCollapsiblePresets(title, presets, isGradient = false) {
   // Assemble the container
   container.appendChild(header);
   container.appendChild(grid);
+  
+  // Expand by default
+  header.classList.add('expanded');
+  grid.classList.add('expanded');
+  toggle.textContent = 'Hide';
   
   return container;
 }
@@ -1011,5 +1038,312 @@ function setupGradientEvents() {
   const removeStopBtn = document.getElementById('remove-stop');
   if (removeStopBtn) {
     removeStopBtn.addEventListener('click', removeGradientStop);
+  }
+}
+
+// Generate CSS for gradient
+function generateGradientCSS(stops, angle) {
+  if (!stops || !stops.length) return 'transparent';
+  
+  // Sort stops by position
+  const sortedStops = [...stops].sort((a, b) => a.position - b.position);
+  
+  // Create the gradient string
+  const gradientString = sortedStops
+    .map(stop => `${stop.color} ${stop.position}%`)
+    .join(', ');
+  
+  // Return the full CSS value
+  return `linear-gradient(${angle}deg, ${gradientString})`;
+}
+
+// Update color picker with current HSV values
+function updateColorPicker() {
+  // Create the tab indicator if it doesn't exist
+  initTabIndicator();
+  
+  // Update the UI for both solid and gradient pickers
+  updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
+  
+  // For gradient mode, update the gradient preview
+  updateGradientPreview();
+  
+  // Set initial colors
+  const rgb = hsvToRgb(currentHue, currentSaturation, currentValue);
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  document.documentElement.style.setProperty('--accent-color', hex);
+  
+  console.log('Color picker initialized with HSV:', currentHue, currentSaturation, currentValue);
+}
+
+// Start dragging the color area thumb
+function startColorDrag(e) {
+  if (e.button !== 0) return; // Only left mouse button
+  
+  isDragging = true;
+  dragType = 'color';
+  
+  // Determine if this is in the gradient editor
+  const isGradient = e.currentTarget.closest('.gradient-editor') !== null;
+  
+  // Update color immediately
+  handleColorAreaInteraction(e, isGradient);
+  
+  // Capture pointer to handle dragging outside the element
+  e.currentTarget.setPointerCapture(e.pointerId);
+  
+  // Add event listeners for move and up events
+  e.currentTarget.addEventListener('pointermove', (moveEvent) => {
+    if (isDragging && dragType === 'color') {
+      handleColorAreaInteraction(moveEvent, isGradient);
+    }
+  });
+  
+  e.currentTarget.addEventListener('pointerup', () => {
+    isDragging = false;
+    dragType = null;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }, { once: true });
+}
+
+// Start dragging the hue slider thumb
+function startHueDrag(e) {
+  if (e.button !== 0) return; // Only left mouse button
+  
+  isDragging = true;
+  dragType = 'hue';
+  
+  // Determine if this is in the gradient editor
+  const isGradient = e.currentTarget.closest('.gradient-editor') !== null;
+  
+  // Update hue immediately
+  handleHueSliderInteraction(e, isGradient);
+  
+  // Capture pointer to handle dragging outside the element
+  e.currentTarget.setPointerCapture(e.pointerId);
+  
+  // Add event listeners for move and up events
+  e.currentTarget.addEventListener('pointermove', (moveEvent) => {
+    if (isDragging && dragType === 'hue') {
+      handleHueSliderInteraction(moveEvent, isGradient);
+    }
+  });
+  
+  e.currentTarget.addEventListener('pointerup', () => {
+    isDragging = false;
+    dragType = null;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }, { once: true });
+}
+
+// Handle hex input change
+function handleHexInput(e) {
+  try {
+    const hex = e.target.value.trim();
+    if (/^#?([0-9A-F]{3}){1,2}$/i.test(hex)) {
+      const formattedHex = hex.startsWith('#') ? hex : `#${hex}`;
+      const rgb = hexToRgb(formattedHex);
+      if (rgb) {
+        const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+        currentHue = hsv.h;
+        currentSaturation = hsv.s;
+        currentValue = hsv.v;
+        
+        // Determine if in gradient mode
+        const isGradient = e.target.id === 'hex-input-gradient';
+        updateColorPickerUI(currentHue, currentSaturation, currentValue, isGradient);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling hex input:', error);
+  }
+}
+
+// Validate hex input on blur
+function validateHexInput(e) {
+  try {
+    const hex = e.target.value.trim();
+    if (!/^#?([0-9A-F]{3}){1,2}$/i.test(hex)) {
+      // Reset to current color
+      const rgb = hsvToRgb(currentHue, currentSaturation, currentValue);
+      e.target.value = rgbToHex(rgb.r, rgb.g, rgb.b);
+    } else if (!hex.startsWith('#')) {
+      e.target.value = `#${hex}`;
+    }
+  } catch (error) {
+    console.error('Error validating hex input:', error);
+  }
+}
+
+// Handle RGB input change
+function handleRgbInput(e) {
+  try {
+    const rgbValues = e.target.value.split(',').map(v => parseInt(v.trim(), 10));
+    if (rgbValues.length === 3 && !rgbValues.some(isNaN)) {
+      const [r, g, b] = rgbValues;
+      if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+        const hsv = rgbToHsv(r, g, b);
+        currentHue = hsv.h;
+        currentSaturation = hsv.s;
+        currentValue = hsv.v;
+        
+        // Determine if in gradient mode
+        const isGradient = e.target.id === 'rgb-input-gradient';
+        updateColorPickerUI(currentHue, currentSaturation, currentValue, isGradient);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling RGB input:', error);
+  }
+}
+
+// Validate RGB input on blur
+function validateRgbInput(e) {
+  try {
+    const rgbValues = e.target.value.split(',').map(v => parseInt(v.trim(), 10));
+    if (rgbValues.length !== 3 || rgbValues.some(isNaN) || 
+        rgbValues.some(v => v < 0 || v > 255)) {
+      // Reset to current color
+      const rgb = hsvToRgb(currentHue, currentSaturation, currentValue);
+      e.target.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+    }
+  } catch (error) {
+    console.error('Error validating RGB input:', error);
+  }
+}
+
+// Handle angle input change
+function handleAngleInput(e) {
+  try {
+    let angle = parseInt(e.target.value, 10);
+    
+    // Normalize angle to 0-360 range
+    if (!isNaN(angle)) {
+      angle = ((angle % 360) + 360) % 360;
+      
+      // Update variable for gradient preview
+      if (typeof gradientAngle !== 'undefined') {
+        gradientAngle = angle;
+      }
+      
+      // Update preview
+      updateGradientPreview();
+    }
+  } catch (error) {
+    console.error('Error handling angle input:', error);
+  }
+}
+
+// Add a new gradient stop
+function addGradientStop() {
+  if (gradientStopsData.length >= 5) {
+    console.log('Maximum number of stops reached (5)');
+    return;
+  }
+  
+  try {
+    // Find the largest gap between stops
+    let maxGap = 0;
+    let insertPosition = 50;
+    let insertIndex = 1;
+    
+    // Sort stops by position
+    const sortedStops = [...gradientStopsData].sort((a, b) => a.position - b.position);
+    
+    // Find the largest gap
+    for (let i = 0; i < sortedStops.length - 1; i++) {
+      const gap = sortedStops[i + 1].position - sortedStops[i].position;
+      if (gap > maxGap) {
+        maxGap = gap;
+        insertPosition = sortedStops[i].position + gap / 2;
+        insertIndex = i + 1;
+      }
+    }
+    
+    // Create a new stop with interpolated color
+    const prevStop = sortedStops[insertIndex - 1];
+    const nextStop = sortedStops[insertIndex];
+    
+    // Calculate the color ratio based on position
+    const ratio = (insertPosition - prevStop.position) / (nextStop.position - prevStop.position);
+    
+    // Interpolate RGB values
+    const prevRgb = hexToRgb(prevStop.color);
+    const nextRgb = hexToRgb(nextStop.color);
+    
+    const r = Math.round(prevRgb.r + ratio * (nextRgb.r - prevRgb.r));
+    const g = Math.round(prevRgb.g + ratio * (nextRgb.g - prevRgb.g));
+    const b = Math.round(prevRgb.b + ratio * (nextRgb.b - prevRgb.b));
+    
+    const interpolatedColor = rgbToHex(r, g, b);
+    
+    // Create the new stop
+    const newStop = {
+      position: insertPosition,
+      color: interpolatedColor
+    };
+    
+    // Add to the stops array
+    gradientStopsData.splice(insertIndex, 0, newStop);
+    
+    // Set as active stop
+    activeStopIndex = insertIndex;
+    
+    // Update UI
+    updateGradientPreview();
+    
+    // Update color picker with the new stop's color
+    const rgb = hexToRgb(newStop.color);
+    const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+    currentHue = hsv.h;
+    currentSaturation = hsv.s;
+    currentValue = hsv.v;
+    
+    updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
+    
+    console.log('Added new stop at position', insertPosition);
+  } catch (error) {
+    console.error('Error adding gradient stop:', error);
+  }
+}
+
+// Remove active gradient stop
+function removeGradientStop() {
+  if (gradientStopsData.length <= 2) {
+    console.log('Cannot remove stop, minimum 2 stops required');
+    return;
+  }
+  
+  if (activeStopIndex === null || activeStopIndex < 0 || activeStopIndex >= gradientStopsData.length) {
+    console.log('No valid stop selected for removal');
+    return;
+  }
+  
+  try {
+    // Remove the active stop
+    gradientStopsData.splice(activeStopIndex, 1);
+    
+    // Update active index
+    activeStopIndex = Math.min(activeStopIndex, gradientStopsData.length - 1);
+    
+    // Update UI
+    updateGradientPreview();
+    
+    // Update color picker with new active stop
+    if (activeStopIndex >= 0) {
+      const activeStop = gradientStopsData[activeStopIndex];
+      const rgb = hexToRgb(activeStop.color);
+      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      
+      currentHue = hsv.h;
+      currentSaturation = hsv.s;
+      currentValue = hsv.v;
+      
+      updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
+    }
+    
+    console.log('Removed gradient stop');
+  } catch (error) {
+    console.error('Error removing gradient stop:', error);
   }
 }
