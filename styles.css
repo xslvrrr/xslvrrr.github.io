@@ -406,39 +406,55 @@ body {
   left: 5px;
   transition: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transform-origin: center;
+  transform-origin: left center;
   will-change: transform;
 }
 
 .tab-indicator[data-tab="gradient"] {
-  animation: slideToGradient 0.25s ease-out forwards;
+  animation: slideToGradient 0.3s ease-out forwards;
+  transform-origin: right center;
 }
 
 .tab-indicator[data-tab="solid"] {
-  animation: slideToSolid 0.25s ease-out forwards;
+  animation: slideToSolid 0.3s ease-out forwards;
+  transform-origin: left center;
 }
 
 @keyframes slideToGradient {
   0% { 
-    transform: translateX(0) scaleX(1); 
+    transform: translateX(0) scaleX(1);
+    transform-origin: right center;
   }
-  70% { 
-    transform: translateX(calc(70% - 0px)) scaleX(1.15); 
+  45% { 
+    transform: translateX(0) scaleX(2);
+    transform-origin: right center;
+  }
+  55% {
+    transform: translateX(calc(100% - 0px)) scaleX(2);
+    transform-origin: left center;
   }
   100% { 
-    transform: translateX(calc(100% - 0px)) scaleX(1); 
+    transform: translateX(calc(100% - 0px)) scaleX(1);
+    transform-origin: left center;
   }
 }
 
 @keyframes slideToSolid {
   0% { 
-    transform: translateX(calc(100% - 0px)) scaleX(1); 
+    transform: translateX(calc(100% - 0px)) scaleX(1);
+    transform-origin: left center;
   }
-  70% { 
-    transform: translateX(30%) scaleX(1.15); 
+  45% { 
+    transform: translateX(calc(100% - 0px)) scaleX(2);
+    transform-origin: left center;
+  }
+  55% {
+    transform: translateX(0) scaleX(2);
+    transform-origin: right center;
   }
   100% { 
-    transform: translateX(0) scaleX(1); 
+    transform: translateX(0) scaleX(1);
+    transform-origin: right center;
   }
 }
 
@@ -620,7 +636,7 @@ body {
   bottom: -16px;
   height: 24px;
   pointer-events: none;
-  z-index: 2001;
+  z-index: 10000;
   overflow: visible;
 }
 
@@ -636,7 +652,7 @@ body {
   bottom: 50%;
   background-color: currentColor;
   pointer-events: auto;
-  z-index: 2002;
+  z-index: 10001;
   will-change: left;
   touch-action: none;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -646,7 +662,7 @@ body {
   transform: translate(-50%, -50%) scale(1.2);
   border-color: white;
   border-width: 2px;
-  z-index: 2003;
+  z-index: 10002;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
 }
 
