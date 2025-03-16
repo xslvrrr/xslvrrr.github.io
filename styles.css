@@ -76,16 +76,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .settings-icon {
   width: var(--md);
   height: var(--md);
   transition: transform 0.3s;
+  filter: brightness(0) invert(0.7);
+}
+
+.settings-btn:hover .settings-icon {
+  filter: brightness(0) invert(0.85);
 }
 
 .settings-btn.active .settings-icon {
   transform: rotate(180deg);
+  filter: brightness(0) invert(1);
 }
 
 .settings-popup {
@@ -157,6 +164,9 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  z-index: 1;
 }
 
 .hue-slider-thumb {
@@ -171,6 +181,7 @@ body {
   left: 0;
   pointer-events: none;
   z-index: 5;
+  will-change: transform;
 }
 
 .color-area {
@@ -183,6 +194,8 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
+  user-select: none;
+  touch-action: none;
 }
 
 .color-area-inner {
@@ -191,6 +204,7 @@ body {
   right: 0;
   bottom: 0;
   left: 0;
+  z-index: 1;
 }
 
 .color-area-white {
@@ -200,6 +214,7 @@ body {
   bottom: 0;
   left: 0;
   background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+  z-index: 2;
 }
 
 .color-area-black {
@@ -209,6 +224,7 @@ body {
   bottom: 0;
   left: 0;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000);
+  z-index: 3;
 }
 
 .color-area-thumb {
@@ -221,6 +237,7 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 5;
+  will-change: transform;
 }
 
 .color-inputs {
@@ -390,7 +407,7 @@ body {
 }
 
 .tab-indicator[data-tab="gradient"] {
-  transform: translateX(calc(100% - 0px));
+  transform: translateX(100%);
 }
 
 .tab-indicator[data-tab="solid"] {
@@ -534,7 +551,7 @@ body {
 }
 
 .gradient-editor.active {
-  display: block !important;
+  display: block;
   opacity: 1;
   pointer-events: auto;
   height: auto;
@@ -551,6 +568,8 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(90deg, #3d3393, #2b76b9, #2cacd1, #35eb93);
   overflow: visible;
+  user-select: none;
+  touch-action: none;
 }
 
 .gradient-stops {
@@ -561,7 +580,6 @@ body {
   height: 24px;
   pointer-events: none;
   z-index: 50;
-  display: block;
   overflow: visible;
 }
 
@@ -646,6 +664,11 @@ body {
   filter: brightness(0) invert(1);
 }
 
+#remove-stop .button-icon {
+  width: 80%;
+  height: 80%;
+}
+
 .gradient-button:hover:not(:disabled) {
   background: rgba(50, 50, 50, 0.9);
   transform: translateY(-2px);
@@ -677,28 +700,28 @@ body {
 
 /* Fix for color pickers */
 .color-area, .hue-slider {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .color-area-thumb, .hue-slider-thumb {
-  display: block !important;
-  visibility: visible !important;
-  pointer-events: none !important;
+  display: block;
+  visibility: visible;
+  pointer-events: none;
 }
 
 /* Fix presets visibility */
 .presets-section {
   margin-top: 20px;
   width: 100%;
-  display: block !important;
-  visibility: visible !important;
+  display: block;
+  visibility: visible;
 }
 
 /* Fix presets container for both solid and gradient */
 #solidPresets, #gradientPresets {
-  display: block !important;
-  visibility: visible !important;
+  display: block;
+  visibility: visible;
 }
