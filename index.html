@@ -52,18 +52,16 @@
         </div>
         <div id="gradientEditor" class="gradient-editor" role="tabpanel" aria-labelledby="colorPickerTitle">
           <div class="gradient-preview" role="img" aria-label="Gradient Preview">
-            <div class="gradient-stops-container">
-              <div class="gradient-stops" role="group" aria-label="Gradient Stops"></div>
-            </div>
+            <!-- Stops will be inserted dynamically into the portal -->
           </div>
           <form class="gradient-controls">
             <label for="angleInput" class="gradient-angle-label">Angle</label>
-            <input type="number" id="angleInput" class="color-input gradient-angle" value="90" min="0" max="360" aria-label="Gradient Angle">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" id="angleInput" class="color-input gradient-angle" value="90" min="0" max="360" aria-label="Gradient Angle">
             <div class="gradient-buttons">
-              <button type="button" class="gradient-button" id="add-stop">
+              <button type="button" class="gradient-button" id="add-stop" aria-label="Add gradient stop">
                 <img src="Assets/plus.svg" alt="Add Stop" class="button-icon">
               </button>
-              <button type="button" class="gradient-button" id="remove-stop" disabled>
+              <button type="button" class="gradient-button" id="remove-stop" disabled aria-label="Remove gradient stop">
                 <img src="Assets/cross.svg" alt="Remove Stop" class="button-icon">
               </button>
             </div>
@@ -107,6 +105,8 @@
     <p class="subtitle">A complete redesign of the millennium portal,<br>say goodbye to bad UI!</p>
     <a href="#" class="learn-more" role="button">Learn more ›</a>
   </main>
+  
+  <div class="gradient-stops-portal" id="gradientStopsPortal"></div>
   
   <script src="script.js"></script>
 </body>
