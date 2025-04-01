@@ -24,6 +24,11 @@
   --radius-xs: calc(var(--xs) * 0.8);     /* ~8px */
   --radius-sm: var(--xs);                 /* ~10px */
   --radius-md: calc(var(--xs) * var(--gr)); /* ~16px */
+  
+  /* Animation timing based on golden ratio */
+  --anim-fast: calc(0.2s * var(--gr) / 2); /* ~0.16s */
+  --anim-normal: calc(var(--anim-fast) * var(--gr)); /* ~0.26s */
+  --anim-slow: calc(var(--anim-normal) * var(--gr)); /* ~0.42s */
 }
 
 * {
@@ -118,8 +123,9 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(15, 15, 15, 0);
   transform-origin: top right;
-  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: popIn var(--anim-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: translateZ(0);
+  overscroll-behavior: contain;
 }
 
 @keyframes popIn {
@@ -164,7 +170,7 @@ body {
   width: 100%;
   height: 24px;
   border-radius: var(--radius-sm);
-  margin-bottom: 16px;
+  margin-bottom: calc(var(--sm) * var(--gr));
   background: linear-gradient(to right, 
     rgb(255, 0, 0),
     rgb(255, 255, 0),
@@ -180,6 +186,7 @@ body {
   user-select: none;
   touch-action: none;
   z-index: 5;
+  overflow: visible;
 }
 
 .hue-slider::after {
@@ -207,7 +214,9 @@ body {
   pointer-events: none;
   z-index: 10;
   will-change: transform;
-  background-color: #fff;
+  /* Will be set by JS to current hue color */
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .color-area {
@@ -222,8 +231,9 @@ body {
   cursor: pointer;
   user-select: none;
   touch-action: none;
-  z-index: 20001;
+  z-index: 1;
   isolation: isolate;
+  contain: strict;
 }
 
 .color-area-inner {
@@ -267,6 +277,8 @@ body {
   z-index: 10;
   will-change: transform;
   background-color: #fff;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .color-inputs {
@@ -403,11 +415,11 @@ body {
 .tab-option {
   flex: 1;
   text-align: center;
-  padding: 10px 15px;
+  padding: calc(var(--xs) * 1.1) calc(var(--sm) * 0.94);
   cursor: pointer;
   position: relative;
   z-index: 2;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -432,7 +444,7 @@ body {
   z-index: 1;
   top: 5px;
   left: 5px;
-  transition: transform 0.2s ease-out;
+  transition: transform var(--anim-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -446,7 +458,7 @@ body {
 
 /* Content containers with fade in animation */
 .tab-content {
-  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeIn var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeIn {
@@ -466,15 +478,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding: calc(var(--xs) * var(--gr)) var(--sm);
+  margin-bottom: calc(var(--xs) * 0.8);
   background: rgba(30, 30, 30, 0.65);
   border-radius: var(--radius-sm);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .presets-header:hover {
@@ -509,14 +521,18 @@ body {
   gap: 8px;
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: max-height var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
+              margin-top var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
   visibility: visible !important;
   margin-top: 0;
+  opacity: 0;
 }
 
 .presets-grid.expanded {
-  max-height: none;
-  margin-top: 10px;
+  max-height: 1000px; /* Large enough value to accommodate all presets */
+  margin-top: var(--xs);
+  opacity: 1;
 }
 
 .preset-item {
@@ -575,7 +591,7 @@ body {
   display: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
   height: auto;
   width: 100%;
   position: relative;
@@ -593,12 +609,12 @@ body {
   width: 100%;
   height: 32px;
   border-radius: var(--radius-sm);
-  margin-bottom: 32px;
+  margin-bottom: calc(var(--lg) * 0.75);
   position: relative;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow: hidden;
+  overflow: visible;
   user-select: none;
   touch-action: none;
   background-image: none;
@@ -617,15 +633,16 @@ body {
   border-radius: var(--radius-sm);
 }
 
-/* Create a portal for gradient stops that's outside the stacking context */
-.gradient-stops-portal {
-  position: fixed;
-  top: 0;
+/* Completely revamped gradient stops system */
+.gradient-stops-container {
+  position: absolute;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: -12px;
+  height: 24px;
   pointer-events: none;
-  z-index: 99999;
+  z-index: 100;
+  overflow: visible;
 }
 
 .gradient-stops {
@@ -633,9 +650,9 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 32px;
+  height: 24px;
   pointer-events: none;
-  z-index: 99999;
+  z-index: 100;
   overflow: visible;
 }
 
@@ -646,106 +663,104 @@ body {
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.3);
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, 50%);
   cursor: grab;
-  top: 50%;
+  bottom: 0;
   background-color: currentColor;
   pointer-events: auto;
-  z-index: 99999;
+  z-index: 100;
   will-change: left;
   touch-action: none;
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .gradient-stop.active {
-  transform: translate(-50%, -50%) scale(1.2);
+  transform: translate(-50%, 50%) scale(1.2);
   border-color: white;
   border-width: 2px;
-  z-index: 99999;
+  z-index: 101;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
 }
 
 .gradient-stop:hover {
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, 50%) scale(1.1);
 }
 
-.gradient-controls {
-  display: grid;
-  grid-template-columns: auto 60px 1fr;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 10px;
-}
-
-.gradient-angle-label {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  margin-right: 2px;
-  white-space: nowrap;
-}
-
-.gradient-angle {
-  width: 60px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.gradient-buttons {
+/* Improved presets with smooth animations */
+.presets-header {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.gradient-button {
-  width: 32px;
-  height: 32px;
-  padding: 6px;
+  justify-content: space-between;
+  align-items: center;
+  padding: calc(var(--xs) * var(--gr)) var(--sm);
+  margin-bottom: calc(var(--xs) * 0.8);
+  background: rgba(30, 30, 30, 0.65);
   border-radius: var(--radius-sm);
-  background: rgba(40, 40, 40, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 13px;
-  font-weight: 500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.button-icon {
-  width: 100%;
-  height: 100%;
-  filter: brightness(0) invert(1);
+.presets-header:hover {
+  background: rgba(40, 40, 40, 0.75);
 }
 
-#remove-stop .button-icon {
-  width: 80%;
-  height: 80%;
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
+              margin-top var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  visibility: visible !important;
+  margin-top: 0;
+  opacity: 0;
 }
 
-.gradient-button:hover:not(:disabled) {
-  background: rgba(50, 50, 50, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.presets-grid.expanded {
+  max-height: 1000px; /* Large enough value to accommodate all presets */
+  margin-top: var(--xs);
+  opacity: 1;
 }
 
-.gradient-button:active:not(:disabled) {
-  transform: translateY(0);
+/* Improved tab switching animations */
+.tab-option {
+  flex: 1;
+  text-align: center;
+  padding: calc(var(--xs) * 1.1) calc(var(--sm) * 0.94);
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  user-select: none;
 }
 
-.gradient-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.tab-indicator {
+  position: absolute;
+  height: calc(100% - 10px);
+  width: calc(50% - 5px);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  z-index: 1;
+  top: 5px;
+  left: 5px;
+  transition: transform var(--anim-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Animations for tab transitions */
+/* Improved solid/gradient transitions */
 .solid-picker {
   display: block;
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .solid-picker.hidden {
