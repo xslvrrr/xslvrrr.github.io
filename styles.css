@@ -24,11 +24,6 @@
   --radius-xs: calc(var(--xs) * 0.8);     /* ~8px */
   --radius-sm: var(--xs);                 /* ~10px */
   --radius-md: calc(var(--xs) * var(--gr)); /* ~16px */
-  
-  /* Animation timing based on golden ratio */
-  --anim-fast: calc(0.2s * var(--gr) / 2); /* ~0.16s */
-  --anim-normal: calc(var(--anim-fast) * var(--gr)); /* ~0.26s */
-  --anim-slow: calc(var(--anim-normal) * var(--gr)); /* ~0.42s */
 }
 
 * {
@@ -123,9 +118,8 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(15, 15, 15, 0);
   transform-origin: top right;
-  animation: popIn var(--anim-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: translateZ(0);
-  overscroll-behavior: contain;
 }
 
 @keyframes popIn {
@@ -134,16 +128,22 @@ body {
 }
 
 .settings-popup::-webkit-scrollbar {
-  width: 8px;
+  width: 5px;
 }
 
 .settings-popup::-webkit-scrollbar-track {
-  background: rgba(15, 15, 15, 0);
+  background: transparent;
+  margin: var(--md) 0;
 }
 
 .settings-popup::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xs);
+  transition: background-color 0.2s;
+}
+
+.settings-popup::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 .settings-popup.active {
@@ -168,9 +168,9 @@ body {
 .hue-slider {
   position: relative;
   width: 100%;
-  height: 24px;
+  height: calc(var(--sm) * 1.5);
   border-radius: var(--radius-sm);
-  margin-bottom: calc(var(--sm) * var(--gr));
+  margin-bottom: var(--sm);
   background: linear-gradient(to right, 
     rgb(255, 0, 0),
     rgb(255, 255, 0),
@@ -203,8 +203,8 @@ body {
 
 .hue-slider-thumb {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: calc(var(--md) * 0.95);
+  height: calc(var(--md) * 0.95);
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -214,26 +214,22 @@ body {
   pointer-events: none;
   z-index: 10;
   will-change: transform;
-  /* Will be set by JS to current hue color */
-  min-width: 24px;
-  min-height: 24px;
 }
 
 .color-area {
   position: relative;
   width: 100%;
-  height: 280px;
+  height: calc(var(--xxl) * 0.8);
   border-radius: var(--radius-sm);
-  margin-bottom: 16px;
+  margin-bottom: var(--sm);
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   user-select: none;
   touch-action: none;
-  z-index: 1;
+  z-index: 5;
   isolation: isolate;
-  contain: strict;
 }
 
 .color-area-inner {
@@ -267,8 +263,8 @@ body {
 
 .color-area-thumb {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: calc(var(--md) * 0.95);
+  height: calc(var(--md) * 0.95);
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -277,8 +273,6 @@ body {
   z-index: 10;
   will-change: transform;
   background-color: #fff;
-  min-width: 24px;
-  min-height: 24px;
 }
 
 .color-inputs {
@@ -404,7 +398,7 @@ body {
   background: rgba(30, 30, 30, 0.5);
   border-radius: var(--radius-md);
   padding: 5px;
-  margin-bottom: 24px;
+  margin-bottom: calc(var(--md) * 0.8);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -415,11 +409,11 @@ body {
 .tab-option {
   flex: 1;
   text-align: center;
-  padding: calc(var(--xs) * 1.1) calc(var(--sm) * 0.94);
+  padding: calc(var(--xs) * 0.9) var(--sm);
   cursor: pointer;
   position: relative;
   z-index: 2;
-  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -444,7 +438,7 @@ body {
   z-index: 1;
   top: 5px;
   left: 5px;
-  transition: transform var(--anim-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -458,7 +452,7 @@ body {
 
 /* Content containers with fade in animation */
 .tab-content {
-  animation: fadeIn var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeIn {
@@ -468,7 +462,7 @@ body {
 
 /* Presets styling */
 .presets-container {
-  margin: 10px 0 15px;
+  margin: calc(var(--sm) * 0.625) 0 calc(var(--sm) * 0.9375);
   width: 100%;
   display: block !important;
   visibility: visible !important;
@@ -478,15 +472,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: calc(var(--xs) * var(--gr)) var(--sm);
-  margin-bottom: calc(var(--xs) * 0.8);
+  padding: calc(var(--xs) * 0.625) calc(var(--xs) * 0.75);
+  margin-bottom: calc(var(--xs) * 0.5);
   background: rgba(30, 30, 30, 0.65);
   border-radius: var(--radius-sm);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .presets-header:hover {
@@ -495,14 +489,14 @@ body {
 
 .presets-title {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
+  font-size: calc(var(--sm) * 0.875);
   font-weight: 600;
   margin: 0;
 }
 
 .presets-toggle {
-  width: 16px;
-  height: 16px;
+  width: calc(var(--sm));
+  height: calc(var(--sm));
   background-image: url('Assets/angle-down.svg');
   background-size: contain;
   background-repeat: no-repeat;
@@ -518,21 +512,17 @@ body {
 .presets-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: calc(var(--xs) * 0.5);
   max-height: 0;
   overflow: hidden;
-  transition: max-height var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
-              margin-top var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   visibility: visible !important;
   margin-top: 0;
-  opacity: 0;
 }
 
 .presets-grid.expanded {
-  max-height: 1000px; /* Large enough value to accommodate all presets */
-  margin-top: var(--xs);
-  opacity: 1;
+  max-height: calc(var(--xxl) * 2);
+  margin-top: calc(var(--xs) * 0.625);
 }
 
 .preset-item {
@@ -591,7 +581,7 @@ body {
   display: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   height: auto;
   width: 100%;
   position: relative;
@@ -607,17 +597,16 @@ body {
 
 .gradient-preview {
   width: 100%;
-  height: 32px;
+  height: calc(var(--md) * 1.25);
   border-radius: var(--radius-sm);
-  margin-bottom: calc(var(--lg) * 0.75);
+  margin-bottom: calc(var(--md) * 1.25);
   position: relative;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow: visible;
+  overflow: hidden;
   user-select: none;
   touch-action: none;
-  background-image: none;
   z-index: 3;
 }
 
@@ -633,134 +622,141 @@ body {
   border-radius: var(--radius-sm);
 }
 
-/* Completely revamped gradient stops system */
-.gradient-stops-container {
-  position: absolute;
+/* Gradient stops styling */
+.gradient-stops-portal {
+  position: fixed;
+  top: 0;
   left: 0;
-  right: 0;
-  bottom: -12px;
-  height: 24px;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  z-index: 100;
-  overflow: visible;
+  z-index: 99999;
 }
 
 .gradient-stops {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 24px;
+  position: fixed; /* Changed from absolute to fixed */
+  height: 0;
   pointer-events: none;
-  z-index: 100;
+  z-index: 99999;
   overflow: visible;
 }
 
 .gradient-stop {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: calc(var(--md) * 0.7);
+  height: calc(var(--md) * 0.7);
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.3);
-  transform: translate(-50%, 50%);
+  transform: translate(-50%, -50%);
   cursor: grab;
-  bottom: 0;
+  margin-top: 0;
   background-color: currentColor;
   pointer-events: auto;
-  z-index: 100;
-  will-change: left;
+  z-index: 99999;
+  will-change: left, transform;
   touch-action: none;
-  transition: transform var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .gradient-stop.active {
-  transform: translate(-50%, 50%) scale(1.2);
+  transform: translate(-50%, -50%) scale(1.2);
   border-color: white;
   border-width: 2px;
-  z-index: 101;
+  z-index: 99999;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
 }
 
 .gradient-stop:hover {
-  transform: translate(-50%, 50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
-/* Improved presets with smooth animations */
-.presets-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: calc(var(--xs) * var(--gr)) var(--sm);
-  margin-bottom: calc(var(--xs) * 0.8);
-  background: rgba(30, 30, 30, 0.65);
-  border-radius: var(--radius-sm);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.presets-header:hover {
-  background: rgba(40, 40, 40, 0.75);
-}
-
-.presets-grid {
+.gradient-controls {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1), 
-              margin-top var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
-  visibility: visible !important;
-  margin-top: 0;
-  opacity: 0;
+  grid-template-columns: auto calc(var(--md) * 2.25) 1fr;
+  align-items: center;
+  margin-bottom: calc(var(--md) * 0.75);
+  gap: calc(var(--xs) * 0.625);
 }
 
-.presets-grid.expanded {
-  max-height: 1000px; /* Large enough value to accommodate all presets */
-  margin-top: var(--xs);
-  opacity: 1;
+.gradient-angle-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: calc(var(--sm) * 0.875);
+  margin-right: calc(var(--xs) * 0.125);
+  white-space: nowrap;
 }
 
-/* Improved tab switching animations */
-.tab-option {
-  flex: 1;
+.gradient-angle {
+  width: calc(var(--md) * 2.25);
   text-align: center;
-  padding: calc(var(--xs) * 1.1) calc(var(--sm) * 0.94);
-  cursor: pointer;
-  position: relative;
-  z-index: 2;
-  transition: all var(--anim-fast) cubic-bezier(0.4, 0, 0.2, 1);
-  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield;
+}
+
+/* Remove spinner buttons from number input */
+.gradient-angle::-webkit-outer-spin-button,
+.gradient-angle::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.gradient-buttons {
+  display: flex;
+  gap: calc(var(--xs) * 0.625);
+  justify-content: flex-end;
+}
+
+.gradient-button {
+  width: calc(var(--md) * 1.25);
+  height: calc(var(--md) * 1.25);
+  padding: calc(var(--xs) * 0.6);
+  border-radius: var(--radius-sm);
+  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: calc(var(--sm) * 0.8125);
   font-weight: 500;
-  border-radius: var(--radius-sm);
-  user-select: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.tab-indicator {
-  position: absolute;
-  height: calc(100% - 10px);
-  width: calc(50% - 5px);
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-sm);
-  z-index: 1;
-  top: 5px;
-  left: 5px;
-  transition: transform var(--anim-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.button-icon {
+  width: 100%;
+  height: 100%;
+  filter: brightness(0) invert(1);
 }
 
-/* Improved solid/gradient transitions */
+#remove-stop .button-icon {
+  width: 80%;
+  height: 80%;
+}
+
+.gradient-button:hover:not(:disabled) {
+  background: rgba(50, 50, 50, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.gradient-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.gradient-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animations for tab transitions */
 .solid-picker {
   display: block;
   opacity: 1;
   pointer-events: auto;
-  transition: opacity var(--anim-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .solid-picker.hidden {
