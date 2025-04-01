@@ -52,7 +52,9 @@
         </div>
         <div id="gradientEditor" class="gradient-editor" role="tabpanel" aria-labelledby="colorPickerTitle">
           <div class="gradient-preview" role="img" aria-label="Gradient Preview">
-            <div class="gradient-stops" role="group" aria-label="Gradient Stops"></div>
+            <div class="gradient-stops-container">
+              <div class="gradient-stops" role="group" aria-label="Gradient Stops"></div>
+            </div>
           </div>
           <form class="gradient-controls">
             <label for="angleInput" class="gradient-angle-label">Angle</label>
@@ -105,8 +107,6 @@
     <p class="subtitle">A complete redesign of the millennium portal,<br>say goodbye to bad UI!</p>
     <a href="#" class="learn-more" role="button">Learn more ›</a>
   </main>
-  
-  <div class="gradient-stops-portal" id="gradientStopsPortal"></div>
   
   <script src="script.js"></script>
 </body>
