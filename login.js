@@ -15,13 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
   const submit3 = document.getElementById('submit-3');
   const back1 = document.getElementById('back-1');
   const back2 = document.getElementById('back-2');
+  const returnLinkContainer = document.querySelector('.return-link-container');
 
   // Function to handle transitions between screens
   function transition(fromElement, toElement, fadeHeader = false, delay = 400) {
     // Add fade-out animation to current element
     fromElement.classList.add('fade-out');
     
-    // Fade out header if needed (when moving from options to questions)
+    // Fade out header if needed (when moving between sections)
     if (fadeHeader) {
       loginHeader.classList.add('fade-out');
       
@@ -30,11 +31,15 @@ document.addEventListener('DOMContentLoaded', function() {
       }, delay);
     }
     
+    // Fade out the return link container
+    returnLinkContainer.classList.add('fade-out');
+    
     // Wait for animation to complete, then switch elements
     setTimeout(() => {
       fromElement.style.display = 'none';
       fromElement.classList.remove('fade-out');
       toElement.style.display = 'flex';
+      returnLinkContainer.classList.remove('fade-out');
       // Animation will start automatically due to CSS
     }, delay);
   }
@@ -57,28 +62,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Submit buttons
   submit1.addEventListener('click', function() {
-    transition(question1, question2);
+    transition(question1, question2, true);
   });
 
   submit2.addEventListener('click', function() {
-    transition(question2, question3);
+    transition(question2, question3, true);
   });
 
   submit3.addEventListener('click', function() {
-    transition(question3, completion);
+    transition(question3, completion, true);
   });
 
   // Back buttons
   back1.addEventListener('click', function() {
-    transition(question2, question1);
+    transition(question2, question1, true);
   });
 
   back2.addEventListener('click', function() {
-    transition(question3, question2);
+    transition(question3, question2, true);
   });
 
   // Add fade-in animation to the container
   setTimeout(() => {
     loginContainer.classList.add('fade-in');
+    // No need for separate animations on sub-elements
   }, 100);
 }); 
