@@ -484,9 +484,10 @@ if (tabSwitcher) {
         
         // TODO: Initialize/update gradient picker when it's rebuilt
         // This part will need to be updated when gradient logic is in place.
+        // In tabSwitcher event listener, for targetTab === 'gradient':
         const tempGradientCSS = `linear-gradient(${gradientAngle}deg, ${gradientStopsData.map(s => `${s.color} ${s.position}%`).join(', ')})`;
-        document.documentElement.style.setProperty('--accent-gradient', tempGradientCSS);
-        // Also, if you have a color picker for gradient stops, it should be updated here.
+        document.documentElement.style.setProperty('--current-gradient', tempGradientCSS);
+        document.documentElement.style.setProperty('--accent-gradient', tempGradientCSS); // Also updates the main page accent        // Also, if you have a color picker for gradient stops, it should be updated here.
         console.log("Switched to Gradient tab - needs full update logic for its color picker and stops.");
       }
     }
