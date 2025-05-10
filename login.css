@@ -1,0 +1,218 @@
+/* Login page styles */
+.login-body {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0F1011 0%, #08090A 50%, #08090A 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Grid background */
+.login-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+  opacity: 1;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 50%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 50%);
+  z-index: 0;
+}
+
+.login-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 20px;
+  z-index: 1;
+}
+
+.login-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 24px;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-white);
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+/* Login options */
+.login-options {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 8px;
+}
+
+.login-option-btn {
+  background-color: #101316;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--text-white);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  width: 100%;
+}
+
+.login-option-btn:hover {
+  background-color: #1a1d21;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.login-option-btn:active {
+  transform: translateY(0);
+}
+
+.recommended-text {
+  font-size: 13px;
+  color: var(--text-gray);
+  margin: -4px 0 12px 4px;
+}
+
+/* Questionnaire styles */
+.login-questionnaire {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.question-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-white);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.question-subtitle {
+  font-size: 15px;
+  color: var(--text-gray);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.question-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-white);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+
+.question-input:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.question-input:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(247, 248, 248, 0.1);
+}
+
+.question-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.submit-btn, .back-btn, .return-btn {
+  background-color: var(--text-white);
+  color: var(--bg-color);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  text-decoration: none;
+}
+
+.submit-btn {
+  flex: 2;
+}
+
+.back-btn {
+  flex: 1;
+  background-color: #101316;
+  color: var(--text-white);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.return-btn {
+  display: inline-block;
+  width: 100%;
+}
+
+.submit-btn:hover, .return-btn:hover {
+  background-color: #e6e7e7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.back-btn:hover {
+  background-color: #1a1d21;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.submit-btn:active, .back-btn:active, .return-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.back-link {
+  color: var(--text-gray);
+  text-decoration: none;
+  font-size: 14px;
+  margin-top: 16px;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--text-white);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 30px 16px;
+  }
+  
+  .question-title {
+    font-size: 18px;
+  }
+} 
