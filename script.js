@@ -16,10 +16,6 @@ const solidPresetsContainer = document.getElementById('solidPresets');
 
 // Gradient Related Elements
 const gradientPreview = document.querySelector('.gradient-preview');
-const gradientStopsPortal = document.getElementById('gradientStopsPortal');
-const gradientStopsContainer = document.createElement('div');
-gradientStopsContainer.className = 'gradient-stops';
-gradientStopsPortal.appendChild(gradientStopsContainer);
 const addStopBtn = document.getElementById('add-stop');
 const removeStopBtn = document.getElementById('remove-stop');
 const angleInput = document.querySelector('.gradient-angle');
@@ -30,7 +26,6 @@ const gradientColorAreaThumb = document.querySelector('#gradientEditor .color-ar
 const gradientHueSlider = document.querySelector('#gradientEditor .hue-slider');
 const gradientHueThumb = document.querySelector('#gradientEditor .hue-slider-thumb');
 const gradientPresetsContainer = document.getElementById('gradientPresets');
-
 
 // --- STATE ---
 let currentSolidHue = 200;
@@ -568,31 +563,36 @@ function loadGradientPresets() {
 
 // Gradient Stops Management
 function renderGradientStops() {
-  if (!gradientStopsContainer || !gradientPreview) return;
+  // Get preview and ensure it exists
+  if (!gradientPreview) return;
+  
+  // Get or create the stops container directly inside the preview
+  let gradientStopsContainer = gradientPreview.querySelector('.gradient-stops');
+  if (!gradientStopsContainer) {
+    gradientStopsContainer = document.createElement('div');
+    gradientStopsContainer.className = 'gradient-stops';
+    gradientPreview.appendChild(gradientStopsContainer);
+    
+    // Add a track for the stops
+    const track = document.createElement('div');
+    track.className = 'gradient-stops-track';
+    gradientPreview.appendChild(track);
+  }
   
   // Clear existing stops
   gradientStopsContainer.innerHTML = '';
   
-  // If the settings popup is not active, don't render stops
-  if (!settingsPopup.classList.contains('active') || currentTab !== 'gradient') {
+  // Don't render if the gradient tab isn't active
+  if (currentTab !== 'gradient' || !settingsPopup.classList.contains('active')) {
     return;
   }
   
-  const previewRect = gradientPreview.getBoundingClientRect();
-  
-  // Set the gradient stops container position and dimensions to match the preview
-  gradientStopsContainer.style.top = `${previewRect.top}px`;
-  gradientStopsContainer.style.left = `${previewRect.left}px`;
-  gradientStopsContainer.style.width = `${previewRect.width}px`;
-  
+  // Create and position each stop
   gradientStopsData.forEach((stop, index) => {
     const stopElement = document.createElement('div');
     stopElement.className = 'gradient-stop';
     stopElement.style.color = stop.color;
     stopElement.style.left = `${stop.position}%`;
-    
-    // Set vertical position to middle of preview
-    stopElement.style.top = '50%';
     
     if (index === activeStopIndex) {
       stopElement.classList.add('active');
@@ -623,9 +623,12 @@ function handleGradientStopPointerDown(e) {
   // Set pointer capture to the stop element
   draggingStopElement.setPointerCapture(e.pointerId);
   
-  // Update active stop
+  // Get the current stop index
   const index = parseInt(draggingStopElement.dataset.index, 10);
   setActiveGradientStop(index);
+  
+  // Mark as active and move to front
+  draggingStopElement.classList.add('active');
   
   // Prevent default to avoid issues
   e.preventDefault();
@@ -636,8 +639,8 @@ function setActiveGradientStop(index) {
   
   activeStopIndex = index;
   
-  // Update active class on stop elements
-  const stopElements = gradientStopsContainer.querySelectorAll('.gradient-stop');
+  // Update active class on all stop elements
+  const stopElements = gradientPreview.querySelectorAll('.gradient-stop');
   stopElements.forEach((el, i) => {
     el.classList.toggle('active', i === activeStopIndex);
   });
@@ -649,11 +652,12 @@ function setActiveGradientStop(index) {
 function moveGradientStop(e) {
   if (!isGradientDragging || gradientDragType !== 'stop' || !draggingStopElement) return;
   
-  const containerRect = gradientStopsContainer.getBoundingClientRect();
+  // Get preview rect for calculations
+  const previewRect = gradientPreview.getBoundingClientRect();
   
   // Calculate position percentage
-  let x = e.clientX - containerRect.left;
-  let posPercent = (x / containerRect.width) * 100;
+  let x = e.clientX - previewRect.left;
+  let posPercent = (x / previewRect.width) * 100;
   posPercent = Math.max(0, Math.min(100, posPercent));
   
   // Get the current stop index
@@ -665,7 +669,26 @@ function moveGradientStop(e) {
   // Update the stop element position
   draggingStopElement.style.left = `${posPercent}%`;
   
-  // Update the gradient preview in real-time
+  // Sort stops by position
+  const sortedStops = [...gradientStopsData].sort((a, b) => a.position - b.position);
+  
+  // Find the new index of our stop after sorting
+  const newIndex = sortedStops.findIndex(stop => 
+    Math.abs(stop.position - posPercent) < 0.01 && stop.color === gradientStopsData[index].color
+  );
+  
+  // If the order has changed, update the data and rerender
+  if (JSON.stringify(sortedStops) !== JSON.stringify(gradientStopsData)) {
+    gradientStopsData = sortedStops;
+    
+    // Update active index to reflect the new position in the array
+    activeStopIndex = newIndex;
+    
+    // Rerender all stops to update their indices
+    renderGradientStops();
+  }
+  
+  // Update the gradient preview
   updateGradientPreview();
 }
 
@@ -760,9 +783,6 @@ function updateGradientColorPicker() {
 function updateGradientPreview() {
   if (!gradientPreview) return;
   
-  // Sort stops by position for correct rendering
-  gradientStopsData.sort((a, b) => a.position - b.position);
-  
   // Create CSS gradient string
   let cssGradient = `linear-gradient(${gradientAngle}deg`;
   
@@ -782,17 +802,6 @@ function updateGradientPreview() {
     
     // Update text color based on the average brightness of gradient
     updateGradientTextColor();
-  }
-  
-  // Re-render stops after sort
-  if (isGradientDragging && gradientDragType === 'stop') {
-    // If we're dragging, just update the active index but don't re-render all stops
-    const stopPosition = gradientStopsData[activeStopIndex].position;
-    activeStopIndex = gradientStopsData.findIndex(stop => 
-      Math.abs(stop.position - stopPosition) < 0.01
-    );
-  } else {
-    renderGradientStops();
   }
 }
 
@@ -861,14 +870,13 @@ if (settingsBtn && settingsPopup) {
           renderGradientStops();
           updateGradientPreview();
           updateGradientColorPicker();
-          
-          // For now, ensure gradient editor is visible if it's the active tab
-          if (gradientEditor) gradientEditor.classList.add('active');
-          if (solidPicker) solidPicker.classList.add('hidden');
         }
-        
-        // Set a small timeout to ensure DOM is updated before positioning stops
-        setTimeout(updateGradientStopsPosition, 10);
+      } else {
+        // Clean up stops when closing
+        if (gradientPreview) {
+          const stopsContainer = gradientPreview.querySelector('.gradient-stops');
+          if (stopsContainer) stopsContainer.innerHTML = '';
+        }
       }
     });
 }
@@ -879,6 +887,12 @@ document.addEventListener('mousedown', (e) => {
       !settingsBtn.contains(e.target)) {
     settingsPopup.classList.remove('active');
     if (settingsBtn) settingsBtn.classList.remove('active');
+    
+    // Clean up stops when closing
+    if (gradientPreview) {
+      const stopsContainer = gradientPreview.querySelector('.gradient-stops');
+      if (stopsContainer) stopsContainer.innerHTML = '';
+    }
   }
 });
 
@@ -929,9 +943,6 @@ if (tabSwitcher) {
         renderGradientStops();
         updateGradientPreview();
         updateGradientColorPicker();
-        
-        // Set a small timeout to ensure DOM is updated before positioning stops
-        setTimeout(updateGradientStopsPosition, 10);
       }
     }
   });
@@ -1151,7 +1162,7 @@ if (gradientRgbInput) {
 
 // Sync gradient stops position when window resizes
 window.addEventListener('resize', () => {
-  if (currentTab === 'gradient') {
+  if (currentTab === 'gradient' && settingsPopup.classList.contains('active')) {
     renderGradientStops();
   }
 });
@@ -1162,3 +1173,16 @@ const updateGradientStopsPosition = () => {
     renderGradientStops();
   }
 };
+
+// Handle scroll and resize events
+window.addEventListener('scroll', () => {
+  if (currentTab === 'gradient' && settingsPopup.classList.contains('active')) {
+    renderGradientStops();
+  }
+});
+
+window.addEventListener('resize', () => {
+  if (currentTab === 'gradient' && settingsPopup.classList.contains('active')) {
+    renderGradientStops();
+  }
+});
