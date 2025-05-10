@@ -8,103 +8,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="Assets/Millennium Logo.png" type="image/png">
 </head>
 <body>
   <header class="navbar" role="banner">
     <img src="Assets/Millennium Logo 2.png" alt="Millennium Logo" class="logo">
     <div class="nav-right">
-      <button class="settings-btn" aria-label="Open Color Settings">
-        <img src="Assets/settings.svg" alt="Settings" class="settings-icon">
-      </button>
-      <div class="settings-popup" role="dialog" aria-label="Color Settings">
-        <h2 id="colorPickerTitle">Colour Picker</h2>
-        <div class="tab-switcher" role="tablist" aria-label="Color Picker Modes">
-          <div class="tab-option active" role="tab" aria-selected="true" aria-controls="solidPicker" data-tab="solid" tabindex="0">Solid</div>
-          <div class="tab-option" role="tab" aria-selected="false" aria-controls="gradientEditor" data-tab="gradient" tabindex="0">Gradient</div>
-          <div class="tab-indicator" data-tab="solid"></div>
-        </div>
-        <div id="solidPicker" class="solid-picker" role="tabpanel" aria-labelledby="colorPickerTitle">
-          <form class="custom-color-picker" onsubmit="event.preventDefault();">
-            <div class="color-area" role="slider" aria-label="Color Area" tabindex="0">
-              <div class="color-area-inner">
-                <div class="color-area-white"></div>
-                <div class="color-area-black"></div>
-              </div>
-              <div class="color-area-thumb" role="presentation"></div>
-            </div>
-            <div class="hue-slider" role="slider" aria-label="Hue Slider" tabindex="0">
-              <div class="hue-slider-thumb" role="presentation"></div>
-            </div>
-            <div class="color-inputs">
-              <div class="color-input-group">
-                <label class="color-input-label" for="hex-input" id="hexLabel">HEX</label>
-                <input type="text" class="color-input" id="hex-input" placeholder="#HEX" aria-labelledby="hexLabel">
-              </div>
-              <div class="color-input-group">
-                <label class="color-input-label" for="rgb-input" id="rgbLabel">RGB</label>
-                <input type="text" class="color-input" id="rgb-input" placeholder="R,G,B" aria-labelledby="rgbLabel">
-              </div>
-            </div>
-          </form>
-          <div id="solidPresets" class="presets-section" role="region" aria-label="Solid Color Presets">
-            <!-- Solid presets will be inserted here by JavaScript -->
-          </div>
-        </div>
-        <div id="gradientEditor" class="gradient-editor" role="tabpanel" aria-labelledby="colorPickerTitle">
-          <div class="gradient-preview" role="img" aria-label="Gradient Preview">
-            <!-- Gradient stops will be inserted here by JavaScript -->
-          </div>
-          <form class="gradient-controls" onsubmit="event.preventDefault();">
-            <label for="angleInput" class="gradient-angle-label">Angle</label>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" id="angleInput" class="color-input gradient-angle" value="90" min="0" max="360" aria-label="Gradient Angle">
-            <div class="gradient-buttons">
-              <button type="button" class="gradient-button" id="add-stop" aria-label="Add gradient stop">
-                <img src="Assets/plus.svg" alt="Add Stop" class="button-icon">
-              </button>
-              <button type="button" class="gradient-button" id="remove-stop" disabled aria-label="Remove gradient stop">
-                <img src="Assets/cross.svg" alt="Remove Stop" class="button-icon">
-              </button>
-            </div>
-          </form>
-          <form class="custom-color-picker" onsubmit="event.preventDefault();">
-            <div class="color-area" role="slider" aria-label="Color Area" tabindex="0">
-              <div class="color-area-inner">
-                <div class="color-area-white"></div>
-                <div class="color-area-black"></div>
-              </div>
-              <div class="color-area-thumb" role="presentation"></div>
-            </div>
-            <div class="hue-slider" role="slider" aria-label="Hue Slider" tabindex="0">
-              <div class="hue-slider-thumb" role="presentation"></div>
-            </div>
-            <div class="color-inputs">
-              <div class="color-input-group">
-                <label class="color-input-label" for="hex-input-gradient" id="hexLabelGradient">HEX</label>
-                <input type="text" class="color-input" id="hex-input-gradient" placeholder="#HEX" aria-labelledby="hexLabelGradient">
-              </div>
-              <div class="color-input-group">
-                <label class="color-input-label" for="rgb-input-gradient" id="rgbLabelGradient">RGB</label>
-                <input type="text" class="color-input" id="rgb-input-gradient" placeholder="R,G,B" aria-labelledby="rgbLabelGradient">
-              </div>
-            </div>
-          </form>
-          <div id="gradientPresets" class="presets-section" role="region" aria-label="Gradient Presets">
-            <!-- Gradient presets will be inserted here by JavaScript -->
-          </div>
-        </div>
-      </div>
-      <a href="#" class="login" role="button">Sign up</a>
+      <a href="#" class="login-link">Login</a>
+      <a href="signup.html" class="login" role="button">Sign up</a>
     </div>
   </header>
 
   <main class="content" role="main">
     <h1 class="title">
-      <span class="word animate-title" style="animation-delay: 0s;">Millennium</span>
-      <span class="word animate-title" style="animation-delay: 0.1s;">redesigned</span>
-      <span class="word animate-title" style="animation-delay: 0.2s;">with</span>
-      <span class="word animate-title" style="animation-delay: 0.3s;">a</span>
-      <br>
-      <span class="reimagined animate-title" style="animation-delay: 0.4s;">fresh new look and features</span>
+      <span>Millennium redesigned with a</span>
+      <span class="reimagined">fresh new look and features</span>
     </h1>
     <p class="subtitle animate-subtitle">
       Meet a brand-new student portal for productivity.<br>
