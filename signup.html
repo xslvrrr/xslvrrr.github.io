@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Millennium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="signup.css">
+  <link rel="icon" href="Assets/Millennium Logo.png" type="image/png">
+</head>
+<body>
+  <header class="navbar" role="banner">
+    <a href="index.html">
+      <img src="Assets/Millennium Logo 2.png" alt="Millennium Logo" class="logo">
+    </a>
+    <div class="nav-right">
+      <a href="#" class="login-link">Login</a>
+    </div>
+  </header>
+
+  <main class="content signup-content" role="main">
+    <div class="signup-container animate-subtitle">
+      <h1 class="signup-title">Create your account</h1>
+      <p class="signup-subtitle">Join Millennium and experience the next generation of student productivity</p>
+      
+      <form class="signup-form">
+        <div class="form-group">
+          <label for="fullname">Full name</label>
+          <input type="text" id="fullname" name="fullname" placeholder="Enter your name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Create a password" required>
+          <p class="password-hint">Password must be at least 8 characters</p>
+        </div>
+        
+        <button type="submit" class="signup-button">Create account</button>
+      </form>
+      
+      <p class="terms">By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+    </div>
+  </main>
+  
+  <script src="script.js"></script>
+</body>
+</html> 
