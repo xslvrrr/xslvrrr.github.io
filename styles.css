@@ -240,6 +240,8 @@ body {
   bottom: 0;
   left: 0;
   z-index: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .color-area-white {
@@ -250,6 +252,7 @@ body {
   left: 0;
   background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
   z-index: 2;
+  border-radius: var(--radius-sm);
 }
 
 .color-area-black {
@@ -260,6 +263,7 @@ body {
   left: 0;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000);
   z-index: 3;
+  border-radius: var(--radius-sm);
 }
 
 .color-area-thumb {
@@ -274,6 +278,8 @@ body {
   z-index: 10;
   will-change: transform;
   background-color: #fff;
+  display: block;
+  visibility: visible;
 }
 
 .color-inputs {
@@ -514,13 +520,18 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: calc(var(--xs) * 0.5);
-  transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  visibility: visible !important;
-  margin-top: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  visibility: visible;
+  max-height: 500px;
+  overflow: hidden;
+  opacity: 1;
+  margin-top: calc(var(--xs) * 0.625);
 }
 
-.presets-grid.expanded {
-  margin-top: calc(var(--xs) * 0.625);
+.presets-grid.collapsed {
+  max-height: 0;
+  margin-top: 0;
+  opacity: 0;
 }
 
 .preset-item {
@@ -579,7 +590,7 @@ body {
   display: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   height: auto;
   width: 100%;
   position: relative;
@@ -597,7 +608,7 @@ body {
   width: 100%;
   height: calc(var(--md) * 1.25);
   border-radius: var(--radius-sm);
-  margin-bottom: calc(var(--md) * 1.25);
+  margin-bottom: calc(var(--md) * 0.75);
   position: relative;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -625,18 +636,20 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   pointer-events: none;
   z-index: 99999;
+  overflow: visible;
 }
 
 .gradient-stops {
-  position: fixed; /* Changed from absolute to fixed */
+  position: absolute;
   height: 0;
   pointer-events: none;
   z-index: 99999;
   overflow: visible;
+  width: 100%;
 }
 
 .gradient-stop {
@@ -754,11 +767,11 @@ body {
   display: block;
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .solid-picker.hidden {
-  display: none !important;
+  display: none;
   opacity: 0;
   pointer-events: none;
 }
@@ -769,6 +782,7 @@ body {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  overflow: hidden;
 }
 
 .color-area-thumb, .hue-slider-thumb {
