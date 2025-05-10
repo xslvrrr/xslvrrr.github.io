@@ -73,8 +73,8 @@ body {
   justify-content: space-between;
   padding: 0 var(--side-padding);
   background: rgba(8, 9, 10, 0.95);
-  backdrop-filter: blur(20px) brightness(1);
-  -webkit-backdrop-filter: blur(20px) brightness(1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
   z-index: 1000;
 }
@@ -427,8 +427,22 @@ body {
 
 /* Update learn more button */
 .learn-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--text-white);
+  color: var(--bg-color);
+  text-decoration: none;
   font-size: 15px;
+  font-weight: 600;
   padding: 10px 18px;
+  border-radius: var(--button-radius);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: fadeUpBlur 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+  animation-delay: 0.6s;
 }
 
 /* Center Content */
@@ -448,9 +462,10 @@ body {
 .title {
   font-size: 54px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.1;
   margin-bottom: 16px;
   color: var(--text-white);
+  letter-spacing: -0.02em;
   animation: fadeUpBlur 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
@@ -468,6 +483,7 @@ body {
   -moz-text-fill-color: unset;
 }
 
+/* Update subtitle for better spacing */
 .subtitle {
   font-size: 20px;
   margin-bottom: 36px;
@@ -475,6 +491,7 @@ body {
   font-weight: 400;
   line-height: 1.5;
   opacity: 0;
+  letter-spacing: -0.01em;
 }
 
 /* Tab Switcher with glassmorphism effect */
@@ -967,4 +984,16 @@ body {
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
+}
+
+/* Add styles for left navbar section */
+.nav-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Hero container to better match Linear's layout */
+.hero-container {
+  max-width: 740px;
+  width: 100%;
 }
