@@ -173,20 +173,8 @@ function updateSolidColorPickerUI() {
   solidHexInput.value = hex;
   solidRgbInput.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
 
-  // Update main page accent color
-  const brightness = getPerceivedBrightness(rgb.r, rgb.g, rgb.b);
-  const isDark = brightness < 120;
-  document.documentElement.style.setProperty('--accent-color', hex);
-  document.documentElement.style.setProperty('--accent-darker', rgbToHex(
-    Math.max(0, Math.round(rgb.r * 0.8)),
-    Math.max(0, Math.round(rgb.g * 0.8)),
-    Math.max(0, Math.round(rgb.b * 0.8))
-  ));
-  // Only update accent-gradient if solid tab is active
-  if (currentTab === 'solid') {
-    document.documentElement.style.setProperty('--accent-gradient', `linear-gradient(90deg, ${hex} 0%, ${hex} 100%)`);
-  }
-  document.documentElement.style.setProperty('--accent-text', isDark ? '#ffffff' : '#000000');
+  // REMOVED: Update main page accent color - we no longer want the color picker to affect the page
+  // Now the color will only affect the picker itself
 }
 
 function handleSolidColorAreaInteraction(e) {
@@ -793,16 +781,20 @@ function updateGradientPreview() {
   
   cssGradient += ')';
   
-  // Update CSS variables
+  // Update CSS variables - but only for the gradient preview
   document.documentElement.style.setProperty('--current-gradient', cssGradient);
   
-  // If gradient tab is active, also update accent gradient
-  if (currentTab === 'gradient') {
-    document.documentElement.style.setProperty('--accent-gradient', cssGradient);
-    
-    // Update text color based on the average brightness of gradient
-    updateGradientTextColor();
+  // Set the gradient directly on the preview element
+  const beforeElement = gradientPreview.querySelector('::before');
+  if (beforeElement) {
+    beforeElement.style.background = cssGradient;
+  } else {
+    // If we can't access the ::before element directly, update the style inline
+    gradientPreview.style.setProperty('--preview-gradient', cssGradient);
   }
+  
+  // REMOVED: We no longer want to update the accent gradient for the page
+  // The gradient will only affect the picker itself
 }
 
 // Function to update text color based on gradient brightness
