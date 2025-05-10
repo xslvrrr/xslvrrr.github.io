@@ -25,7 +25,7 @@
     
     <div class="login-questionnaire" id="question-1" style="display: none;">
       <h2 class="question-title">What's your username or email?</h2>
-      <input type="text" class="question-input" placeholder="Enter your username or email">
+      <input type="text" class="question-input" id="username-input" placeholder="Enter your username or email" autocomplete="username">
       <div class="question-buttons">
         <button class="submit-btn" id="submit-1">Submit</button>
       </div>
@@ -34,7 +34,7 @@
     
     <div class="login-questionnaire" id="question-2" style="display: none;">
       <h2 class="question-title">What's your password?</h2>
-      <input type="password" class="question-input" placeholder="Enter your password">
+      <input type="password" class="question-input" id="password-input" placeholder="Enter your password" autocomplete="current-password">
       <div class="question-buttons">
         <button class="back-btn" id="back-1">Back</button>
         <button class="submit-btn" id="submit-2">Submit</button>
@@ -43,7 +43,7 @@
     
     <div class="login-questionnaire" id="question-3" style="display: none;">
       <h2 class="question-title">What's your school?</h2>
-      <input type="text" class="question-input" placeholder="Enter your school name">
+      <input type="text" class="question-input" id="school-input" placeholder="Enter your school name">
       <div class="question-buttons">
         <button class="back-btn" id="back-2">Back</button>
         <button class="submit-btn" id="submit-3">Submit</button>
@@ -51,8 +51,9 @@
     </div>
     
     <div class="login-questionnaire" id="completion" style="display: none;">
-      <h2 class="question-title">App is still under construction</h2>
-      <p class="question-subtitle">Thanks for testing though, report any bugs!</p>
+      <h2 class="question-title">Verifying your login</h2>
+      <p class="question-subtitle">Please wait while we verify your credentials...</p>
+      <!-- Notifications will be appended here by JavaScript -->
       <div class="question-buttons">
         <a href="index.html" class="return-btn">Return to main page</a>
       </div>
