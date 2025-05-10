@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Get all elements we need
+  const loginContainer = document.getElementById('login-container');
   const loginOptions = document.getElementById('login-options');
   const detailsBtn = document.getElementById('details-btn');
   const doeBtn = document.getElementById('doe-btn');
@@ -14,10 +15,23 @@ document.addEventListener('DOMContentLoaded', function() {
   const back1 = document.getElementById('back-1');
   const back2 = document.getElementById('back-2');
 
+  // Function to handle transitions between screens
+  function transition(fromElement, toElement, delay = 400) {
+    // Add fade-out animation to current element
+    fromElement.classList.add('fade-out');
+    
+    // Wait for animation to complete, then switch elements
+    setTimeout(() => {
+      fromElement.style.display = 'none';
+      fromElement.classList.remove('fade-out');
+      toElement.style.display = 'flex';
+      // Animation will start automatically due to CSS
+    }, delay);
+  }
+
   // Handle "Continue with login details" button
   detailsBtn.addEventListener('click', function() {
-    loginOptions.style.display = 'none';
-    question1.style.display = 'flex';
+    transition(loginOptions, question1);
   });
 
   // NSW DoE button (currently does nothing substantial)
@@ -28,40 +42,33 @@ document.addEventListener('DOMContentLoaded', function() {
   // Back to login options link
   backToOptions.addEventListener('click', function(e) {
     e.preventDefault();
-    question1.style.display = 'none';
-    loginOptions.style.display = 'flex';
+    transition(question1, loginOptions);
   });
 
   // Submit buttons
   submit1.addEventListener('click', function() {
-    question1.style.display = 'none';
-    question2.style.display = 'flex';
+    transition(question1, question2);
   });
 
   submit2.addEventListener('click', function() {
-    question2.style.display = 'none';
-    question3.style.display = 'flex';
+    transition(question2, question3);
   });
 
   submit3.addEventListener('click', function() {
-    question3.style.display = 'none';
-    completion.style.display = 'flex';
+    transition(question3, completion);
   });
 
   // Back buttons
   back1.addEventListener('click', function() {
-    question2.style.display = 'none';
-    question1.style.display = 'flex';
+    transition(question2, question1);
   });
 
   back2.addEventListener('click', function() {
-    question3.style.display = 'none';
-    question2.style.display = 'flex';
+    transition(question3, question2);
   });
 
-  // Add fade-in animation to all elements
-  const container = document.querySelector('.login-container');
+  // Add fade-in animation to the container
   setTimeout(() => {
-    container.classList.add('fade-in');
+    loginContainer.classList.add('fade-in');
   }, 100);
 }); 
