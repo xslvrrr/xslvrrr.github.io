@@ -11,7 +11,7 @@
 </head>
 <body>
   <header class="navbar" role="banner">
-    <img src="Assets/Millennium Logo 2.png" alt="Millennium Logo" class="logo">
+    <img src="Assets/Millennium Logo.png" alt="Millennium Logo 2" class="logo">
     <div class="nav-right">
       <button class="settings-btn" aria-label="Open Color Settings">
         <img src="Assets/settings.svg" alt="Settings" class="settings-icon">
@@ -24,7 +24,7 @@
           <div class="tab-indicator" data-tab="solid"></div>
         </div>
         <div id="solidPicker" class="solid-picker" role="tabpanel" aria-labelledby="colorPickerTitle">
-          <form class="custom-color-picker">
+          <form class="custom-color-picker" onsubmit="event.preventDefault();">
             <div class="color-area" role="slider" aria-label="Color Area" tabindex="0">
               <div class="color-area-inner">
                 <div class="color-area-white"></div>
@@ -54,7 +54,7 @@
           <div class="gradient-preview" role="img" aria-label="Gradient Preview">
             <!-- Stops will be inserted dynamically into the portal -->
           </div>
-          <form class="gradient-controls">
+          <form class="gradient-controls" onsubmit="event.preventDefault();">
             <label for="angleInput" class="gradient-angle-label">Angle</label>
             <input type="text" inputmode="numeric" pattern="[0-9]*" id="angleInput" class="color-input gradient-angle" value="90" min="0" max="360" aria-label="Gradient Angle">
             <div class="gradient-buttons">
@@ -66,7 +66,7 @@
               </button>
             </div>
           </form>
-          <form class="custom-color-picker">
+          <form class="custom-color-picker" onsubmit="event.preventDefault();">
             <div class="color-area" role="slider" aria-label="Color Area" tabindex="0">
               <div class="color-area-inner">
                 <div class="color-area-white"></div>
