@@ -674,7 +674,7 @@ body {
   transform: translate(-50%, -50%) scale(1.2);
   border-color: white;
   border-width: 2px;
-  z-index: 99999;
+  z-index: 100000;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.4);
 }
 
