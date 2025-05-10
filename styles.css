@@ -81,13 +81,22 @@ p::-moz-selection, h1::-moz-selection, h2::-moz-selection, span::-moz-selection,
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--side-padding);
+  justify-content: center;
   background: rgba(8, 9, 10, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
   z-index: 1000;
+}
+
+/* Navbar inner container to match content width */
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 var(--side-padding);
 }
 
 .logo {
