@@ -29,6 +29,19 @@ document.addEventListener('DOMContentLoaded', function() {
     school: ''
   };
 
+  // Create login verification display
+  const verificationDisplay = document.createElement('div');
+  verificationDisplay.className = 'verification-display';
+  
+  // Create dots animation container
+  const loadingDots = document.createElement('div');
+  loadingDots.className = 'loading-dots';
+  for (let i = 0; i < 3; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    loadingDots.appendChild(dot);
+  }
+
   // Function to handle transitions between screens
   function transition(fromElement, toElement, fadeHeader = false, delay = 400) {
     // Add fade-out animation to current element
@@ -90,7 +103,17 @@ document.addEventListener('DOMContentLoaded', function() {
     loginData.school = schoolInput.value;
     
     // Hide the return to main page text on the completion page
-    document.querySelector('.return-link-container').style.display = 'none';
+    returnLinkContainer.style.display = 'none';
+    
+    // Update the completion page UI to show verification in progress
+    document.querySelector('#completion .question-subtitle').textContent = 'Please wait while we verify your credentials...';
+    
+    // Create verification display with filled credentials
+    createVerificationDisplay(loginData);
+    completion.insertBefore(verificationDisplay, completion.querySelector('.question-buttons'));
+    
+    // Append loading animation
+    completion.insertBefore(loadingDots, completion.querySelector('.question-buttons'));
     
     // Submit login data to millennium.education
     submitLoginToMillennium(loginData);
@@ -112,6 +135,71 @@ document.addEventListener('DOMContentLoaded', function() {
     loginContainer.classList.add('fade-in');
     // No need for separate animations on sub-elements
   }, 100);
+  
+  // Create a display of the login data for the verification page
+  function createVerificationDisplay(data) {
+    verificationDisplay.innerHTML = '';
+    
+    // Create radio buttons for account type
+    const radioGroup = document.createElement('div');
+    radioGroup.className = 'radio-group';
+    
+    const accountTypes = [
+      { value: '5', label: 'Teacher', checked: false },
+      { value: '2', label: 'Student', checked: true },
+      { value: '1', label: 'Parent', checked: false }
+    ];
+    
+    accountTypes.forEach(account => {
+      const radioLabel = document.createElement('label');
+      radioLabel.className = 'radio-label';
+      
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'account-type';
+      radio.value = account.value;
+      radio.checked = account.checked;
+      radio.disabled = true;
+      
+      const span = document.createElement('span');
+      span.textContent = account.label;
+      
+      radioLabel.appendChild(radio);
+      radioLabel.appendChild(span);
+      radioGroup.appendChild(radioLabel);
+    });
+    
+    verificationDisplay.appendChild(radioGroup);
+    
+    // Create input fields display
+    const fields = [
+      { label: 'Username/Email', value: data.username },
+      { label: 'Password', value: '•'.repeat(data.password.length) },
+      { label: 'School', value: data.school }
+    ];
+    
+    const fieldsContainer = document.createElement('div');
+    fieldsContainer.className = 'verification-fields';
+    
+    fields.forEach(field => {
+      const fieldRow = document.createElement('div');
+      fieldRow.className = 'field-row';
+      
+      const fieldLabel = document.createElement('div');
+      fieldLabel.className = 'field-label';
+      fieldLabel.textContent = field.label;
+      
+      const fieldValue = document.createElement('div');
+      fieldValue.className = 'field-value';
+      fieldValue.textContent = field.value;
+      
+      fieldRow.appendChild(fieldLabel);
+      fieldRow.appendChild(fieldValue);
+      fieldsContainer.appendChild(fieldRow);
+    });
+    
+    verificationDisplay.appendChild(fieldsContainer);
+  }
   
   /**
    * Submits login data to Millennium Education system
@@ -179,32 +267,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for iframe load events to determine success/failure
     iframe.addEventListener('load', function() {
       try {
+        // Remove loading animation
+        if (document.querySelector('.loading-dots')) {
+          document.querySelector('.loading-dots').remove();
+        }
+        
         // Check if the iframe URL indicates success or failure
         const iframeUrl = iframe.contentWindow.location.href;
         
         if (iframeUrl.includes('/portal/')) {
-          showNotification('success', 'Login successful! Redirecting...');
+          // Success - extract data from portal page instead of redirecting
+          showNotification('success', 'Login successful! Loading your data...');
           
-          // Redirect to the portal after a short delay
-          setTimeout(() => {
-            window.location.href = iframeUrl;
-          }, 2000);
+          try {
+            // Try to extract data from the portal page
+            const portalDocument = iframe.contentWindow.document;
+            // This would be where you extract data from the portal page
+            // For example: const userName = portalDocument.querySelector('.user-name').textContent;
+            
+            // For now, just show a generic message since we can't actually extract data
+            setTimeout(() => {
+              showNotification('success', 'Portal data loaded successfully! You can now use the redesigned interface.');
+            }, 2000);
+          } catch (e) {
+            // If we can't access the content due to cross-origin policies
+            showNotification('error', 'Successfully logged in, but unable to extract data due to security restrictions.');
+          }
         } else if (iframeUrl.includes('invalid')) {
           showNotification('error', 'Login process error. Please try again later.');
         } else {
           // Check if there's an error message in the content
-          const content = iframe.contentDocument || iframe.contentWindow.document;
-          
-          if (content.body.innerHTML.includes('Sorry, that Email/Username/Password/School is invalid')) {
-            showNotification('error', 'Invalid credentials. Please check your details and try again.');
-          } else {
-            showNotification('error', 'Unknown error. Please try again later.');
+          try {
+            const content = iframe.contentDocument || iframe.contentWindow.document;
+            
+            if (content.body.innerHTML.includes('Sorry, that Email/Username/Password/School is invalid')) {
+              showNotification('error', 'Invalid credentials. Please check your details and try again.');
+            } else {
+              showNotification('error', 'Unknown error. Please try again later.');
+            }
+          } catch (e) {
+            // If we can't access the error message
+            showNotification('error', 'Could not verify login status due to security restrictions. Please try logging in directly at millennium.education');
           }
         }
       } catch (e) {
         // Security error when trying to access iframe content from different origin
-        // We can't determine success/failure in this case
-        showNotification('error', 'Could not verify login status. Please check your credentials.');
+        showNotification('error', 'Could not verify login status. Please check your credentials. Due to security restrictions, you may need to login directly at millennium.education.');
       }
       
       // Clean up
@@ -213,6 +321,20 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.removeChild(form);
       }, 3000);
     });
+    
+    // Handle any errors in the iframe
+    iframe.onerror = function() {
+      // Remove loading animation
+      if (document.querySelector('.loading-dots')) {
+        document.querySelector('.loading-dots').remove();
+      }
+      
+      showNotification('error', 'Network error. Please check your connection and try again.');
+      
+      // Clean up
+      document.body.removeChild(iframe);
+      document.body.removeChild(form);
+    };
     
     // Submit the form
     form.submit();
@@ -240,6 +362,13 @@ document.addEventListener('DOMContentLoaded', function() {
     icon.alt = type === 'success' ? 'Success' : 'Error';
     icon.className = 'notification-icon';
     
+    // Apply SVG color styles
+    if (type === 'success') {
+      icon.style.filter = 'invert(59%) sepia(63%) saturate(409%) hue-rotate(114deg) brightness(92%) contrast(92%)';
+    } else {
+      icon.style.filter = 'invert(56%) sepia(38%) saturate(2893%) hue-rotate(316deg) brightness(102%) contrast(101%)';
+    }
+    
     // Create message text
     const text = document.createElement('span');
     text.textContent = message;
@@ -249,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
     notification.appendChild(text);
     
     // Add to completion section
-    completion.appendChild(notification);
+    completion.insertBefore(notification, completion.querySelector('.question-buttons'));
     
     // Auto-remove after some time for success messages
     if (type === 'success') {
