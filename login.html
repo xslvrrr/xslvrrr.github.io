@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In - Millennium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="login.css">
+  <link rel="icon" href="Assets/Millennium Logo.png" type="image/png">
+</head>
+<body class="login-body">
+  <div class="login-container">
+    <img src="Assets/Millennium Logo.png" alt="Millennium Logo" class="login-logo">
+    <h1 class="login-title">Log in to Millennium</h1>
+    
+    <div class="login-options" id="login-options">
+      <button class="login-option-btn" id="doe-btn">Continue with NSW DoE</button>
+      <p class="recommended-text">*Recommended</p>
+      
+      <button class="login-option-btn" id="details-btn">Continue with login details</button>
+    </div>
+    
+    <div class="login-questionnaire" id="question-1" style="display: none;">
+      <h2 class="question-title">What's your username or email?</h2>
+      <input type="text" class="question-input" placeholder="Enter your username or email">
+      <div class="question-buttons">
+        <button class="submit-btn" id="submit-1">Submit</button>
+      </div>
+      <a href="#" class="back-link" id="back-to-options">Back to login options</a>
+    </div>
+    
+    <div class="login-questionnaire" id="question-2" style="display: none;">
+      <h2 class="question-title">What's your password?</h2>
+      <input type="password" class="question-input" placeholder="Enter your password">
+      <div class="question-buttons">
+        <button class="back-btn" id="back-1">Back</button>
+        <button class="submit-btn" id="submit-2">Submit</button>
+      </div>
+    </div>
+    
+    <div class="login-questionnaire" id="question-3" style="display: none;">
+      <h2 class="question-title">What's your school?</h2>
+      <input type="text" class="question-input" placeholder="Enter your school name">
+      <div class="question-buttons">
+        <button class="back-btn" id="back-2">Back</button>
+        <button class="submit-btn" id="submit-3">Submit</button>
+      </div>
+    </div>
+    
+    <div class="login-questionnaire" id="completion" style="display: none;">
+      <h2 class="question-title">App is still under construction</h2>
+      <p class="question-subtitle">Thanks for testing though, report any bugs!</p>
+      <div class="question-buttons">
+        <a href="https://xslvrrr.github.io" class="return-btn">Return to main page</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html> 
