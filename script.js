@@ -1181,20 +1181,13 @@ window.addEventListener('resize', () => {
 
 // Animation handling for homepage elements
 document.addEventListener('DOMContentLoaded', function() {
-  // Ensure all animation elements have proper classes
+  // Remove old code that's no longer needed
+  const animateElements = document.querySelectorAll('.animate-subtitle, .animate-button');
+  
+  // Make sure all animated elements have their animations properly triggered
   setTimeout(() => {
-    const titleElements = document.querySelectorAll('.title .animate-title');
-    const subtitle = document.querySelector('.subtitle');
-    const button = document.querySelector('.learn-more');
-    
-    // Make sure elements exist
-    if (titleElements.length > 0 && subtitle && button) {
-      // Clean up any lingering opacity settings
-      titleElements.forEach(el => {
-        el.style.opacity = "";
-      });
-      subtitle.style.opacity = "";
-      button.style.opacity = "";
-    }
+    animateElements.forEach(el => {
+      el.style.opacity = "";
+    });
   }, 100);
 });
