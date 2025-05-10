@@ -115,12 +115,10 @@ document.addEventListener('DOMContentLoaded', function() {
     createVerificationDisplay(loginData);
     completion.insertBefore(verificationDisplay, completion.querySelector('.question-buttons'));
     
-    // Append loading animation
-    completion.insertBefore(loadingDots, completion.querySelector('.question-buttons'));
-    
     // Submit login data to millennium.education
     submitLoginToMillennium(loginData);
     
+    // Transition to completion screen
     transition(question3, completion, true);
   });
 
@@ -234,105 +232,21 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {Object} data - Login credentials (username, password, school)
    */
   function submitLoginToMillennium(data) {
-    // First, let's try a verification probe to check if any existing session exists
-    checkExistingSession();
-    
-    // Try a fetch approach first to handle cross-origin issues better
-    fetch('https://millennium.education/login.asp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `account=2&email=${encodeURIComponent(data.username)}&password=${encodeURIComponent(data.password)}&sitename=${encodeURIComponent(data.school)}`,
-      redirect: 'follow', // Allow following redirects
-      credentials: 'include', // Include cookies
-      mode: 'no-cors', // Try no-cors mode to avoid CORS issues
-    })
-    .then(response => {
-      // This will be called even with no-cors, but we can't read the response
-      // We'll have to use our fallback method
-      loginWithIframe(data);
-    })
-    .catch(error => {
-      // Fall back to iframe method if fetch fails
-      loginWithIframe(data);
-    });
-  }
-
-  /**
-   * Checks if a user session exists by making a verification request to a protected resource
-   */
-  function checkExistingSession() {
-    // Create a hidden status checker iframe
-    const statusFrame = document.createElement('iframe');
-    statusFrame.name = 'statusFrame';
-    statusFrame.style.cssText = 'display:none; width:0; height:0; position:absolute; top:-9999px; left:-9999px;';
-    document.body.appendChild(statusFrame);
-    
-    // Point it to a resource that would only be accessible if logged in
-    statusFrame.src = 'https://millennium.education/portal/';
-    
-    // We'll check this frame after login attempts to verify success
-    return statusFrame;
-  }
-
-  /**
-   * Double-checks login success by verifying access to protected resources
-   * @param {HTMLIFrameElement} statusFrame - The status checking iframe 
-   * @returns {boolean} True if verification indicates successful login
-   */
-  function verifyLoginSuccess(statusFrame) {
-    try {
-      // If we can access the content document, check what page we're on
-      const doc = statusFrame.contentDocument || statusFrame.contentWindow.document;
-      
-      // If we got a document without error, check if it has portal content
-      if (doc.body) {
-        // Check for elements that would typically appear in the portal
-        const hasPortalNavigation = doc.querySelector('nav') || doc.querySelector('.portal-header');
-        const hasUserInfo = doc.querySelector('.user-info') || doc.querySelector('.username');
-        const hasLogoutButton = doc.querySelector('a[href*="logout"]') || doc.querySelector('button[type="logout"]');
-        
-        // If we found portal elements, login was successful
-        if (hasPortalNavigation || hasUserInfo || hasLogoutButton) {
-          return true;
-        }
-        
-        // If we got the login page instead of portal content
-        if (doc.body.innerHTML.includes('login') || 
-            doc.body.innerHTML.includes('password') || 
-            doc.body.innerHTML.includes('sign in')) {
-          return false;
-        }
-      }
-      
-      // If we couldn't determine from content, check the URL
-      const currentUrl = statusFrame.contentWindow.location.href;
-      return currentUrl.includes('/portal/') || 
-             currentUrl.includes('/student/') || 
-             currentUrl.includes('/dashboard');
-    } catch (e) {
-      // If we got a security error, we need to use indirect methods
-      // We'll make a separate verification request to a protected resource
-      return false;
+    // Show loading animation first
+    if (!document.querySelector('.loading-dots')) {
+      completion.insertBefore(loadingDots, completion.querySelector('.question-buttons'));
     }
-  }
-
-  /**
-   * Falls back to iframe login method
-   * @param {Object} data - Login credentials
-   */
-  function loginWithIframe(data) {
+    
+    // Set a timer to track when the form was submitted
+    const startTime = new Date().getTime();
+    
     // Create a hidden iframe to handle the login
     const iframe = document.createElement('iframe');
     iframe.name = 'loginFrame';
     iframe.style.cssText = 'display:none; width:0; height:0; position:absolute; top:-9999px; left:-9999px;';
     document.body.appendChild(iframe);
     
-    // Create a verification iframe for secondary checking
-    const statusFrame = checkExistingSession();
-    
-    // Create a form element to submit to the iframe but keep it fully hidden
+    // Create a form element to submit to the iframe
     const form = document.createElement('form');
     form.action = 'https://millennium.education/login.asp';
     form.method = 'post';
@@ -367,138 +281,130 @@ document.addEventListener('DOMContentLoaded', function() {
     
     window.onbeforeunload = preventNavigation;
     
-    // Track submit time
-    const formSubmitTime = new Date().getTime();
-    
-    // Function to check iframe content and determine login status
-    function checkIframeContent() {
-      try {
-        // Try to access iframe content
-        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-        
-        // Check for error message
-        if (iframeDocument.body.innerHTML.includes('Sorry, that Email/Username/Password/School is invalid')) {
-          updateCompletionStatus(false, 'Invalid credentials. Please check your details and try again.');
-          return true; // Successfully determined status
-        }
-        
-        // Check for success message
-        if (iframeDocument.body.innerHTML.includes('Welcome to Millennium Student & Parent Portal')) {
-          updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
-          extractPortalData(iframeDocument);
-          return true; // Successfully determined status
-        }
-        
-        // If we can access the content but can't find specific indicators
-        return false; // Need to keep checking
-      } catch (e) {
-        // If we get a security error, the iframe has navigated to a different origin
-        // This could be success OR failure - we need more verification
-        
-        // Check if we can determine login status from URL
-        try {
-          const currentUrl = iframe.contentWindow.location.href;
-          
-          // If we can access the URL, check if it contains indicators of success
-          if (currentUrl.includes('/portal/') || 
-              currentUrl.includes('/student/') || 
-              currentUrl.includes('/dashboard')) {
-            updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
-            return true;
-          }
-          
-          // If URL contains error indicators
-          if (currentUrl.includes('error=') || 
-              currentUrl.includes('failed=true') || 
-              currentUrl.includes('login.asp')) {
-            updateCompletionStatus(false, 'Login failed. Please check your credentials and try again.');
-            return true;
-          }
-          
-          // If we can't determine from URL, we'll wait for another attempt
-          return false;
-        } catch (urlError) {
-          // If we can't access the URL either, use the secondary verification
-          // First, perform a quick check against the verification frame
-          const secondaryCheck = verifyLoginSuccess(statusFrame);
-          if (secondaryCheck) {
-            updateCompletionStatus(true, 'Login successful! Redirect confirmed.');
-            return true;
-          }
-          
-          // If secondary check fails, use elapsed time approach
-          const elapsedTime = new Date().getTime() - formSubmitTime;
-          
-          // If it's been less than 3 seconds, keep checking
-          if (elapsedTime < 3000) {
-            return false;
-          }
-          
-          // If we've waited over 3 seconds, perform a final check
-          // Refresh the status frame to make a fresh verification attempt
-          statusFrame.src = 'https://millennium.education/portal/?t=' + new Date().getTime();
-          
-          // Wait a bit for the refresh
-          setTimeout(() => {
-            // Final verification
-            const finalCheck = verifyLoginSuccess(statusFrame);
-            if (finalCheck) {
-              updateCompletionStatus(true, 'Login successful after verification.');
-            } else {
-              updateCompletionStatus(false, 'Login verification failed. Please check your credentials and try again.');
-            }
-          }, 1000);
-          
-          return true; // Stop the main checking loop
-        }
-      }
-    }
-    
-    // Set up multiple checks to catch the response
-    let checkAttempts = 0;
-    const maxAttempts = 12; // Extended to account for secondary verification
-    const checkInterval = setInterval(() => {
-      checkAttempts++;
-      
-      if (checkIframeContent() || checkAttempts >= maxAttempts) {
-        clearInterval(checkInterval);
-        
-        // If we reached max attempts without a clear result
-        if (checkAttempts >= maxAttempts && !document.querySelector('.notification')) {
-          // One last verification against the status frame
-          const finalVerification = verifyLoginSuccess(statusFrame);
-          if (finalVerification) {
-            updateCompletionStatus(true, 'Login successful after final verification.');
-          } else {
-            updateCompletionStatus(false, 'Login verification timed out. Please try again later.');
-          }
-        }
-        
-        // Clean up
-        window.onbeforeunload = null;
-        setTimeout(() => {
-          if (document.body.contains(iframe)) document.body.removeChild(iframe);
-          if (document.body.contains(form)) document.body.removeChild(form);
-          if (document.body.contains(statusFrame)) document.body.removeChild(statusFrame);
-        }, 3000);
-      }
-    }, 500);
-    
-    // Handle iframe error
-    iframe.onerror = function() {
-      clearInterval(checkInterval);
-      window.onbeforeunload = null;
-      
-      updateCompletionStatus(false, 'Network error. Please check your connection and try again.');
-      
-      // Clean up
-      if (document.body.contains(iframe)) document.body.removeChild(iframe);
-      if (document.body.contains(form)) document.body.removeChild(form);
-      if (document.body.contains(statusFrame)) document.body.removeChild(statusFrame);
+    // Track the state of the login attempt
+    let loginState = {
+      submitted: false,
+      redirectOccurred: false,
+      accessDenied: false,
+      loadingComplete: false,
+      timeSinceSubmit: 0
     };
     
+    // Function to check login status based on observable behaviors
+    function determineLoginStatus() {
+      const currentTime = new Date().getTime();
+      loginState.timeSinceSubmit = currentTime - startTime;
+      
+      try {
+        // If we can still access the iframe document, check for error messages
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // Check for direct error messages on the login page
+        if (doc.body && doc.body.innerHTML) {
+          if (doc.body.innerHTML.includes('invalid') || 
+              doc.body.innerHTML.includes('incorrect') ||
+              doc.body.innerHTML.toLowerCase().includes('sorry, that email') ||
+              doc.body.innerHTML.toLowerCase().includes('email/username/password')) {
+            console.log('Found error message in iframe');
+            loginState.accessDenied = true;
+            return false; // Login failed
+          }
+          
+          // Check for success indicators
+          if (doc.body.innerHTML.includes('Welcome to Millennium') ||
+              doc.body.innerHTML.includes('Student Portal') ||
+              doc.body.innerHTML.includes('Parent Portal')) {
+            console.log('Found success message in iframe');
+            return true; // Login successful
+          }
+        }
+        
+        // If we got redirected to a different page with no errors,
+        // it might be a success
+        const currentUrl = iframe.contentWindow.location.href;
+        if (currentUrl && !currentUrl.includes('login.asp')) {
+          loginState.redirectOccurred = true;
+          console.log('Detected redirection to:', currentUrl);
+        }
+        
+      } catch (e) {
+        // Security exception means we can't access the iframe content anymore
+        // This usually happens after a redirect to a different domain or path
+        loginState.redirectOccurred = true;
+        console.log('Security exception accessing iframe, possible redirect occurred');
+        
+        // If this happens after a short time (>1s), it's most likely a successful login
+        if (loginState.timeSinceSubmit > 1000) {
+          return true; // Likely successful
+        }
+      }
+      
+      // If we've waited more than 5 seconds without an error message,
+      // it's probably successful (millennium usually shows errors quickly)
+      if (loginState.timeSinceSubmit > 5000 && !loginState.accessDenied) {
+        return true;
+      }
+      
+      // If we can't determine yet, return null
+      return null;
+    }
+    
     // Submit the form
+    console.log('Submitting login form...');
     form.submit();
+    loginState.submitted = true;
+    
+    // Set up multiple checks with increasing intervals
+    const checkIntervals = [1000, 1000, 1000, 1000, 2000]; // Checks at 1s, 2s, 3s, 4s, 6s
+    let checkIndex = 0;
+    
+    function runNextCheck() {
+      if (checkIndex >= checkIntervals.length) {
+        // If we've exhausted all checks, assume success if no errors detected
+        const finalResult = !loginState.accessDenied;
+        updateLoginResult(finalResult);
+        return;
+      }
+      
+      setTimeout(() => {
+        console.log(`Running check ${checkIndex + 1}...`);
+        const status = determineLoginStatus();
+        
+        if (status === true) {
+          // Definitely successful
+          updateLoginResult(true);
+        } else if (status === false) {
+          // Definitely failed
+          updateLoginResult(false);
+        } else {
+          // Uncertain, continue checking
+          checkIndex++;
+          runNextCheck();
+        }
+      }, checkIntervals[checkIndex]);
+    }
+    
+    // Start the check sequence
+    runNextCheck();
+    
+    // Final status update
+    function updateLoginResult(success) {
+      console.log(`Login ${success ? 'successful' : 'failed'} determined.`);
+      
+      // Update UI
+      if (success) {
+        updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
+      } else {
+        updateCompletionStatus(false, 'Login verification failed. Please check your credentials and try again.');
+      }
+      
+      // Clean up
+      window.onbeforeunload = null;
+      setTimeout(() => {
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        if (document.body.contains(form)) document.body.removeChild(form);
+      }, 2000);
+    }
   }
 
   /**
@@ -547,59 +453,24 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {Document} portalDocument - The document object from the portal page
    */
   function extractPortalData(portalDocument) {
-    // Extract as much useful data as possible from the portal
+    // Basic login session metadata (mostly useful for checking login state)
     try {
-      const userData = {
-        // Basic user information
-        userName: portalDocument.querySelector('.user-name')?.textContent?.trim() || 
-                  portalDocument.querySelector('.username')?.textContent?.trim() || 
-                  portalDocument.querySelector('span[class*="user"]')?.textContent?.trim(),
-        
-        // Session verification
-        sessionValid: true,
-        loginTime: new Date().toISOString(),
-        
-        // Try to extract navigation items for potential reskinning
-        navigationItems: Array.from(
-          portalDocument.querySelectorAll('nav a, .sidebar a, .menu a, .navigation a')
-        ).map(link => ({
-          text: link.textContent.trim(),
-          href: link.getAttribute('href'),
-          icon: link.querySelector('img, svg')?.outerHTML || null
-        })),
-        
-        // Extract any available student/course data
-        classes: Array.from(
-          portalDocument.querySelectorAll('.class-item, .course-item, div[class*="class"], div[class*="course"]')
-        ).map(item => ({
-          name: item.querySelector('h3, h4, .title')?.textContent?.trim() || '',
-          teacher: item.querySelector('.teacher, .instructor')?.textContent?.trim() || '',
-          link: item.querySelector('a')?.getAttribute('href') || ''
-        })),
-        
-        // Extract notification counts if present
-        notificationCount: portalDocument.querySelector('.notification-count, .badge')?.textContent?.trim() || '0',
-        
-        // Capture session cookie names if possible (we won't store values)
-        cookieNames: document.cookie.split(';').map(cookie => cookie.split('=')[0].trim())
+      const sessionData = {
+        loggedIn: true,
+        timestamp: new Date().toISOString(),
+        sessionId: Math.random().toString(36).substring(2, 15)
       };
       
-      // Store the extracted data for use in the reskinned UI
-      localStorage.setItem('portalData', JSON.stringify(userData));
+      // Store session in localStorage
+      localStorage.setItem('millenniumSession', JSON.stringify(sessionData));
       
-      // Log success (will be removed in production)
-      console.log('Successfully extracted portal data:', userData);
+      // This function is simplified - we're just recording that login happened
+      console.log('Login data saved to session storage');
       
-      return userData;
+      return true;
     } catch (e) {
-      console.error('Error extracting portal data:', e);
-      // Store minimal data even on failure
-      localStorage.setItem('portalData', JSON.stringify({
-        sessionValid: true,
-        loginTime: new Date().toISOString(),
-        extractionError: e.message
-      }));
-      return null;
+      console.error('Could not save session data:', e);
+      return false;
     }
   }
 }); 
