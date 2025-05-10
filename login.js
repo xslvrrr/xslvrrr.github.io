@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Get all elements we need
   const loginContainer = document.getElementById('login-container');
+  const loginHeader = document.getElementById('login-header');
   const loginOptions = document.getElementById('login-options');
   const detailsBtn = document.getElementById('details-btn');
   const doeBtn = document.getElementById('doe-btn');
@@ -16,9 +17,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const back2 = document.getElementById('back-2');
 
   // Function to handle transitions between screens
-  function transition(fromElement, toElement, delay = 400) {
+  function transition(fromElement, toElement, fadeHeader = false, delay = 400) {
     // Add fade-out animation to current element
     fromElement.classList.add('fade-out');
+    
+    // Fade out header if needed (when moving from options to questions)
+    if (fadeHeader) {
+      loginHeader.classList.add('fade-out');
+      
+      setTimeout(() => {
+        loginHeader.classList.remove('fade-out');
+      }, delay);
+    }
     
     // Wait for animation to complete, then switch elements
     setTimeout(() => {
@@ -31,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Handle "Continue with login details" button
   detailsBtn.addEventListener('click', function() {
-    transition(loginOptions, question1);
+    transition(loginOptions, question1, true);
   });
 
   // NSW DoE button (currently does nothing substantial)
@@ -42,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Back to login options link
   backToOptions.addEventListener('click', function(e) {
     e.preventDefault();
-    transition(question1, loginOptions);
+    transition(question1, loginOptions, true);
   });
 
   // Submit buttons
