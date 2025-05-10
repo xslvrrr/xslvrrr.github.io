@@ -1178,3 +1178,23 @@ window.addEventListener('resize', () => {
     renderGradientStops();
   }
 });
+
+// Animation handling for homepage elements
+document.addEventListener('DOMContentLoaded', function() {
+  // Ensure all animation elements have proper classes
+  setTimeout(() => {
+    const titleElements = document.querySelectorAll('.title .animate-title');
+    const subtitle = document.querySelector('.subtitle');
+    const button = document.querySelector('.learn-more');
+    
+    // Make sure elements exist
+    if (titleElements.length > 0 && subtitle && button) {
+      // Clean up any lingering opacity settings
+      titleElements.forEach(el => {
+        el.style.opacity = "";
+      });
+      subtitle.style.opacity = "";
+      button.style.opacity = "";
+    }
+  }, 100);
+});
