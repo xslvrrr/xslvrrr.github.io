@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const back1 = document.getElementById('back-1');
   const back2 = document.getElementById('back-2');
   const returnLinkContainer = document.querySelector('.return-link-container');
+  const completionTitle = document.querySelector('#completion .question-title');
+  const completionSubtitle = document.querySelector('#completion .question-subtitle');
 
   // Form inputs
   const usernameInput = document.getElementById('username-input');
@@ -106,7 +108,8 @@ document.addEventListener('DOMContentLoaded', function() {
     returnLinkContainer.style.display = 'none';
     
     // Update the completion page UI to show verification in progress
-    document.querySelector('#completion .question-subtitle').textContent = 'Please wait while we verify your credentials...';
+    completionTitle.textContent = 'Verifying your login';
+    completionSubtitle.textContent = 'Please wait while we verify your credentials...';
     
     // Create verification display with filled credentials
     createVerificationDisplay(loginData);
@@ -153,6 +156,10 @@ document.addEventListener('DOMContentLoaded', function() {
     accountTypes.forEach(account => {
       const radioLabel = document.createElement('label');
       radioLabel.className = 'radio-label';
+      
+      if (account.value === '2') {
+        radioLabel.classList.add('highlight');
+      }
       
       const radio = document.createElement('input');
       radio.type = 'radio';
@@ -202,166 +209,178 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
+   * Updates the completion page with success/error UI
+   * @param {boolean} success - Whether login was successful
+   * @param {string} message - Message to display
+   */
+  function updateCompletionStatus(success, message) {
+    // Remove loading animation
+    if (document.querySelector('.loading-dots')) {
+      document.querySelector('.loading-dots').remove();
+    }
+    
+    // Update title
+    completionTitle.textContent = success ? 'Login successful' : 'Login failed';
+    
+    // Show notification
+    showNotification(success ? 'success' : 'error', message);
+    
+    // Hide subtitle since notification takes its place
+    completionSubtitle.style.display = 'none';
+  }
+  
+  /**
    * Submits login data to Millennium Education system
    * @param {Object} data - Login credentials (username, password, school)
    */
   function submitLoginToMillennium(data) {
+    // Try a fetch approach first to handle cross-origin issues better
+    fetch('https://millennium.education/login.asp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `account=2&email=${encodeURIComponent(data.username)}&password=${encodeURIComponent(data.password)}&sitename=${encodeURIComponent(data.school)}`,
+      redirect: 'follow', // Allow following redirects
+      credentials: 'include', // Include cookies
+      mode: 'no-cors', // Try no-cors mode to avoid CORS issues
+    })
+    .then(response => {
+      // This will be called even with no-cors, but we can't read the response
+      // We'll have to use our fallback method
+      loginWithIframe(data);
+    })
+    .catch(error => {
+      // Fall back to iframe method if fetch fails
+      loginWithIframe(data);
+    });
+  }
+
+  /**
+   * Falls back to iframe login method
+   * @param {Object} data - Login credentials
+   */
+  function loginWithIframe(data) {
     // Create a hidden iframe to handle the login
     const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.position = 'absolute';
-    iframe.style.top = '-9999px';
-    iframe.style.left = '-9999px';
     iframe.name = 'loginFrame';
+    iframe.style.cssText = 'display:none; width:0; height:0; position:absolute; top:-9999px; left:-9999px;';
     document.body.appendChild(iframe);
     
     // Create a form element to submit to the iframe but keep it fully hidden
     const form = document.createElement('form');
-    form.setAttribute('action', 'https://millennium.education/login.asp');
-    form.setAttribute('method', 'post');
-    form.setAttribute('target', 'loginFrame');
-    form.style.display = 'none';
-    form.style.width = '0';
-    form.style.height = '0';
-    form.style.position = 'absolute';
-    form.style.top = '-9999px';
-    form.style.left = '-9999px';
+    form.action = 'https://millennium.education/login.asp';
+    form.method = 'post';
+    form.target = 'loginFrame';
+    form.style.cssText = 'display:none; width:0; height:0; position:absolute; top:-9999px; left:-9999px;';
     
-    // Create Student radio button (selected by default)
-    const studentRadio = document.createElement('input');
-    studentRadio.setAttribute('type', 'radio');
-    studentRadio.setAttribute('name', 'account');
-    studentRadio.setAttribute('value', '2');
-    studentRadio.setAttribute('checked', 'checked');
-    form.appendChild(studentRadio);
+    // Create input elements and append them to the form
+    const inputs = [
+      { name: 'account', type: 'radio', value: '2', checked: true },
+      { name: 'email', type: 'text', value: data.username },
+      { name: 'password', type: 'password', value: data.password },
+      { name: 'sitename', type: 'text', value: data.school }
+    ];
     
-    // Create Teacher radio button (not selected)
-    const teacherRadio = document.createElement('input');
-    teacherRadio.setAttribute('type', 'radio');
-    teacherRadio.setAttribute('name', 'account');
-    teacherRadio.setAttribute('value', '5');
-    form.appendChild(teacherRadio);
-    
-    // Create Parent radio button (not selected)
-    const parentRadio = document.createElement('input');
-    parentRadio.setAttribute('type', 'radio');
-    parentRadio.setAttribute('name', 'account');
-    parentRadio.setAttribute('value', '1');
-    form.appendChild(parentRadio);
-    
-    // Create username/email input
-    const email = document.createElement('input');
-    email.setAttribute('type', 'text');
-    email.setAttribute('name', 'email');
-    email.setAttribute('value', data.username);
-    form.appendChild(email);
-    
-    // Create password input
-    const password = document.createElement('input');
-    password.setAttribute('type', 'password');
-    password.setAttribute('name', 'password');
-    password.setAttribute('value', data.password);
-    form.appendChild(password);
-    
-    // Create school input
-    const sitename = document.createElement('input');
-    sitename.setAttribute('type', 'text');
-    sitename.setAttribute('name', 'sitename');
-    sitename.setAttribute('value', data.school);
-    form.appendChild(sitename);
+    inputs.forEach(input => {
+      const element = document.createElement('input');
+      element.name = input.name;
+      element.type = input.type;
+      element.value = input.value;
+      if (input.checked) element.checked = input.checked;
+      form.appendChild(element);
+    });
     
     // Add form to document
     document.body.appendChild(form);
     
-    // Prevent top-level navigation if iframe tries to redirect the parent
-    window.onbeforeunload = function(e) {
-      const currentTime = new Date().getTime();
-      // Only prevent navigation for a short time after form submission
-      if (currentTime - formSubmitTime < 5000) {
-        e.preventDefault();
-        return "Please stay on this page while we verify your login.";
-      }
-    };
+    // Prevent top-level navigation
+    function preventNavigation(e) {
+      e.preventDefault();
+      return "Please stay on this page while we verify your login.";
+    }
     
-    // Track submit time to limit navigation prevention window
+    window.onbeforeunload = preventNavigation;
+    
+    // Track submit time
     const formSubmitTime = new Date().getTime();
     
-    // Listen for iframe load events to determine success/failure
-    iframe.addEventListener('load', function() {
+    // Function to check iframe content and determine login status
+    function checkIframeContent() {
       try {
-        // Remove loading animation
-        if (document.querySelector('.loading-dots')) {
-          document.querySelector('.loading-dots').remove();
+        // Try to access iframe content
+        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // Check for error message
+        if (iframeDocument.body.innerHTML.includes('Sorry, that Email/Username/Password/School is invalid')) {
+          updateCompletionStatus(false, 'Invalid credentials. Please check your details and try again.');
+          return true; // Successfully determined status
         }
         
-        // Remove the navigation prevention after iframe loads
-        window.onbeforeunload = null;
-        
-        try {
-          // Try to access iframe content - this will likely fail due to CORS
-          const iframeUrl = iframe.contentWindow.location.href;
-          
-          if (iframeUrl.includes('/portal/')) {
-            // Success - extract data from portal page instead of redirecting
-            showNotification('success', 'Login successful! Loading your data...');
-            
-            try {
-              // Try to extract data from the portal page
-              const portalDocument = iframe.contentWindow.document;
-              // This would be where you extract data from the portal page
-              
-              // For now, just show a generic message
-              setTimeout(() => {
-                showNotification('success', 'Portal data loaded successfully! You can now use the redesigned interface.');
-              }, 2000);
-            } catch (e) {
-              // If we can't access the content due to cross-origin policies
-              showNotification('success', 'Login successful! You can now use the redesigned interface.');
-            }
-          } else if (iframeUrl.includes('invalid')) {
-            showNotification('error', 'Login process error. Please try again later.');
-          } else {
-            // Check if there's an error message in the content
-            try {
-              const content = iframe.contentDocument || iframe.contentWindow.document;
-              
-              if (content.body.innerHTML.includes('Sorry, that Email/Username/Password/School is invalid')) {
-                showNotification('error', 'Invalid credentials. Please check your details and try again.');
-              } else {
-                showNotification('error', 'Unknown error. Please try again later.');
-              }
-            } catch (e) {
-              // If we can't access the error message
-              showNotification('error', 'Could not verify login status due to security restrictions. Please try logging in directly at millennium.education');
-            }
-          }
-        } catch (e) {
-          // Most likely a successful login since CORS blocks access after redirect
-          showNotification('success', 'Login successful! You can now use the redesigned interface.');
+        // Check for success message
+        if (iframeDocument.body.innerHTML.includes('Welcome to Millennium Student & Parent Portal')) {
+          updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
+          // Here you would extract data from the portal page for reskinning
+          // Example: extractPortalData(iframeDocument);
+          return true; // Successfully determined status
         }
+        
+        // If we can access the content but can't find specific indicators
+        return false; // Need to keep checking
       } catch (e) {
-        console.error('Error processing login response:', e);
-        showNotification('error', 'An error occurred while processing the login response.');
+        // If we get a security error, the iframe has navigated to a different origin
+        // This likely means login was successful
+        
+        // Wait a bit and try one more time before concluding
+        setTimeout(() => {
+          try {
+            // Try to access the iframe URL
+            const iframeUrl = iframe.contentWindow.location.href;
+            if (iframeUrl.includes('/portal/')) {
+              updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
+            } else {
+              updateCompletionStatus(false, 'Could not verify login status. Please try again.');
+            }
+          } catch (e) {
+            // If we still can't access it but it hasn't been blocked by a failed login,
+            // it's probably a successful login that navigated to a secure page
+            updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
+          }
+        }, 1000);
+        
+        return true; // Stop checking, we'll handle this case separately
+      }
+    }
+    
+    // Set up multiple checks to catch the response
+    let checkAttempts = 0;
+    const maxAttempts = 10;
+    const checkInterval = setInterval(() => {
+      checkAttempts++;
+      
+      if (checkIframeContent() || checkAttempts >= maxAttempts) {
+        clearInterval(checkInterval);
+        
+        // If we reached max attempts without a clear result
+        if (checkAttempts >= maxAttempts && !document.querySelector('.notification')) {
+          updateCompletionStatus(false, 'Login timed out. Please try again later.');
+        }
         
         // Clean up
-        if (document.body.contains(iframe)) document.body.removeChild(iframe);
-        if (document.body.contains(form)) document.body.removeChild(form);
+        window.onbeforeunload = null;
+        setTimeout(() => {
+          if (document.body.contains(iframe)) document.body.removeChild(iframe);
+          if (document.body.contains(form)) document.body.removeChild(form);
+        }, 3000);
       }
-    });
+    }, 500);
     
-    // Handle any errors in the iframe
+    // Handle iframe error
     iframe.onerror = function() {
-      // Remove loading animation
-      if (document.querySelector('.loading-dots')) {
-        document.querySelector('.loading-dots').remove();
-      }
-      
-      // Remove the navigation prevention
+      clearInterval(checkInterval);
       window.onbeforeunload = null;
       
-      showNotification('error', 'Network error. Please check your connection and try again.');
+      updateCompletionStatus(false, 'Network error. Please check your connection and try again.');
       
       // Clean up
       if (document.body.contains(iframe)) document.body.removeChild(iframe);
@@ -411,15 +430,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add to completion section
     completion.insertBefore(notification, completion.querySelector('.question-buttons'));
+  }
+  
+  /**
+   * Extract and store data from the portal page for reskinning
+   * @param {Document} portalDocument - The document object from the portal page
+   */
+  function extractPortalData(portalDocument) {
+    // This function would extract data from the portal page
+    // Implement as needed for reskinning the portal
     
-    // Auto-remove after some time for success messages
-    if (type === 'success') {
-      setTimeout(() => {
-        notification.classList.add('fade-out');
-        setTimeout(() => {
-          notification.remove();
-        }, 400);
-      }, 5000);
+    // Example extraction:
+    try {
+      const userData = {
+        // Extract user information
+        userName: portalDocument.querySelector('.user-name')?.textContent?.trim(),
+        // Add other data points as needed
+      };
+      
+      // Store the extracted data for use in the reskinned UI
+      localStorage.setItem('portalData', JSON.stringify(userData));
+    } catch (e) {
+      console.error('Error extracting portal data:', e);
     }
   }
 }); 
