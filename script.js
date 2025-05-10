@@ -14,9 +14,12 @@ const solidHexInput = document.querySelector('#solidPicker #hex-input');
 const solidRgbInput = document.querySelector('#solidPicker #rgb-input');
 const solidPresetsContainer = document.getElementById('solidPresets');
 
-// Gradient Related Elements (will be handled later)
+// Gradient Related Elements
 const gradientPreview = document.querySelector('.gradient-preview');
 const gradientStopsPortal = document.getElementById('gradientStopsPortal');
+const gradientStopsContainer = document.createElement('div');
+gradientStopsContainer.className = 'gradient-stops';
+gradientStopsPortal.appendChild(gradientStopsContainer);
 const addStopBtn = document.getElementById('add-stop');
 const removeStopBtn = document.getElementById('remove-stop');
 const angleInput = document.querySelector('.gradient-angle');
@@ -38,7 +41,7 @@ let currentTab = 'solid'; // Default to solid tab
 let isSolidDragging = false;
 let solidDragType = null; // 'color' or 'hue'
 
-// Gradient state (to be properly initialized later)
+// Gradient state
 let gradientStopsData = [
   { position: 0, color: '#3d3393' },
   { position: 33, color: '#2b76b9' },
@@ -47,7 +50,12 @@ let gradientStopsData = [
 ];
 let activeStopIndex = 0;
 let gradientAngle = 90;
-
+let isGradientDragging = false;
+let gradientDragType = null; // 'color', 'hue', 'stop'
+let draggingStopElement = null;
+let currentGradientHue = 200;
+let currentGradientSaturation = 80;
+let currentGradientValue = 70;
 
 // =======================================
 // Color conversion utilities (KEEPING THESE)
@@ -231,13 +239,22 @@ if (solidHueSlider) {
 }
 
 document.addEventListener('pointermove', (e) => {
-  if (!isSolidDragging) return;
-  // Prevent default browser drag behavior if needed
-  // e.preventDefault(); 
-  if (solidDragType === 'color') {
-    handleSolidColorAreaInteraction(e);
-  } else if (solidDragType === 'hue') {
-    handleSolidHueSliderInteraction(e);
+  if (!isGradientDragging && !isSolidDragging) return;
+  
+  if (isSolidDragging) {
+    if (solidDragType === 'color') {
+      handleSolidColorAreaInteraction(e);
+    } else if (solidDragType === 'hue') {
+      handleSolidHueSliderInteraction(e);
+    }
+  } else if (isGradientDragging) {
+    if (gradientDragType === 'color') {
+      handleGradientColorAreaInteraction(e);
+    } else if (gradientDragType === 'hue') {
+      handleGradientHueSliderInteraction(e);
+    } else if (gradientDragType === 'stop') {
+      moveGradientStop(e);
+    }
   }
 });
 
@@ -250,6 +267,19 @@ document.addEventListener('pointerup', (e) => {
     }
     isSolidDragging = false;
     solidDragType = null;
+  }
+  
+  if (isGradientDragging) {
+    if (gradientColorArea && gradientColorArea.hasPointerCapture(e.pointerId)) {
+      gradientColorArea.releasePointerCapture(e.pointerId);
+    } else if (gradientHueSlider && gradientHueSlider.hasPointerCapture(e.pointerId)) {
+      gradientHueSlider.releasePointerCapture(e.pointerId);
+    } else if (draggingStopElement && draggingStopElement.hasPointerCapture(e.pointerId)) {
+      draggingStopElement.releasePointerCapture(e.pointerId);
+    }
+    isGradientDragging = false;
+    gradientDragType = null;
+    draggingStopElement = null;
   }
 });
 
@@ -354,11 +384,10 @@ function loadSolidPresets() {
   container.className = 'presets-container';
 
   const header = document.createElement('div');
-  header.className = 'presets-header expanded'; // Expanded by default
+  header.className = 'presets-header';
   header.setAttribute('role', 'button');
   header.setAttribute('aria-expanded', 'true');
   header.setAttribute('tabindex', '0');
-
 
   const titleEl = document.createElement('h4');
   titleEl.className = 'presets-title';
@@ -371,7 +400,7 @@ function loadSolidPresets() {
   header.appendChild(toggle);
 
   const grid = document.createElement('div');
-  grid.className = 'presets-grid expanded'; // Expanded by default
+  grid.className = 'presets-grid';
 
   solidColorPresets.forEach(preset => {
     grid.appendChild(createSolidPresetItem(preset.name, preset.color));
@@ -379,9 +408,12 @@ function loadSolidPresets() {
 
   const toggleExpansion = () => {
     const isExpanded = header.classList.toggle('expanded');
-    grid.classList.toggle('expanded', isExpanded);
+    grid.classList.toggle('collapsed', !isExpanded);
     header.setAttribute('aria-expanded', isExpanded.toString());
   };
+
+  // Initial state - expanded
+  header.classList.add('expanded');
 
   header.addEventListener('click', toggleExpansion);
   header.addEventListener('keydown', (e) => {
@@ -391,12 +423,547 @@ function loadSolidPresets() {
     }
   });
 
-
   container.appendChild(header);
   container.appendChild(grid);
   solidPresetsContainer.appendChild(container);
 }
 
+// =======================================
+// NEW GRADIENT SYSTEM
+// =======================================
+
+// Gradient presets
+const gradientPresets = [
+  { name: "Midnight Bloom", colors: ['#3d3393', '#2b76b9', '#2cacd1', '#35eb93'] },
+  { name: "Warm Flame", colors: ['#ff9a9e', '#fad0c4'] },
+  { name: "Sunny Morning", colors: ['#f6d365', '#fda085'] },
+  { name: "Deep Blue", colors: ['#6a11cb', '#2575fc'] },
+  { name: "Desert Sunset", colors: ['#eb3349', '#f45c43'] },
+  { name: "Rainbow", colors: ['#ff0000', '#ff9a00', '#d0de21', '#4fdc4a', '#3fdad8', '#2fc9e2', '#1c7fee', '#5f15f2', '#ba0cf8', '#fb07d9'] },
+  { name: "Rose Water", colors: ['#e55d87', '#5fc3e4'] },
+  { name: "Ocean View", colors: ['#3494e6', '#ec6ead'] }
+];
+
+function createGradientPresetItem(name, colors) {
+  const presetItem = document.createElement('div');
+  presetItem.className = 'preset-item';
+  presetItem.setAttribute('role', 'button');
+  presetItem.setAttribute('tabindex', '0');
+  presetItem.setAttribute('aria-label', `Gradient Preset: ${name}`);
+
+  const presetPreview = document.createElement('div');
+  presetPreview.className = 'preset-preview';
+  
+  // Generate CSS gradient from colors
+  let gradientCSS = `linear-gradient(90deg`;
+  if (colors.length === 2) {
+    gradientCSS += `, ${colors[0]} 0%, ${colors[1]} 100%`;
+  } else {
+    const step = 100 / (colors.length - 1);
+    colors.forEach((color, index) => {
+      gradientCSS += `, ${color} ${Math.round(index * step)}%`;
+    });
+  }
+  gradientCSS += ')';
+  
+  presetPreview.style.background = gradientCSS;
+
+  const presetLabel = document.createElement('div');
+  presetLabel.className = 'preset-label';
+  presetLabel.textContent = name;
+
+  presetItem.appendChild(presetPreview);
+  presetItem.appendChild(presetLabel);
+
+  const applyPreset = () => {
+    // Convert preset to gradient stops
+    gradientStopsData = [];
+    const step = 100 / (colors.length - 1);
+    colors.forEach((color, index) => {
+      gradientStopsData.push({
+        position: Math.round(index * step),
+        color: color
+      });
+    });
+    
+    // Update active stop to first one
+    activeStopIndex = 0;
+    
+    // Update UI
+    renderGradientStops();
+    updateGradientPreview();
+    updateGradientColorPicker();
+  };
+
+  presetItem.addEventListener('click', applyPreset);
+  presetItem.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      applyPreset();
+    }
+  });
+  
+  return presetItem;
+}
+
+function loadGradientPresets() {
+  if (!gradientPresetsContainer) return;
+  gradientPresetsContainer.innerHTML = ''; // Clear existing
+
+  const container = document.createElement('div');
+  container.className = 'presets-container';
+
+  const header = document.createElement('div');
+  header.className = 'presets-header';
+  header.setAttribute('role', 'button');
+  header.setAttribute('aria-expanded', 'true');
+  header.setAttribute('tabindex', '0');
+
+  const titleEl = document.createElement('h4');
+  titleEl.className = 'presets-title';
+  titleEl.textContent = 'Gradient Presets';
+
+  const toggle = document.createElement('span');
+  toggle.className = 'presets-toggle';
+
+  header.appendChild(titleEl);
+  header.appendChild(toggle);
+
+  const grid = document.createElement('div');
+  grid.className = 'presets-grid';
+
+  gradientPresets.forEach(preset => {
+    grid.appendChild(createGradientPresetItem(preset.name, preset.colors));
+  });
+
+  const toggleExpansion = () => {
+    const isExpanded = header.classList.toggle('expanded');
+    grid.classList.toggle('collapsed', !isExpanded);
+    header.setAttribute('aria-expanded', isExpanded.toString());
+  };
+
+  // Initial state - expanded
+  header.classList.add('expanded');
+
+  header.addEventListener('click', toggleExpansion);
+  header.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleExpansion();
+    }
+  });
+
+  container.appendChild(header);
+  container.appendChild(grid);
+  gradientPresetsContainer.appendChild(container);
+}
+
+// Gradient Stops Management
+function renderGradientStops() {
+  if (!gradientStopsContainer || !gradientPreview) return;
+  
+  gradientStopsContainer.innerHTML = '';
+  const previewRect = gradientPreview.getBoundingClientRect();
+  
+  // Set the gradient stops container position and dimensions to match the preview
+  gradientStopsContainer.style.top = `${previewRect.top}px`;
+  gradientStopsContainer.style.left = `${previewRect.left}px`;
+  gradientStopsContainer.style.width = `${previewRect.width}px`;
+  
+  gradientStopsData.forEach((stop, index) => {
+    const stopElement = document.createElement('div');
+    stopElement.className = 'gradient-stop';
+    stopElement.style.color = stop.color;
+    stopElement.style.left = `${stop.position}%`;
+    stopElement.style.top = '50%';
+    
+    if (index === activeStopIndex) {
+      stopElement.classList.add('active');
+    }
+    
+    // Store index in dataset for easy access
+    stopElement.dataset.index = index;
+    
+    // Add event listeners for drag operations
+    stopElement.addEventListener('pointerdown', handleGradientStopPointerDown);
+    
+    gradientStopsContainer.appendChild(stopElement);
+  });
+  
+  // Update remove button state
+  if (removeStopBtn) {
+    removeStopBtn.disabled = gradientStopsData.length <= 2;
+  }
+}
+
+function handleGradientStopPointerDown(e) {
+  if (e.button !== 0) return; // Only left mouse button
+  
+  isGradientDragging = true;
+  gradientDragType = 'stop';
+  draggingStopElement = e.target;
+  
+  // Set pointer capture to the stop element
+  draggingStopElement.setPointerCapture(e.pointerId);
+  
+  // Update active stop
+  const index = parseInt(draggingStopElement.dataset.index, 10);
+  setActiveGradientStop(index);
+  
+  // Prevent default to avoid issues
+  e.preventDefault();
+}
+
+function setActiveGradientStop(index) {
+  if (index < 0 || index >= gradientStopsData.length) return;
+  
+  activeStopIndex = index;
+  
+  // Update active class on stop elements
+  const stopElements = gradientStopsContainer.querySelectorAll('.gradient-stop');
+  stopElements.forEach((el, i) => {
+    el.classList.toggle('active', i === activeStopIndex);
+  });
+  
+  // Update color picker with active stop color
+  updateGradientColorPicker();
+}
+
+function moveGradientStop(e) {
+  if (!isGradientDragging || gradientDragType !== 'stop' || !draggingStopElement) return;
+  
+  const previewRect = gradientPreview.getBoundingClientRect();
+  const containerRect = gradientStopsContainer.getBoundingClientRect();
+  
+  // Calculate position percentage
+  let x = e.clientX - containerRect.left;
+  let posPercent = (x / containerRect.width) * 100;
+  posPercent = Math.max(0, Math.min(100, posPercent));
+  
+  // Get the current stop index
+  const index = parseInt(draggingStopElement.dataset.index, 10);
+  
+  // Update the stop position in the data
+  gradientStopsData[index].position = posPercent;
+  
+  // Sort stops by position (this allows crossing over)
+  gradientStopsData.sort((a, b) => a.position - b.position);
+  
+  // Find the new index of our stop after sorting
+  const newIndex = gradientStopsData.findIndex(stop => 
+    Math.abs(stop.position - posPercent) < 0.01 && stop.color === gradientStopsData[index].color
+  );
+  
+  activeStopIndex = newIndex; // Update active index to track the dragged stop
+  
+  // Re-render all stops to reflect new order
+  renderGradientStops();
+  updateGradientPreview();
+}
+
+function handleGradientColorAreaInteraction(e) {
+  if (!gradientColorArea) return;
+  const rect = gradientColorArea.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return; // Avoid division by zero if not visible
+
+  let x = e.clientX - rect.left;
+  let y = e.clientY - rect.top;
+
+  currentGradientSaturation = Math.max(0, Math.min(100, (x / rect.width) * 100));
+  currentGradientValue = Math.max(0, Math.min(100, 100 - (y / rect.height) * 100));
+  
+  updateActiveGradientStop();
+}
+
+function handleGradientHueSliderInteraction(e) {
+  if (!gradientHueSlider) return;
+  const rect = gradientHueSlider.getBoundingClientRect();
+  if (rect.width === 0) return; // Avoid division by zero if not visible
+
+  let x = e.clientX - rect.left;
+  currentGradientHue = Math.max(0, Math.min(359.99, (x / rect.width) * 360)); // Max 359.99 to avoid jump to 0
+  
+  updateActiveGradientStop();
+}
+
+function updateActiveGradientStop() {
+  if (activeStopIndex < 0 || activeStopIndex >= gradientStopsData.length) return;
+  
+  // Convert current HSV to RGB and HEX
+  const rgb = hsvToRgb(currentGradientHue, currentGradientSaturation, currentGradientValue);
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  
+  // Update the active stop color
+  gradientStopsData[activeStopIndex].color = hex;
+  
+  // Update UI
+  updateGradientColorPicker();
+  renderGradientStops();
+  updateGradientPreview();
+}
+
+function updateGradientColorPicker() {
+  if (!gradientColorArea || !gradientHueSlider || !gradientColorAreaThumb || !gradientHueThumb || 
+      !gradientHexInput || !gradientRgbInput || activeStopIndex < 0 || activeStopIndex >= gradientStopsData.length) {
+    return;
+  }
+  
+  // Get active stop color
+  const stopColor = gradientStopsData[activeStopIndex].color;
+  const rgb = hexToRgb(stopColor);
+  
+  if (!rgb) return;
+  
+  // Convert to HSV
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+  currentGradientHue = hsv.h;
+  currentGradientSaturation = hsv.s;
+  currentGradientValue = hsv.v;
+  
+  // Update color area background (pure hue)
+  const colorAreaInner = gradientColorArea.querySelector('.color-area-inner');
+  if (colorAreaInner) {
+    colorAreaInner.style.backgroundColor = `hsl(${currentGradientHue}, 100%, 50%)`;
+  }
+  
+  // Update thumb positions
+  const colorAreaRect = gradientColorArea.getBoundingClientRect();
+  const hueSliderRect = gradientHueSlider.getBoundingClientRect();
+  
+  if (colorAreaRect.width > 0 && colorAreaRect.height > 0) {
+    const saturationPos = (currentGradientSaturation / 100) * colorAreaRect.width;
+    const valuePos = ((100 - currentGradientValue) / 100) * colorAreaRect.height;
+    gradientColorAreaThumb.style.left = `${saturationPos}px`;
+    gradientColorAreaThumb.style.top = `${valuePos}px`;
+  }
+  gradientColorAreaThumb.style.backgroundColor = stopColor;
+  
+  if (hueSliderRect.width > 0) {
+    const huePos = (currentGradientHue / 360) * hueSliderRect.width;
+    gradientHueThumb.style.left = `${huePos}px`;
+  }
+  gradientHueThumb.style.backgroundColor = `hsl(${currentGradientHue}, 100%, 50%)`;
+  
+  // Update input fields
+  gradientHexInput.value = stopColor;
+  gradientRgbInput.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+}
+
+function updateGradientPreview() {
+  if (!gradientPreview) return;
+  
+  // Create CSS gradient string
+  let cssGradient = `linear-gradient(${gradientAngle}deg`;
+  
+  // Add each stop
+  gradientStopsData.forEach(stop => {
+    cssGradient += `, ${stop.color} ${stop.position}%`;
+  });
+  
+  cssGradient += ')';
+  
+  // Update CSS variables
+  document.documentElement.style.setProperty('--current-gradient', cssGradient);
+  
+  // If gradient tab is active, also update accent gradient
+  if (currentTab === 'gradient') {
+    document.documentElement.style.setProperty('--accent-gradient', cssGradient);
+  }
+}
+
+// Gradient Color Picker Event Listeners
+if (gradientColorArea) {
+  gradientColorArea.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    isGradientDragging = true;
+    gradientDragType = 'color';
+    gradientColorArea.setPointerCapture(e.pointerId);
+    handleGradientColorAreaInteraction(e);
+  });
+}
+
+if (gradientHueSlider) {
+  gradientHueSlider.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    isGradientDragging = true;
+    gradientDragType = 'hue';
+    gradientHueSlider.setPointerCapture(e.pointerId);
+    handleGradientHueSliderInteraction(e);
+  });
+}
+
+// Add gradient stop
+if (addStopBtn) {
+  addStopBtn.addEventListener('click', () => {
+    // Find a position between two existing stops or at the midpoint
+    let newPosition = 50; // Default middle
+    
+    if (gradientStopsData.length >= 2) {
+      // Find largest gap
+      let maxGap = 0;
+      let gapPosition = 0;
+      
+      for (let i = 0; i < gradientStopsData.length - 1; i++) {
+        const gap = gradientStopsData[i+1].position - gradientStopsData[i].position;
+        if (gap > maxGap) {
+          maxGap = gap;
+          gapPosition = gradientStopsData[i].position + gap/2;
+        }
+      }
+      
+      newPosition = gapPosition;
+    }
+    
+    // Create a blended color for the new stop
+    let newColor = '#ffffff'; // Default
+    
+    if (gradientStopsData.length >= 2) {
+      // Find stops on either side of new position
+      let lowerStop = null;
+      let upperStop = null;
+      
+      for (const stop of gradientStopsData) {
+        if (stop.position < newPosition) {
+          if (!lowerStop || stop.position > lowerStop.position) {
+            lowerStop = stop;
+          }
+        } else if (stop.position > newPosition) {
+          if (!upperStop || stop.position < upperStop.position) {
+            upperStop = stop;
+          }
+        }
+      }
+      
+      if (lowerStop && upperStop) {
+        // Blend colors
+        const lowerRgb = hexToRgb(lowerStop.color);
+        const upperRgb = hexToRgb(upperStop.color);
+        const totalDist = upperStop.position - lowerStop.position;
+        const ratio = (newPosition - lowerStop.position) / totalDist;
+        
+        const blendedRgb = {
+          r: Math.round(lowerRgb.r + (upperRgb.r - lowerRgb.r) * ratio),
+          g: Math.round(lowerRgb.g + (upperRgb.g - lowerRgb.g) * ratio),
+          b: Math.round(lowerRgb.b + (upperRgb.b - lowerRgb.b) * ratio)
+        };
+        
+        newColor = rgbToHex(blendedRgb.r, blendedRgb.g, blendedRgb.b);
+      } else if (lowerStop) {
+        newColor = lowerStop.color;
+      } else if (upperStop) {
+        newColor = upperStop.color;
+      }
+    }
+    
+    // Add new stop
+    gradientStopsData.push({
+      position: newPosition,
+      color: newColor
+    });
+    
+    // Sort by position
+    gradientStopsData.sort((a, b) => a.position - b.position);
+    
+    // Set as active
+    activeStopIndex = gradientStopsData.findIndex(stop => 
+      Math.abs(stop.position - newPosition) < 0.01 && stop.color === newColor
+    );
+    
+    // Update UI
+    renderGradientStops();
+    updateGradientPreview();
+    updateGradientColorPicker();
+  });
+}
+
+// Remove gradient stop
+if (removeStopBtn) {
+  removeStopBtn.addEventListener('click', () => {
+    if (gradientStopsData.length <= 2 || activeStopIndex < 0) return;
+    
+    // Remove the active stop
+    gradientStopsData.splice(activeStopIndex, 1);
+    
+    // Update active index
+    activeStopIndex = Math.min(activeStopIndex, gradientStopsData.length - 1);
+    
+    // Update UI
+    renderGradientStops();
+    updateGradientPreview();
+    updateGradientColorPicker();
+  });
+}
+
+// Gradient angle input
+if (angleInput) {
+  angleInput.addEventListener('change', () => {
+    const angle = parseInt(angleInput.value, 10);
+    if (!isNaN(angle)) {
+      gradientAngle = Math.max(0, Math.min(360, angle));
+      updateGradientPreview();
+    } else {
+      angleInput.value = gradientAngle; // Reset to current value
+    }
+  });
+}
+
+if (gradientHexInput) {
+  gradientHexInput.addEventListener('change', (e) => {
+    const hex = e.target.value.trim();
+    const rgb = hexToRgb(hex);
+    if (rgb && activeStopIndex >= 0 && activeStopIndex < gradientStopsData.length) {
+      gradientStopsData[activeStopIndex].color = hex;
+      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      currentGradientHue = hsv.h;
+      currentGradientSaturation = hsv.s;
+      currentGradientValue = hsv.v;
+      updateGradientColorPicker();
+      renderGradientStops();
+      updateGradientPreview();
+    } else {
+      updateGradientColorPicker(); // Reset to current if invalid
+    }
+  });
+}
+
+if (gradientRgbInput) {
+  gradientRgbInput.addEventListener('change', (e) => {
+    const parts = e.target.value.split(',');
+    if (parts.length === 3 && activeStopIndex >= 0 && activeStopIndex < gradientStopsData.length) {
+      const r = parseInt(parts[0].trim(), 10);
+      const g = parseInt(parts[1].trim(), 10);
+      const b = parseInt(parts[2].trim(), 10);
+      if (![r,g,b].some(isNaN) && [r,g,b].every(v => v >=0 && v <= 255)) {
+        const hex = rgbToHex(r, g, b);
+        gradientStopsData[activeStopIndex].color = hex;
+        const hsv = rgbToHsv(r, g, b);
+        currentGradientHue = hsv.h;
+        currentGradientSaturation = hsv.s;
+        currentGradientValue = hsv.v;
+        updateGradientColorPicker();
+        renderGradientStops();
+        updateGradientPreview();
+        return;
+      }
+    }
+    // If input is invalid, reset to current color
+    updateGradientColorPicker();
+  });
+}
+
+// Sync gradient stops position when window resizes
+window.addEventListener('resize', () => {
+  if (currentTab === 'gradient') {
+    renderGradientStops();
+  }
+});
+
+// Update gradient stops when modal is shown
+const updateGradientStopsPosition = () => {
+  if (currentTab === 'gradient' && settingsPopup.classList.contains('active')) {
+    renderGradientStops();
+  }
+};
 
 // =======================================
 // Settings Popup & Tab Switching (ADAPTED)
@@ -412,12 +979,18 @@ if (settingsBtn && settingsPopup) {
         if (currentTab === 'solid') {
           updateSolidColorPickerUI(); // Ensure it's up-to-date when opening
         } else if (currentTab === 'gradient') {
-          // TODO: Initialize gradient picker when it's rebuilt
-           console.log("Gradient tab active on popup open - needs re-init logic");
-           // For now, ensure gradient editor is visible if it's the active tab
-           if (gradientEditor) gradientEditor.classList.add('active');
-           if (solidPicker) solidPicker.classList.add('hidden');
+          // Initialize gradient picker when opened
+          renderGradientStops();
+          updateGradientPreview();
+          updateGradientColorPicker();
+          
+          // For now, ensure gradient editor is visible if it's the active tab
+          if (gradientEditor) gradientEditor.classList.add('active');
+          if (solidPicker) solidPicker.classList.add('hidden');
         }
+        
+        // Set a small timeout to ensure DOM is updated before positioning stops
+        setTimeout(updateGradientStopsPosition, 10);
       }
     });
 }
@@ -453,42 +1026,34 @@ if (tabSwitcher) {
       if (targetTab === 'solid') {
         if (solidPicker) {
             solidPicker.classList.remove('hidden');
-            // Force reflow for transition
-            // solidPicker.offsetHeight;
             solidPicker.style.opacity = '1';
             solidPicker.style.pointerEvents = 'auto';
-            // solidPicker.style.transform = 'translateY(0)';
         }
         if (gradientEditor) {
             gradientEditor.classList.remove('active');
             gradientEditor.style.opacity = '0';
             gradientEditor.style.pointerEvents = 'none';
-            // gradientEditor.style.transform = 'translateY(10px)';
         }
         updateSolidColorPickerUI(); // Update solid picker UI and page colors
       } else { // Gradient tab
         if (gradientEditor) {
             gradientEditor.classList.add('active');
-             // Force reflow for transition
-            // gradientEditor.offsetHeight;
             gradientEditor.style.opacity = '1';
             gradientEditor.style.pointerEvents = 'auto';
-            // gradientEditor.style.transform = 'translateY(0)';
         }
         if (solidPicker) {
             solidPicker.classList.add('hidden');
             solidPicker.style.opacity = '0';
             solidPicker.style.pointerEvents = 'none';
-            // solidPicker.style.transform = 'translateY(10px)';
         }
         
-        // TODO: Initialize/update gradient picker when it's rebuilt
-        // This part will need to be updated when gradient logic is in place.
-        // In tabSwitcher event listener, for targetTab === 'gradient':
-        const tempGradientCSS = `linear-gradient(${gradientAngle}deg, ${gradientStopsData.map(s => `${s.color} ${s.position}%`).join(', ')})`;
-        document.documentElement.style.setProperty('--current-gradient', tempGradientCSS);
-        document.documentElement.style.setProperty('--accent-gradient', tempGradientCSS); // Also updates the main page accent        // Also, if you have a color picker for gradient stops, it should be updated here.
-        console.log("Switched to Gradient tab - needs full update logic for its color picker and stops.");
+        // Update gradient UI
+        renderGradientStops();
+        updateGradientPreview();
+        updateGradientColorPicker();
+        
+        // Set a small timeout to ensure DOM is updated before positioning stops
+        setTimeout(updateGradientStopsPosition, 10);
       }
     }
   });
@@ -498,32 +1063,38 @@ if (tabSwitcher) {
 // Initialization
 // =======================================
 document.addEventListener('DOMContentLoaded', () => {
-  if (solidPicker) { // Ensure solid picker exists
+  // Initialize solid picker
+  if (solidPicker) {
     updateSolidColorPickerUI();
   }
-  if (solidPresetsContainer) { // Ensure preset container exists
+  if (solidPresetsContainer) {
     loadSolidPresets();
   }
-
-  // Set initial tab state correctly (solid picker visible, gradient hidden)
+  
+  // Initialize gradient picker
+  if (gradientPresetsContainer) {
+    loadGradientPresets();
+  }
+  
+  // Set initial tab state correctly
   if (solidPicker) {
     solidPicker.classList.remove('hidden');
     solidPicker.style.opacity = '1';
     solidPicker.style.pointerEvents = 'auto';
   }
   if (gradientEditor) {
-      gradientEditor.classList.remove('active');
-      gradientEditor.style.opacity = '0';
-      gradientEditor.style.pointerEvents = 'none';
+    gradientEditor.classList.remove('active');
+    gradientEditor.style.opacity = '0';
+    gradientEditor.style.pointerEvents = 'none';
   }
   
   const activeTabOption = tabSwitcher ? tabSwitcher.querySelector(`.tab-option[data-tab="${currentTab}"]`) : null;
   const indicator = tabSwitcher ? tabSwitcher.querySelector('.tab-indicator') : null;
 
   document.querySelectorAll('.tab-option').forEach(tab => {
-      const isActuallyActive = tab.dataset.tab === currentTab;
-      tab.classList.toggle('active', isActuallyActive);
-      tab.setAttribute('aria-selected', isActuallyActive.toString());
+    const isActuallyActive = tab.dataset.tab === currentTab;
+    tab.classList.toggle('active', isActuallyActive);
+    tab.setAttribute('aria-selected', isActuallyActive.toString());
   });
 
   if (indicator) {
