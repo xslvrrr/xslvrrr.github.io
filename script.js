@@ -575,6 +575,19 @@ tabSwitcher.addEventListener('click', (e) => {
         // Make sure gradient is properly initialized and portal is positioned
         updateGradientPreview();
         setTimeout(positionGradientStopsPortal, 50);
+
+        // UX Improvement: Set gradient color picker to active stop
+        if (activeStopIndex !== null && activeStopIndex >= 0 && activeStopIndex < gradientStopsData.length) {
+          const stopData = gradientStopsData[activeStopIndex];
+          const rgb = hexToRgb(stopData.color);
+          if (rgb) {
+            const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+            currentHue = hsv.h;
+            currentSaturation = hsv.s;
+            currentValue = hsv.v;
+            updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
+          }
+        }
       }, 150);
     }
     
@@ -587,32 +600,16 @@ tabSwitcher.addEventListener('click', (e) => {
 });
 
 // Color area events (solid)
-colorArea.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  dragType = 'color';
-  handleColorAreaInteraction(e, false);
-});
+// REMOVED: colorArea.addEventListener('mousedown', (e) => { ... });
 
 // Color area events (gradient)
-colorAreaGradient.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  dragType = 'color';
-  handleColorAreaInteraction(e, true);
-});
+// REMOVED: colorAreaGradient.addEventListener('mousedown', (e) => { ... });
 
 // Hue slider events (solid)
-hueSlider.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  dragType = 'hue';
-  handleHueSliderInteraction(e, false);
-});
+// REMOVED: hueSlider.addEventListener('mousedown', (e) => { ... });
 
 // Hue slider events (gradient)
-hueSliderGradient.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  dragType = 'hue';
-  handleHueSliderInteraction(e, true);
-});
+// REMOVED: hueSliderGradient.addEventListener('mousedown', (e) => { ... });
 
 // Handle mousemove for all dragging interactions
 document.addEventListener('mousemove', (e) => {
@@ -635,135 +632,13 @@ document.addEventListener('mouseup', () => {
 });
 
 // Handle hex input changes (solid)
-hexInput.addEventListener('change', (e) => {
-  const hex = e.target.value.trim();
-  const rgb = hexToRgb(hex);
-  
-  if (rgb) {
-    const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
-    currentHue = hsv.h;
-    currentSaturation = hsv.s;
-    currentValue = hsv.v;
-    updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
-  }
-});
-
-// Handle rgb input changes (solid)
-rgbInput.addEventListener('change', (e) => {
-  const rgbValues = e.target.value.split(',').map(v => parseInt(v.trim(), 10));
-  
-  if (rgbValues.length === 3 && !rgbValues.some(isNaN)) {
-    const [r, g, b] = rgbValues;
-    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
-      const hsv = rgbToHsv(r, g, b);
-      currentHue = hsv.h;
-      currentSaturation = hsv.s;
-      currentValue = hsv.v;
-      updateColorPickerUI(currentHue, currentSaturation, currentValue, false);
-    }
-  }
-});
-
-// Handle hex input changes (gradient)
-hexInputGradient.addEventListener('change', (e) => {
-  const hex = e.target.value.trim();
-  const rgb = hexToRgb(hex);
-  
-  if (rgb && activeStopIndex >= 0) {
-    const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
-    currentHue = hsv.h;
-    currentSaturation = hsv.s;
-    currentValue = hsv.v;
-    updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
-  }
-});
-
-// Handle rgb input changes (gradient)
-rgbInputGradient.addEventListener('change', (e) => {
-  const rgbValues = e.target.value.split(',').map(v => parseInt(v.trim(), 10));
-  
-  if (rgbValues.length === 3 && !rgbValues.some(isNaN) && activeStopIndex >= 0) {
-    const [r, g, b] = rgbValues;
-    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
-      const hsv = rgbToHsv(r, g, b);
-      currentHue = hsv.h;
-      currentSaturation = hsv.s;
-      currentValue = hsv.v;
-      updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
-    }
-  }
-});
-
-// Angle input for gradient
-if (angleInput) {
-  angleInput.addEventListener('input', () => {
-    updateGradientPreview();
-  });
-}
-
-// Add gradient stop
-addStopBtn.addEventListener('click', () => {
-  if (gradientStopsData.length >= 5) return; // Limit to 5 stops
-  
-  // Find largest gap
-  let maxGap = 0;
-  let gapPosition = 50;
-  let gapIndex = 0;
-  
-  for (let i = 0; i < gradientStopsData.length - 1; i++) {
-    const gap = gradientStopsData[i + 1].position - gradientStopsData[i].position;
-    if (gap > maxGap) {
-      maxGap = gap;
-      gapPosition = gradientStopsData[i].position + gap / 2;
-      gapIndex = i + 1;
-    }
-  }
-  
-  // Create a new stop
-  const newStop = {
-    position: gapPosition,
-    color: '#ffffff' // Default white, will be interpolated
-  };
-  
-  // Interpolate color between adjacent stops
-  if (gapIndex > 0 && gapIndex < gradientStopsData.length) {
-    const prevStop = gradientStopsData[gapIndex - 1];
-    const nextStop = gradientStopsData[gapIndex];
-    
-    // Calculate ratio
-    const ratio = (gapPosition - prevStop.position) / (nextStop.position - prevStop.position);
-    
-    // Interpolate RGB values
-    const prevRgb = hexToRgb(prevStop.color);
-    const nextRgb = hexToRgb(nextStop.color);
-    
-    const r = Math.round(prevRgb.r + ratio * (nextRgb.r - prevRgb.r));
-    const g = Math.round(prevRgb.g + ratio * (nextRgb.g - prevRgb.g));
-    const b = Math.round(prevRgb.b + ratio * (nextRgb.b - prevRgb.b));
-    
-    newStop.color = rgbToHex(r, g, b);
-  }
-  
-  // Add new stop
-  gradientStopsData.splice(gapIndex, 0, newStop);
-  
-  // Update active stop to the new one
-  activeStopIndex = gapIndex;
-  
-  // Update UI
-  updateGradientPreview();
-  
-  // Update color picker UI with the new stop's color
-  const rgb = hexToRgb(newStop.color);
-  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
-  currentHue = hsv.h;
-  currentSaturation = hsv.s;
-  currentValue = hsv.v;
-  updateColorPickerUI(currentHue, currentSaturation, currentValue, true);
-});
-
-// Remove gradient stop
-removeStopBtn.addEventListener('click', removeGradientStop);
+// Removed hexInput.addEventListener('change', ...)
+// Removed rgbInput.addEventListener('change', ...)
+// Removed hexInputGradient.addEventListener('change', ...)
+// Removed rgbInputGradient.addEventListener('change', ...)
+// Removed angleInput.addEventListener('input', ...)
+// Removed addStopBtn.addEventListener('click', ...) [long inline function]
+// Removed removeStopBtn.addEventListener('click', removeGradientStop);
 
 // Gradient stops interaction
 gradientStops.addEventListener('mousedown', (e) => {
@@ -1078,83 +953,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initial setup for color picker
   updateColorPicker();
   
-  // Setup tab switching
-  setupTabSwitching();
-  
-  // Setup settings button
-  setupSettingsButton();
-  
   // Create presets
   createPresets();
   
   // Setup event listeners
   setupEventListeners();
 });
-
-// Setup tab switching
-function setupTabSwitching() {
-  const tabOptions = document.querySelectorAll('.tab-option');
-  const tabIndicator = document.querySelector('.tab-indicator');
-  const solidPicker = document.querySelector('.solid-picker');
-  const gradientEditor = document.querySelector('.gradient-editor');
-  
-  tabOptions.forEach(tab => {
-    tab.addEventListener('click', () => {
-      // Remove active class from all tabs
-      tabOptions.forEach(t => t.classList.remove('active'));
-      
-      // Add active class to clicked tab
-      tab.classList.add('active');
-      
-      // Update tab indicator
-      const tabType = tab.getAttribute('data-tab');
-      tabIndicator.setAttribute('data-tab', tabType);
-      
-      // Show the appropriate content
-      if (tabType === 'solid') {
-        solidPicker.classList.remove('hidden');
-        gradientEditor.classList.remove('active');
-      } else {
-        solidPicker.classList.add('hidden');
-        gradientEditor.classList.add('active');
-        // Update gradient preview when switching to gradient tab
-        updateGradientPreview();
-      }
-    });
-  });
-}
-
-// Setup settings button
-function setupSettingsButton() {
-  const settingsBtn = document.querySelector('.settings-btn');
-  const settingsPopup = document.querySelector('.settings-popup');
-  
-  // Initial setup - hide popup
-  if (settingsPopup) {
-    settingsPopup.style.display = 'none';
-  }
-  
-  // Toggle settings popup
-  if (settingsBtn && settingsPopup) {
-    settingsBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (settingsPopup.style.display === 'none') {
-        settingsPopup.style.display = 'block';
-      } else {
-        settingsPopup.style.display = 'none';
-      }
-    });
-    
-    // Close settings popup when clicking outside
-    document.addEventListener('click', (e) => {
-      if (settingsPopup.style.display === 'block' && 
-          !settingsPopup.contains(e.target) && 
-          e.target !== settingsBtn) {
-        settingsPopup.style.display = 'none';
-      }
-    });
-  }
-}
 
 // Setup all event listeners
 function setupEventListeners() {
