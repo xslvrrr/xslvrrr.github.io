@@ -296,31 +296,31 @@ document.addEventListener('DOMContentLoaded', function() {
       loginState.timeSinceSubmit = currentTime - startTime;
       
       try {
-        // If we can still access the iframe document, check for error messages
         const doc = iframe.contentDocument || iframe.contentWindow.document;
         
-        // Check for direct error messages on the login page
         if (doc.body && doc.body.innerHTML) {
-          if (doc.body.innerHTML.includes('invalid') || 
-              doc.body.innerHTML.includes('incorrect') ||
-              doc.body.innerHTML.toLowerCase().includes('sorry, that email') ||
-              doc.body.innerHTML.toLowerCase().includes('email/username/password')) {
+          // Enhanced error message detection
+          const errorMessages = [
+            'invalid', 'incorrect', 'sorry, that email',
+            'email/username/password', 'access denied', 'login failed'
+          ];
+          if (errorMessages.some(msg => doc.body.innerHTML.toLowerCase().includes(msg))) {
             console.log('Found error message in iframe');
             loginState.accessDenied = true;
             return false; // Login failed
           }
           
-          // Check for success indicators
-          if (doc.body.innerHTML.includes('Welcome to Millennium') ||
-              doc.body.innerHTML.includes('Student Portal') ||
-              doc.body.innerHTML.includes('Parent Portal')) {
+          // Enhanced success indicators
+          const successIndicators = [
+            'Welcome to Millennium', 'Student Portal', 'Parent Portal',
+            'Dashboard', 'Account Overview'
+          ];
+          if (successIndicators.some(indicator => doc.body.innerHTML.includes(indicator))) {
             console.log('Found success message in iframe');
             return true; // Login successful
           }
         }
         
-        // If we got redirected to a different page with no errors,
-        // it might be a success
         const currentUrl = iframe.contentWindow.location.href;
         if (currentUrl && !currentUrl.includes('login.asp')) {
           loginState.redirectOccurred = true;
@@ -328,24 +328,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
       } catch (e) {
-        // Security exception means we can't access the iframe content anymore
-        // This usually happens after a redirect to a different domain or path
         loginState.redirectOccurred = true;
         console.log('Security exception accessing iframe, possible redirect occurred');
         
-        // If this happens after a short time (>1s), it's most likely a successful login
         if (loginState.timeSinceSubmit > 1000) {
           return true; // Likely successful
         }
       }
       
-      // If we've waited more than 5 seconds without an error message,
-      // it's probably successful (millennium usually shows errors quickly)
       if (loginState.timeSinceSubmit > 5000 && !loginState.accessDenied) {
         return true;
       }
       
-      // If we can't determine yet, return null
       return null;
     }
     
