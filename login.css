@@ -430,6 +430,12 @@
   color: #ff5a6a;
 }
 
+.notification.unexpected {
+  background-color: rgba(75, 75, 75, 0.15);
+  border: 1px solid rgba(75, 75, 75, 0.3);
+  color: #a6a6a6;
+}
+
 .notification-icon {
   width: 24px;
   height: 24px;
