@@ -232,16 +232,28 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {Object} data - Login credentials (username, password, school)
    */
   function submitLoginToMillennium(data) {
+    // Validate input data first
+    if (!data.username || !data.password || !data.school) {
+      showUnexpectedResult('All login fields must be filled in. Please try again.');
+      return;
+    }
+
     // Show loading animation
     if (!document.querySelector('.loading-dots')) {
       completion.insertBefore(loadingDots, completion.querySelector('.question-buttons'));
     }
     
+    // Create a hidden iframe to handle the login
+    const iframe = document.createElement('iframe');
+    iframe.name = 'loginFrame';
+    iframe.style.cssText = 'display:none; width:0; height:0; position:absolute;';
+    document.body.appendChild(iframe);
+    
     // Create a form to submit
     const form = document.createElement('form');
     form.action = 'https://millennium.education/login.asp';
     form.method = 'post';
-    form.target = '_blank'; // Will open in new tab but we'll intercept this
+    form.target = 'loginFrame';
     form.style.display = 'none';
     
     // Add form fields
@@ -263,224 +275,114 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.body.appendChild(form);
     
-    // Use XMLHttpRequest instead of iframe
-    const xhr = new XMLHttpRequest();
+    // Track login verification state
+    let loginState = {
+      started: false,
+      finished: false,
+      result: null,
+      initialLoadTime: null,
+      secondLoadTime: null
+    };
     
-    // Function to check login
-    function checkLogin() {
-      const checkXhr = new XMLHttpRequest();
-      
-      // Instead of checking the actual portal page (which we can't due to CORS),
-      // we'll check if we're still on the login page or got redirected
-      checkXhr.open('GET', 'https://millennium.education/login.asp', true);
-      checkXhr.withCredentials = true; // Send cookies
-      
-      checkXhr.onload = function() {
-        // If we find the error message, login failed
-        if (checkXhr.responseText.includes('Sorry, that Email/Username/Password/School is invalid')) {
-          updateCompletionStatus(false, 'Login failed. Please check your credentials and try again.');
-        } 
-        // If we don't find the login form, it likely means we're logged in
-        else if (!checkXhr.responseText.includes('<form action="login.asp" method="post">')) {
-          updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
-        }
-        // We're still on login page but no error message, could be another issue
-        else {
-          showUnexpectedResult('Login verification yielded unexpected results. Please try again.');
-        }
-      };
-      
-      checkXhr.onerror = function() {
-        // Network error occurred, likely a CORS issue
-        showUnexpectedResult('Could not verify login due to network restrictions.');
-      };
-      
-      checkXhr.send();
-    }
+    // Use a simpler detection approach - track iframe navigations
+    let loadCount = 0;
+    let firstUrl = null;
     
-    // Instead of standard form submission, use fetch API with credentials
-    fetch('https://millennium.education/login.asp', {
-      method: 'POST',
-      credentials: 'include',
-      body: new FormData(form),
-      mode: 'no-cors' // This allows the request but makes response unreadable
-    })
-    .then(() => {
-      // We need a slight delay to allow the server to process our login attempt
-      setTimeout(checkLogin, 1500);
-    })
-    .catch(error => {
-      console.error('Login error:', error);
-      // If fetch fails, try a different approach with form submission
-      fallbackFormSubmission(form, data);
-    });
-    
-    // Remove form after submission
-    setTimeout(() => {
-      if (document.body.contains(form)) {
-        document.body.removeChild(form);
-      }
-    }, 1000);
-  }
-  
-  /**
-   * Fallback method for login verification when fetch fails
-   * @param {HTMLFormElement} form - The form to submit
-   * @param {Object} data - The login data
-   */
-  function fallbackFormSubmission(form, data) {
-    // Create a hidden iframe
-    const iframe = document.createElement('iframe');
-    iframe.name = 'loginFrame';
-    iframe.style.cssText = 'display:none; width:0; height:0; position:absolute;';
-    document.body.appendChild(iframe);
-    
-    // Set the form to target our iframe
-    form.target = 'loginFrame';
-    
-    // Track when the iframe loads
     iframe.onload = function() {
-      try {
-        // This will likely fail due to CORS
-        const currentUrl = iframe.contentWindow.location.href;
-        const successUrlPattern = /millennium\.education\/portal\/\?\d{6}/;
+      loadCount++;
+      
+      // First load is the form being submitted
+      if (loadCount === 1) {
+        loginState.started = true;
+        loginState.initialLoadTime = new Date().getTime();
         
-        if (successUrlPattern.test(currentUrl)) {
+        try {
+          // Try to capture the URL, might fail due to CORS
+          firstUrl = iframe.contentWindow.location.href;
+        } catch (e) {
+          // CORS error is expected
+          console.log('CORS restriction on first load');
+        }
+        
+        // Set a timeout to check for navigation (redirect = success, no redirect = failure)
+        setTimeout(function() {
+          // If we still haven't determined the result after 3 seconds,
+          // check if we had a second load event (redirect)
+          if (!loginState.finished) {
+            if (loadCount > 1) {
+              // We had a redirect, likely successful
+              updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
+            } else {
+              // No redirect within 3 seconds, likely a failure
+              updateCompletionStatus(false, 'Login failed. Please check your credentials and try again.');
+            }
+            loginState.finished = true;
+          }
+        }, 3000);
+      } 
+      // Second load would be the redirect after successful login
+      else if (loadCount === 2) {
+        loginState.secondLoadTime = new Date().getTime();
+        const timeDiff = loginState.secondLoadTime - loginState.initialLoadTime;
+        
+        // If we redirected quickly, it's a successful login
+        if (timeDiff < 2000) {
           updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
-          return;
-        }
-        
-        // Try to check the document content
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        if (doc && doc.body) {
-          if (doc.body.innerHTML.includes("Welcome to Millennium Student & Parent Portal")) {
+        } else {
+          // Try to check the URL pattern for confirmation
+          try {
+            const currentUrl = iframe.contentWindow.location.href;
+            const successUrlPattern = /millennium\.education\/portal\/\?\d{6}/;
+            
+            if (successUrlPattern.test(currentUrl)) {
+              updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
+            } else {
+              // It could be a redirect to an error page
+              updateCompletionStatus(false, 'Login failed. Please check your credentials and try again.');
+            }
+          } catch (e) {
+            // Can't access URL due to CORS, but redirect happened
+            // Millennium redirects to portal page on success, so this is likely success
             updateCompletionStatus(true, 'Login successful! You can now use the redesigned interface.');
-            return;
-          }
-          
-          if (doc.body.innerHTML.includes("Sorry, that Email/Username/Password/School is invalid")) {
-            updateCompletionStatus(false, 'Login failed. Please check your credentials and try again.');
-            return;
           }
         }
-      } catch (e) {
-        // CORS error occurred, we need an alternative verification
-        console.log('CORS restriction, using alternative verification');
-        verifyLoginWithLoginPageProbe(data);
+        loginState.finished = true;
       }
     };
     
-    // Submit the form
+    // Error handler for iframe
+    iframe.onerror = function() {
+      if (!loginState.finished) {
+        showUnexpectedResult('An error occurred during login verification.');
+        loginState.finished = true;
+      }
+    };
+    
+    // Submit the form and start verification
     form.submit();
     
-    // Add a timeout to clean up and handle unresponsive situations
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
+    // Backup timeout - if nothing happens at all, show error
+    setTimeout(function() {
+      if (!loginState.finished) {
+        // If we got here, something unusual happened - perhaps the form didn't submit properly
+        const emptyFields = !data.username || !data.password || !data.school;
+        if (emptyFields) {
+          updateCompletionStatus(false, 'Login failed. All fields must be filled in.');
+        } else {
+          showUnexpectedResult('Login verification timed out. The server may be unavailable.');
+        }
+        loginState.finished = true;
       }
-      // If we haven't updated status yet, use our probe method
-      if (document.querySelector('.loading-dots')) {
-        verifyLoginWithLoginPageProbe(data);
-      }
-    }, 5000);
+      
+      // Clean up
+      if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      if (document.body.contains(form)) document.body.removeChild(form);
+    }, 8000);
   }
   
-  /**
-   * Last resort verification by probing login page for presence of the form
-   * - If we're redirected from login page, credentials were likely valid
-   * - If we still see login form, credentials were likely invalid
-   * @param {Object} data - Login data
-   */
-  function verifyLoginWithLoginPageProbe(data) {
-    // Create a special probe request to check login state
-    const probeXhr = new XMLHttpRequest();
-    probeXhr.open('GET', 'https://millennium.education/login.asp', true);
-    probeXhr.withCredentials = true; // Include cookies
-    
-    probeXhr.onload = function() {
-      if (probeXhr.status === 200) {
-        // If login page contains error message, login failed
-        if (probeXhr.responseText.includes('Sorry, that Email/Username/Password/School is invalid')) {
-          updateCompletionStatus(false, 'Login failed. Please check your credentials and try again.');
-        }
-        // If login page still shows the form, login likely failed
-        else if (probeXhr.responseText.includes('<form action="login.asp" method="post">')) {
-          updateCompletionStatus(false, 'Login verification failed. Please check your credentials and try again.');
-        }
-        // If neither of above, login might have succeeded
-        else {
-          updateCompletionStatus(true, 'Login appears successful! You can now use the redesigned interface.');
-        }
-      } else {
-        // Unexpected status code
-        showUnexpectedResult('Login verification returned an unexpected response.');
-      }
-    };
-    
-    probeXhr.onerror = function() {
-      // At this point, we've tried multiple methods and can't verify
-      showUnexpectedResult('Could not verify login status due to browser security restrictions.');
-    };
-    
-    probeXhr.send();
-  }
-  
-  /**
-   * Shows an "unexpected result" notification for unclear login states
-   * @param {string} message - Message to display
-   */
-  function showUnexpectedResult(message) {
-    // Remove any existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => {
-      notification.remove();
-    });
-    
-    // Remove loading animation
-    if (document.querySelector('.loading-dots')) {
-      document.querySelector('.loading-dots').remove();
-    }
-    
-    // Update completion title
-    completionTitle.textContent = 'Login status unclear';
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'notification unexpected';
-    
-    // Create icon
-    const icon = document.createElement('img');
-    icon.src = 'Assets/question-mark.svg';
-    icon.alt = 'Unexpected Result';
-    icon.className = 'notification-icon';
-    
-    // Apply gray coloring to the SVG
-    icon.style.filter = 'invert(50%) sepia(10%) saturate(250%) hue-rotate(180deg) brightness(90%) contrast(80%)';
-    
-    // Create message text
-    const text = document.createElement('span');
-    text.textContent = message;
-    
-    // Assemble notification
-    notification.appendChild(icon);
-    notification.appendChild(text);
-    
-    // Add custom gray styling
-    notification.style.backgroundColor = 'rgba(75, 75, 75, 0.15)';
-    notification.style.borderColor = 'rgba(75, 75, 75, 0.3)';
-    notification.style.color = '#a6a6a6';
-    
-    // Add to completion section
-    completion.insertBefore(notification, completion.querySelector('.question-buttons'));
-    
-    // Show subtitle
-    completionSubtitle.style.display = 'block';
-    completionSubtitle.textContent = 'Please try again or proceed to the main page.';
-  }
-
   /**
    * Shows notification message
-   * @param {string} type - Either 'success' or 'error'
+   * @param {string} type - Either 'success', 'error' or 'unexpected'
    * @param {string} message - Message to display
    */
   function showNotification(type, message) {
@@ -496,16 +398,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Create icon
     const icon = document.createElement('img');
-    icon.src = type === 'success' ? 'Assets/check-circle.svg' : 'Assets/triangle-warning.svg';
-    icon.alt = type === 'success' ? 'Success' : 'Error';
-    icon.className = 'notification-icon';
     
-    // Apply SVG color styles
     if (type === 'success') {
+      icon.src = 'Assets/check-circle.svg';
+      icon.alt = 'Success';
       icon.style.filter = 'invert(59%) sepia(63%) saturate(409%) hue-rotate(114deg) brightness(92%) contrast(92%)';
-    } else {
+    } else if (type === 'error') {
+      icon.src = 'Assets/triangle-warning.svg';
+      icon.alt = 'Error';
       icon.style.filter = 'invert(56%) sepia(38%) saturate(2893%) hue-rotate(316deg) brightness(102%) contrast(101%)';
+    } else {
+      icon.src = 'Assets/question-mark.svg';
+      icon.alt = 'Unexpected Result';
+      icon.style.filter = 'invert(50%) sepia(10%) saturate(250%) hue-rotate(180deg) brightness(90%) contrast(80%)';
     }
+    
+    icon.className = 'notification-icon';
     
     // Create message text
     const text = document.createElement('span');
@@ -519,6 +427,27 @@ document.addEventListener('DOMContentLoaded', function() {
     completion.insertBefore(notification, completion.querySelector('.question-buttons'));
   }
   
+  /**
+   * Shows an "unexpected result" notification for unclear login states
+   * @param {string} message - Message to display
+   */
+  function showUnexpectedResult(message) {
+    // Remove loading animation
+    if (document.querySelector('.loading-dots')) {
+      document.querySelector('.loading-dots').remove();
+    }
+    
+    // Update completion title
+    completionTitle.textContent = 'Login status unclear';
+    
+    // Show notification
+    showNotification('unexpected', message);
+    
+    // Show subtitle
+    completionSubtitle.style.display = 'block';
+    completionSubtitle.textContent = 'Please try again or proceed to the main page.';
+  }
+
   /**
    * Extract and store data from the portal page for reskinning
    * @param {Document} portalDocument - The document object from the portal page
