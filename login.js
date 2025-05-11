@@ -294,28 +294,24 @@ document.addEventListener('DOMContentLoaded', function() {
     function determineLoginStatus() {
       const currentTime = new Date().getTime();
       loginState.timeSinceSubmit = currentTime - startTime;
-      
+    
       try {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        
-        if (doc.body && doc.body.innerHTML) {
-          // Check for specific error message
-          const errorMessage = '<small>Sorry, that Email/Username/Password/School is invalid. Please try again...</small>';
-          if (doc.body.innerHTML.includes(errorMessage)) {
-            console.log('Found specific error message in iframe');
-            loginState.accessDenied = true;
-            return false; // Login failed
-          }
-          
-          // Check for success by URL pattern
-          const currentUrl = iframe.contentWindow.location.href;
-          const successUrlPattern = /millennium\.education\/portal\/\?\d{6}/;
-          if (successUrlPattern.test(currentUrl)) {
-            console.log('Detected successful login URL pattern:', currentUrl);
-            return true; // Login successful
-          }
+        const currentUrl = iframe.contentWindow.location.href;
+        const successUrlPattern = /millennium\.education\/portal\/\?\d{6}/;
+    
+        // Check for success by URL pattern
+        if (successUrlPattern.test(currentUrl)) {
+          console.log('Detected successful login URL pattern:', currentUrl);
+          return true; // Login successful
         }
-        
+    
+        // If we can access the document, check for specific success message
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (doc.body && doc.body.innerHTML.includes("Welcome to Millennium Student & Parent Portal")) {
+          console.log('Found success message in iframe');
+          return true; // Login successful
+        }
+    
       } catch (e) {
         console.log('Security exception accessing iframe, possible redirect occurred');
         // If this happens after a short time (>1s), it's most likely a successful login
@@ -323,13 +319,13 @@ document.addEventListener('DOMContentLoaded', function() {
           return true; // Likely successful
         }
       }
-      
+    
       // If we've waited more than 5 seconds without an error message,
       // it's probably successful (millennium usually shows errors quickly)
       if (loginState.timeSinceSubmit > 5000 && !loginState.accessDenied) {
         return true;
       }
-      
+    
       return null;
     }
     
