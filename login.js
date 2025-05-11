@@ -300,7 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (doc.body && doc.body.innerHTML) {
           // Check for specific error message
-          if (doc.body.innerHTML.includes('<small>Sorry, that Email/Username/Password/School is invalid. Please try again...</small>')) {
+          const errorMessage = '<small>Sorry, that Email/Username/Password/School is invalid. Please try again...</small>';
+          if (doc.body.innerHTML.includes(errorMessage)) {
             console.log('Found specific error message in iframe');
             loginState.accessDenied = true;
             return false; // Login failed
