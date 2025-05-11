@@ -312,6 +312,14 @@ document.addEventListener('DOMContentLoaded', function() {
           return true; // Login successful
         }
     
+        // Check for specific error message
+        const errorMessage = '<small>Sorry, that Email/Username/Password/School is invalid. Please try again...</small>';
+        if (doc.body && doc.body.innerHTML.includes(errorMessage)) {
+          console.log('Found specific error message in iframe');
+          loginState.accessDenied = true;
+          return false; // Login failed
+        }
+    
       } catch (e) {
         console.log('Security exception accessing iframe, possible redirect occurred');
         // If this happens after a short time (>1s), it's most likely a successful login
