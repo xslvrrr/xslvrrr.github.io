@@ -445,4 +445,21 @@
 .notification span {
   font-size: 14px;
   font-weight: 500;
+}
+
+/* Debug login button styles */
+.debug-btn {
+  background-color: rgba(119, 97, 255, 0.1);
+  border: 1px solid rgba(119, 97, 255, 0.3);
+  color: #a997ff;
+}
+
+.debug-btn:hover {
+  background-color: rgba(119, 97, 255, 0.15);
+  border-color: rgba(119, 97, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.debug-btn:active {
+  transform: translateY(0);
 } 
