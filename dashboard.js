@@ -349,17 +349,22 @@ function setupUserDropdown() {
   const preferencesOption = document.getElementById('preferences-option');
   const logoutOption = document.getElementById('logout-option');
   
-  if (!userProfile || !userDropdown) return;
+  if (!userProfile || !userDropdown) {
+    console.error('User profile or dropdown elements not found');
+    return;
+  }
   
   // Toggle dropdown on user profile click
   userProfile.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent document click from immediately closing the dropdown
     userDropdown.classList.toggle('active');
+    console.log('User profile clicked, dropdown toggled:', userDropdown.classList.contains('active'));
   });
   
   // Handle preferences option click
   if (preferencesOption) {
-    preferencesOption.addEventListener('click', () => {
+    preferencesOption.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent event from bubbling to document
       userDropdown.classList.remove('active');
       alert('Preferences functionality would be implemented here.');
     });
@@ -367,7 +372,8 @@ function setupUserDropdown() {
   
   // Handle logout option click
   if (logoutOption) {
-    logoutOption.addEventListener('click', () => {
+    logoutOption.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent event from bubbling to document
       userDropdown.classList.remove('active');
       showLogoutConfirmation();
     });
@@ -461,50 +467,118 @@ function populateSearchResults() {
   // Clear previous results
   searchResults.innerHTML = '';
   
-  // Demo search results
-  const results = [
-    { title: 'Home', description: 'Go to homepage', icon: 'home-icon.svg', action: () => navigateTo('home') },
-    { title: 'Classes', description: 'View your classes', icon: 'classes-icon.svg', action: () => navigateTo('classes') },
-    { title: 'Timetable', description: 'View your schedule', icon: 'timetable-icon.svg', action: () => navigateTo('timetable') },
-    { title: 'Preferences', description: 'Change your settings', icon: 'preferences-icon.svg', action: () => alert('Preferences would open here') },
-    { title: 'Log out', description: 'Sign out of your account', icon: 'cross.svg', action: () => showLogoutConfirmation() }
+  // Comprehensive search results organized by category
+  const allResults = [
+    // Navigation
+    { title: 'Home', description: 'Dashboard home page', icon: 'home-icon.svg', action: () => navigateTo('home'), category: 'Navigation' },
+    { title: 'Account', description: 'Manage your account settings', icon: 'account-icon.svg', action: () => navigateTo('account'), category: 'Navigation' },
+    { title: 'Notices', description: 'View all notices and announcements', icon: 'notices-icon.svg', action: () => navigateTo('notices'), category: 'Navigation' },
+    { title: 'Calendar', description: 'View your calendar and events', icon: 'calendar-icon.svg', action: () => navigateTo('calendar'), category: 'Navigation' },
+    
+    // Register
+    { title: 'Classes', description: 'View and manage your classes', icon: 'classes-icon.svg', action: () => navigateTo('classes'), category: 'Register' },
+    { title: 'Timetable', description: 'View your weekly schedule', icon: 'timetable-icon.svg', action: () => navigateTo('timetable'), category: 'Register' },
+    { title: 'Reports', description: 'View your academic reports', icon: 'reports-icon.svg', action: () => navigateTo('reports'), category: 'Register' },
+    { title: 'Attendance', description: 'Check your attendance records', icon: 'attendance-icon.svg', action: () => navigateTo('attendance'), category: 'Register' },
+    
+    // Quick actions
+    { title: 'Today\'s Classes', description: 'View your schedule for today', icon: 'today-icon.svg', action: () => alert('Today\'s classes would be shown here'), category: 'Quick Actions' },
+    { title: 'Assignments', description: 'Check your pending assignments', icon: 'homework-icon.svg', action: () => alert('Assignments would be shown here'), category: 'Quick Actions' },
+    { title: 'Notifications', description: 'View recent notifications', icon: 'notification-icon.svg', action: () => alert('Notifications would be shown here'), category: 'Quick Actions' },
+    { title: 'Resources', description: 'Access learning materials', icon: 'resources-icon.svg', action: () => alert('Resources would be shown here'), category: 'Quick Actions' },
+    
+    // Settings
+    { title: 'Preferences', description: 'Change your settings and preferences', icon: 'preferences-icon.svg', action: () => alert('Preferences would open here'), category: 'Settings' },
+    { title: 'Log out', description: 'Sign out of your account', icon: 'cross.svg', action: () => showLogoutConfirmation(), category: 'Settings' }
   ];
   
-  results.forEach(result => {
-    const resultElement = document.createElement('div');
-    resultElement.className = 'search-result';
-    resultElement.innerHTML = `
-      <div class="search-result-icon">
-        <img src="Assets/${result.icon}" alt="${result.title}">
-      </div>
-      <div class="search-result-content">
-        <div class="search-result-title">${result.title}</div>
-        <div class="search-result-description">${result.description}</div>
-      </div>
-    `;
+  // Group results by category
+  const groupedResults = {};
+  allResults.forEach(result => {
+    if (!groupedResults[result.category]) {
+      groupedResults[result.category] = [];
+    }
+    groupedResults[result.category].push(result);
+  });
+  
+  // Render results by category
+  Object.keys(groupedResults).forEach(category => {
+    // Create category header
+    const categoryHeader = document.createElement('div');
+    categoryHeader.className = 'search-category-header';
+    categoryHeader.textContent = category;
+    searchResults.appendChild(categoryHeader);
     
-    // Add click handler
-    resultElement.addEventListener('click', () => {
-      // Close the modal
-      document.getElementById('search-modal').classList.remove('active');
+    // Add results for this category
+    groupedResults[category].forEach(result => {
+      const resultElement = document.createElement('div');
+      resultElement.className = 'search-result';
+      resultElement.innerHTML = `
+        <div class="search-result-icon">
+          <img src="Assets/${result.icon}" alt="${result.title}">
+        </div>
+        <div class="search-result-content">
+          <div class="search-result-title">${result.title}</div>
+          <div class="search-result-description">${result.description}</div>
+        </div>
+      `;
       
-      // Execute the action
-      result.action();
+      // Add click handler
+      resultElement.addEventListener('click', () => {
+        // Close the modal
+        document.getElementById('search-modal').classList.remove('active');
+        
+        // Execute the action
+        result.action();
+      });
+      
+      searchResults.appendChild(resultElement);
     });
-    
-    searchResults.appendChild(resultElement);
   });
 }
 
 /**
- * Navigate to a section
- * @param {string} section - The section to navigate to
+ * Handle input for search filtering
+ * @param {Event} e - Input event
  */
-function navigateTo(section) {
-  const navItem = document.querySelector(`.nav-link[href="#${section}"]`);
-  if (navItem) {
-    navItem.click();
-  }
+function handleSearchInput(e) {
+  const query = e.target.value.toLowerCase();
+  const results = document.querySelectorAll('.search-result');
+  const categoryHeaders = document.querySelectorAll('.search-category-header');
+  
+  // Reset all headers and results visibility
+  categoryHeaders.forEach(header => {
+    header.style.display = 'none';
+  });
+  
+  let visibleCategories = new Set();
+  
+  // Filter results
+  results.forEach(result => {
+    const title = result.querySelector('.search-result-title').textContent.toLowerCase();
+    const description = result.querySelector('.search-result-description').textContent.toLowerCase();
+    
+    if (title.includes(query) || description.includes(query)) {
+      result.style.display = 'flex';
+      
+      // Find category header for this result
+      let header = result.previousElementSibling;
+      while (header && !header.classList.contains('search-category-header')) {
+        header = header.previousElementSibling;
+      }
+      
+      if (header) {
+        visibleCategories.add(header);
+      }
+    } else {
+      result.style.display = 'none';
+    }
+  });
+  
+  // Show headers for categories with visible results
+  visibleCategories.forEach(header => {
+    header.style.display = 'block';
+  });
 }
 
 /**
@@ -527,21 +601,7 @@ function setupSearchModal() {
   });
   
   // Handle input for search filtering
-  searchInput.addEventListener('input', () => {
-    const query = searchInput.value.toLowerCase();
-    const results = document.querySelectorAll('.search-result');
-    
-    results.forEach(result => {
-      const title = result.querySelector('.search-result-title').textContent.toLowerCase();
-      const description = result.querySelector('.search-result-description').textContent.toLowerCase();
-      
-      if (title.includes(query) || description.includes(query)) {
-        result.style.display = 'flex';
-      } else {
-        result.style.display = 'none';
-      }
-    });
-  });
+  searchInput.addEventListener('input', handleSearchInput);
   
   // Handle arrow key navigation and enter selection
   searchInput.addEventListener('keydown', (e) => {
@@ -649,12 +709,16 @@ function checkFirstTimeUser() {
  */
 function showWelcomeScreen() {
   const welcomeModal = document.getElementById('welcome-modal');
+  const welcomeContainer = document.querySelector('.welcome-modal-container');
   const continueBtn = document.getElementById('welcome-continue-btn');
   const disableConfetti = document.getElementById('disable-confetti');
   const userOs = document.getElementById('user-os-name');
   const shortcutsList = document.getElementById('shortcuts-list');
   
-  if (!welcomeModal || !continueBtn || !disableConfetti || !userOs || !shortcutsList) return;
+  if (!welcomeModal || !continueBtn || !disableConfetti || !userOs || !shortcutsList) {
+    console.error('Welcome screen elements not found');
+    return;
+  }
   
   // Detect OS
   const osName = detectOS();
@@ -667,23 +731,48 @@ function showWelcomeScreen() {
   welcomeModal.classList.add('active');
   document.body.style.overflow = 'hidden'; // Prevent scrolling
   
+  // Apply zoom effect to dashboard content
+  const dashboardContainer = document.querySelector('.dashboard-container');
+  if (dashboardContainer) {
+    dashboardContainer.style.transition = 'transform 0.4s ease';
+    dashboardContainer.style.transform = 'scale(1.03)';
+  }
+  
   // Handle continue button
   continueBtn.addEventListener('click', () => {
     // Mark as seen
     localStorage.setItem('millenniumWelcomeShown', 'true');
     
-    // Remove modal with animation
-    welcomeModal.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-    welcomeModal.style.transform = 'scale(0.8)';
+    // Remove modal with animation - only animate the container
+    if (welcomeContainer) {
+      welcomeContainer.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease';
+      welcomeContainer.style.transform = 'scale(0.8)';
+      welcomeContainer.style.opacity = '0';
+    }
+    
+    // Fade out the backdrop separately
+    welcomeModal.style.transition = 'opacity 0.4s ease';
     welcomeModal.style.opacity = '0';
+    
+    // Reset dashboard zoom
+    if (dashboardContainer) {
+      dashboardContainer.style.transform = 'scale(1)';
+    }
     
     // Re-enable scrolling
     document.body.style.overflow = '';
     
     setTimeout(() => {
       welcomeModal.classList.remove('active');
-      welcomeModal.style.transform = '';
+      
+      // Reset styles after animation completes
+      if (welcomeContainer) {
+        welcomeContainer.style.transform = '';
+        welcomeContainer.style.opacity = '';
+        welcomeContainer.style.transition = '';
+      }
       welcomeModal.style.opacity = '';
+      welcomeModal.style.transition = '';
       
       // Show confetti if not disabled
       if (!disableConfetti.checked) {
@@ -792,9 +881,17 @@ function populateShortcuts(container, os) {
 function showConfetti() {
   // Create confetti pieces
   const colors = ['#ff577f', '#ff884b', '#ffd384', '#fff9b0', '#7761ff', '#34b3f1', '#39c5bb', '#51cf66'];
-  const confettiCount = 100;
+  const confettiCount = 150; // More confetti for better effect
   const confettiContainer = document.createElement('div');
   confettiContainer.id = 'confetti-container';
+  confettiContainer.style.position = 'fixed';
+  confettiContainer.style.top = '0';
+  confettiContainer.style.left = '0';
+  confettiContainer.style.width = '100%';
+  confettiContainer.style.height = '100%';
+  confettiContainer.style.pointerEvents = 'none';
+  confettiContainer.style.zIndex = '9999';
+  confettiContainer.style.overflow = 'hidden';
   document.body.appendChild(confettiContainer);
   
   // Create confetti pieces
@@ -805,9 +902,17 @@ function showConfetti() {
   // Clean up after animation completes
   setTimeout(() => {
     if (confettiContainer.parentNode) {
-      confettiContainer.parentNode.removeChild(confettiContainer);
+      // Fade out confetti
+      confettiContainer.style.transition = 'opacity 0.5s ease';
+      confettiContainer.style.opacity = '0';
+      
+      setTimeout(() => {
+        if (confettiContainer.parentNode) {
+          confettiContainer.parentNode.removeChild(confettiContainer);
+        }
+      }, 500);
     }
-  }, 4000);
+  }, 3500);
 }
 
 /**
@@ -821,17 +926,41 @@ function createConfettiPiece(container, colors) {
   
   // Random properties
   const size = Math.random() * 10 + 5;
+  const shape = Math.random() > 0.5 ? '50%' : '0%'; // Circle or square
   const color = colors[Math.floor(Math.random() * colors.length)];
   const left = Math.random() * 100 + 'vw';
   const duration = Math.random() * 3 + 2;
   const delay = Math.random() * 0.5;
+  const rotation = Math.random() * 360;
+  const rotationSpeed = (Math.random() - 0.5) * 720; // Random rotation speed and direction
   
   // Set styles
   piece.style.width = `${size}px`;
   piece.style.height = `${size}px`;
   piece.style.backgroundColor = color;
+  piece.style.borderRadius = shape;
+  piece.style.position = 'absolute';
+  piece.style.top = '-20px';
   piece.style.left = left;
-  piece.style.animation = `confetti-fall ${duration}s linear ${delay}s forwards`;
+  piece.style.willChange = 'transform, opacity';
+  piece.style.transform = `rotate(${rotation}deg)`;
+  
+  // Create keyframes for this specific piece
+  const keyframes = `
+    @keyframes confetti-fall-${Math.floor(Math.random() * 1000)} {
+      0% { transform: translateY(-20px) rotate(${rotation}deg); opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(${window.innerHeight + 20}px) rotate(${rotation + rotationSpeed}deg); opacity: 0; }
+    }
+  `;
+  
+  // Add keyframes to document
+  const style = document.createElement('style');
+  style.innerHTML = keyframes;
+  document.head.appendChild(style);
+  
+  // Apply animation
+  piece.style.animation = `confetti-fall-${Math.floor(Math.random() * 1000)} ${duration}s ease-out ${delay}s forwards`;
   
   // Add to container
   container.appendChild(piece);
@@ -880,4 +1009,15 @@ window.addEventListener('resize', function() {
       sidebar.classList.remove('active');
     }
   }
-}, { passive: true }); 
+}, { passive: true });
+
+/**
+ * Navigate to a section
+ * @param {string} section - The section to navigate to
+ */
+function navigateTo(section) {
+  const navItem = document.querySelector(`.nav-link[href="#${section}"]`);
+  if (navItem) {
+    navItem.click();
+  }
+} 
