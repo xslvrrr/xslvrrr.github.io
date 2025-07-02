@@ -16,9 +16,7 @@
     <!-- Left sidebar -->
     <nav class="sidebar">
       <div class="sidebar-top">
-        <div class="logo-container">
-          <img src="Assets/Millennium Logo 2.png" alt="Millennium Logo" class="sidebar-logo">
-        </div>
+        <!-- Logo removed -->
         
         <!-- Search bar -->
         <div class="search-container">
@@ -110,7 +108,7 @@
       </div>
       
       <div class="sidebar-bottom">
-        <div class="user-profile">
+        <div class="user-profile" id="user-profile">
           <div class="user-avatar">
             <!-- Will show initials if no avatar is set -->
             <span class="user-initials">TS</span>
@@ -118,6 +116,18 @@
           <div class="user-info">
             <div class="user-name" id="user-display-name">Test Student</div>
             <div class="user-school" id="user-school">Test School</div>
+          </div>
+
+          <!-- User dropdown menu -->
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="dropdown-item" id="logout-option">
+              <img src="Assets/cross.svg" alt="Logout" class="dropdown-icon">
+              <span>Log out</span>
+            </div>
+            <div class="dropdown-item" id="preferences-option">
+              <img src="Assets/preferences-icon.svg" alt="Preferences" class="dropdown-icon">
+              <span>Preferences</span>
+            </div>
           </div>
         </div>
       </div>
@@ -264,6 +274,61 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Search modal -->
+  <div class="search-modal" id="search-modal">
+    <div class="search-modal-container">
+      <div class="search-modal-header">
+        <input type="text" class="search-modal-input" id="search-modal-input" placeholder="Search commands, pages, and more..." autofocus>
+      </div>
+      <div class="search-modal-results" id="search-modal-results">
+        <!-- Results will be populated here -->
+      </div>
+      <div class="search-modal-footer">
+        <div class="search-shortcut-hint">
+          <span class="shortcut-key" id="modifier-key">⌘</span>
+          <span class="shortcut-key">K</span>
+          <span class="shortcut-label">to search</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome screen modal -->
+  <div class="welcome-modal" id="welcome-modal">
+    <div class="welcome-modal-container">
+      <h2 class="welcome-title">Welcome to Millennium!</h2>
+      <p class="welcome-text">Looks like this is your first time using Millennium. This is a demo of our redesigned portal.</p>
+      <div class="welcome-os-info">
+        <p>You're using <span id="user-os-name">your operating system</span>. Here are some helpful shortcuts:</p>
+      </div>
+      <div class="shortcuts-container" id="shortcuts-list">
+        <!-- Shortcuts will be populated here -->
+      </div>
+      <div class="welcome-actions">
+        <label class="confetti-option">
+          <input type="checkbox" id="disable-confetti"> 
+          <span>Disable confetti (for performance)</span>
+        </label>
+        <button class="welcome-button" id="welcome-continue-btn">🎉 Let's go!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout confirmation modal -->
+  <div class="confirmation-modal" id="logout-modal">
+    <div class="confirmation-modal-container">
+      <div class="confirmation-icon">
+        <img src="Assets/triangle-warning.svg" alt="Warning">
+      </div>
+      <h3 class="confirmation-title">Log Out Confirmation</h3>
+      <p class="confirmation-text">Are you sure you want to log out of Millennium?</p>
+      <div class="confirmation-actions">
+        <button class="cancel-button" id="cancel-logout">Cancel</button>
+        <button class="confirm-button" id="confirm-logout">Log out</button>
+      </div>
+    </div>
   </div>
 
   <script src="dashboard.js"></script>
