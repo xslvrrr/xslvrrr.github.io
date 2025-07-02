@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Check if icons are loaded properly
   checkIcons();
   
-  // Setup account dropdown menu
+  // Setup user dropdown menu (updated)
   setupUserDropdown();
   
   // Setup keyboard shortcuts
@@ -37,8 +37,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Setup search modal
   setupSearchModal();
   
+  // Setup header search
+  setupHeaderSearch();
+  
   // Setup logout confirmation
   setupLogoutConfirmation();
+  
+  // Initialize theme handling
+  initializeTheme();
   
   // Show welcome screen for first-time users
   checkFirstTimeUser();
@@ -87,6 +93,8 @@ function setupNavigation() {
   
   // Keep track of loaded sections for caching
   const loadedContent = new Set(['home']);
+  // Keep track of currently active section
+  let currentSection = 'home';
   
   navItems.forEach(item => {
     const link = item.querySelector('.nav-link');
@@ -97,9 +105,17 @@ function setupNavigation() {
       // Get the target section from href
       const targetSection = this.getAttribute('href').substring(1);
       
+      // Skip if clicking on already active section
+      if (targetSection === currentSection) {
+        return;
+      }
+      
       // Update active state
       navItems.forEach(navItem => navItem.classList.remove('active'));
       item.classList.add('active');
+      
+      // Update current section tracker
+      currentSection = targetSection;
       
       // Update page title
       if (pageTitle) {
@@ -138,16 +154,32 @@ function loadSectionContent(section, loadedContent) {
         loadedContent.add(section);
       }
       
-      // Replace content
-      contentInner.innerHTML = content;
+      // Set up transition 
+      contentInner.style.opacity = '0';
+      contentInner.style.transform = 'translateY(10px)';
       
-      // Initialize any components in the new content
-      initializeSectionComponents(section);
+      setTimeout(() => {
+        // Replace content
+        contentInner.innerHTML = content;
+        
+        // Fade in smoothly
+        contentInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        contentInner.style.opacity = '1';
+        contentInner.style.transform = 'translateY(0)';
+        
+        // Initialize any components in the new content
+        initializeSectionComponents(section);
+        
+        // Reset transition after animation completes
+        setTimeout(() => {
+          contentInner.style.transition = '';
+        }, 300);
+      }, 50);
     }
     
     // Remove loading state
     contentWrapper.classList.remove('loading');
-  }, 100);
+  }, 50); // Reduced delay for better performance
 }
 
 /**
@@ -547,18 +579,56 @@ function initializeSectionComponents(section) {
       schoolElement.textContent = userSchool.textContent;
     }
     
-    // Add event listeners to preference buttons
-    document.querySelectorAll('.preference-btn').forEach(btn => {
+    // Add event listeners to theme preference buttons
+    document.querySelectorAll('.preference-btn').forEach((btn, index) => {
       btn.addEventListener('click', function() {
-        // Remove active class from siblings
-        this.parentNode.querySelectorAll('.preference-btn').forEach(sibling => {
-          sibling.classList.remove('active');
-        });
-        // Add active class to clicked button
-        this.classList.add('active');
+        // Apply theme based on button index
+        const theme = index === 0 ? 'dark' : index === 1 ? 'light' : 'system';
+        applyTheme(theme);
       });
     });
+    
+    // Add save search filter toggle
+    setupSearchFilterPreference();
   }
+}
+
+/**
+ * Setup search filter preference toggle
+ */
+function setupSearchFilterPreference() {
+  // If the preference section exists
+  const prefSection = document.querySelector('.preference-group:nth-child(2)');
+  
+  if (!prefSection) return;
+  
+  // Create search filter preference
+  const searchFilterToggle = document.createElement('div');
+  searchFilterToggle.className = 'preference-toggle-item';
+  searchFilterToggle.innerHTML = `
+    <span>Save search filters</span>
+    <label class="toggle">
+      <input type="checkbox" id="save-search-filter">
+      <span class="toggle-slider"></span>
+    </label>
+  `;
+  
+  // Append to preferences
+  prefSection.querySelector('.preference-toggle-group').appendChild(searchFilterToggle);
+  
+  // Set current state from localStorage
+  const saveSearchFilter = localStorage.getItem('saveSearchFilter') === 'true';
+  document.getElementById('save-search-filter').checked = saveSearchFilter;
+  
+  // Add event listener
+  document.getElementById('save-search-filter').addEventListener('change', function() {
+    localStorage.setItem('saveSearchFilter', this.checked);
+    
+    // Clear saved search if disabling
+    if (!this.checked) {
+      localStorage.removeItem('lastSearch');
+    }
+  });
 }
 
 /**
@@ -807,43 +877,16 @@ function setupUserDropdown() {
   userProfile.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent document click from immediately closing the dropdown
     userDropdown.classList.toggle('active');
-    // Debug info
-    console.log('User profile clicked, dropdown toggled:', userDropdown.classList.contains('active'));
     
-    // Position the dropdown correctly
+    // Ensure dropdown is positioned correctly
     positionUserDropdown();
   });
   
   // Function to position the dropdown
   function positionUserDropdown() {
-    // Make sure it's visible first to get proper dimensions
-    userDropdown.style.visibility = 'hidden';
-    userDropdown.style.display = 'block';
-    
-    // Get positions
-    const userProfileRect = userProfile.getBoundingClientRect();
-    const dropdownRect = userDropdown.getBoundingClientRect();
-    
-    // Check if there's enough space above
-    const spaceAbove = userProfileRect.top;
-    const dropdownHeight = dropdownRect.height;
-    
-    if (spaceAbove < dropdownHeight + 10) {
-      // Not enough space above, position below
-      userDropdown.style.bottom = 'auto';
-      userDropdown.style.top = '100%';
-      userDropdown.style.marginBottom = '0';
-      userDropdown.style.marginTop = '8px';
-    } else {
-      // Position above (default)
-      userDropdown.style.top = 'auto';
-      userDropdown.style.bottom = 'calc(100% + 8px)';
-      userDropdown.style.marginTop = '0';
-    }
-    
-    // Reset display
-    userDropdown.style.display = '';
+    // No need for complex positioning with new layout
     userDropdown.style.visibility = '';
+    userDropdown.style.display = '';
   }
   
   // Handle preferences option click
@@ -871,13 +914,6 @@ function setupUserDropdown() {
         !userProfile.contains(e.target) && 
         !userDropdown.contains(e.target)) {
       userDropdown.classList.remove('active');
-    }
-  });
-  
-  // Update dropdown position on window resize
-  window.addEventListener('resize', () => {
-    if (userDropdown.classList.contains('active')) {
-      positionUserDropdown();
     }
   });
 }
@@ -944,6 +980,15 @@ function toggleSearchModal() {
     // Focus the input field when the modal is opened
     setTimeout(() => {
       searchInput.focus();
+      
+      // Get search filter preference
+      const saveSearchFilter = localStorage.getItem('saveSearchFilter') === 'true';
+      
+      // If enabled, restore previous search
+      if (saveSearchFilter && localStorage.getItem('lastSearch')) {
+        searchInput.value = localStorage.getItem('lastSearch');
+        handleSearchInput({ target: searchInput });
+      }
     }, 100);
     
     // Populate search results
@@ -1041,6 +1086,12 @@ function handleSearchInput(e) {
   const results = document.querySelectorAll('.search-result');
   const categoryHeaders = document.querySelectorAll('.search-category-header');
   
+  // Save search if preference enabled
+  const saveSearchFilter = localStorage.getItem('saveSearchFilter') === 'true';
+  if (saveSearchFilter) {
+    localStorage.setItem('lastSearch', query);
+  }
+  
   // Reset all headers and results visibility
   categoryHeaders.forEach(header => {
     header.style.display = 'none';
@@ -1074,159 +1125,9 @@ function handleSearchInput(e) {
   visibleCategories.forEach(header => {
     header.style.display = 'block';
   });
-}
-
-/**
- * Setup the search modal with autofill and smart suggestions
- */
-function setupSearchModal() {
-  const searchModal = document.getElementById('search-modal');
-  const searchInput = document.getElementById('search-modal-input');
   
-  if (!searchModal || !searchInput) return;
-  
-  // Update the shortcut key based on OS
-  updateShortcutKeyDisplay();
-  
-  // Initialize search usage history from localStorage or create new
-  let searchHistory = JSON.parse(localStorage.getItem('searchUsageHistory') || '{}');
-  
-  // Close when clicking outside the modal content
-  searchModal.addEventListener('click', (e) => {
-    if (e.target === searchModal) {
-      searchModal.classList.remove('active');
-    }
-  });
-  
-  // Handle input for search filtering
-  searchInput.addEventListener('input', (e) => {
-    handleSearchInput(e);
-    updateAutofillSuggestion(e.target.value);
-  });
-  
-  // Handle arrow key navigation, enter selection, and tab for autofill
-  searchInput.addEventListener('keydown', (e) => {
-    const results = Array.from(document.querySelectorAll('.search-result')).filter(
-      el => el.style.display !== 'none'
-    );
-    
-    if (results.length === 0) return;
-    
-    const currentIndex = results.findIndex(el => el.classList.contains('selected'));
-    
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        selectSearchResult(results, currentIndex + 1 >= results.length ? 0 : currentIndex + 1);
-        break;
-      
-      case 'ArrowUp':
-        e.preventDefault();
-        selectSearchResult(results, currentIndex <= 0 ? results.length - 1 : currentIndex - 1);
-        break;
-      
-      case 'Tab':
-      case 'ArrowRight':
-        // Handle autofill if we have a suggestion
-        const autofillText = document.getElementById('autofill-suggestion')?.textContent;
-        if (autofillText) {
-          e.preventDefault();
-          searchInput.value = autofillText;
-          handleSearchInput({ target: searchInput });
-          updateAutofillSuggestion(autofillText);
-        }
-        break;
-      
-      case 'Enter':
-        e.preventDefault();
-        if (currentIndex >= 0) {
-          const selectedResult = results[currentIndex];
-          selectAndRecordUsage(selectedResult);
-        } else if (results.length > 0) {
-          selectAndRecordUsage(results[0]);
-        }
-        break;
-    }
-  });
-  
-  // Function to handle selection and record usage
-  function selectAndRecordUsage(resultElement) {
-    // Record usage for this option
-    const resultTitle = resultElement.querySelector('.search-result-title')?.textContent;
-    if (resultTitle) {
-      searchHistory[resultTitle] = (searchHistory[resultTitle] || 0) + 1;
-      localStorage.setItem('searchUsageHistory', JSON.stringify(searchHistory));
-    }
-    
-    // Click the result
-    resultElement.click();
-  }
-  
-  // Add autofill suggestion element if it doesn't exist
-  if (!document.getElementById('autofill-container')) {
-    const autofillContainer = document.createElement('div');
-    autofillContainer.id = 'autofill-container';
-    autofillContainer.innerHTML = `
-      <span id="autofill-suggestion"></span>
-      <div class="autofill-hint">
-        <span>Tab</span> or <span>→</span> to autofill
-      </div>
-    `;
-    searchModal.querySelector('.search-modal-header').appendChild(autofillContainer);
-    
-    // Add CSS styles for autofill
-    const style = document.createElement('style');
-    style.textContent = `
-      #autofill-container {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        pointer-events: none;
-      }
-      #autofill-suggestion {
-        color: var(--text-tertiary);
-        font-weight: 400;
-      }
-      .autofill-hint {
-        font-size: 11px;
-        color: var(--text-tertiary);
-        opacity: 0.6;
-      }
-      .autofill-hint span {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-        padding: 0 4px;
-        height: 16px;
-        min-width: 16px;
-        font-size: 10px;
-      }
-      #search-modal-input {
-        padding-right: 160px; /* Make room for autofill suggestion */
-      }
-    `;
-    document.head.appendChild(style);
-  }
-}
-
-/**
- * Select a search result
- * @param {Array} results - Array of search result elements
- * @param {number} index - Index to select
- */
-function selectSearchResult(results, index) {
-  results.forEach(result => result.classList.remove('selected'));
-  
-  if (index >= 0 && index < results.length) {
-    results[index].classList.add('selected');
-    results[index].scrollIntoView({ block: 'nearest' });
-  }
+  // Update autofill suggestion
+  updateAutofillSuggestion(query);
 }
 
 /**
@@ -1274,7 +1175,14 @@ function updateAutofillSuggestion(input) {
     // Set the suggestion
     if (topResult) {
       const suggestionText = topResult.querySelector('.search-result-title')?.textContent || '';
-      autofillElement.textContent = suggestionText;
+      
+      // Only show the part that would be completed
+      if (suggestionText.toLowerCase().startsWith(input.toLowerCase())) {
+        const completionPart = input + suggestionText.substring(input.length);
+        autofillElement.textContent = completionPart;
+      } else {
+        autofillElement.textContent = '';
+      }
     } else {
       autofillElement.textContent = '';
     }
@@ -1453,21 +1361,6 @@ function detectOS() {
 }
 
 /**
- * Update shortcut key display based on OS
- */
-function updateShortcutKeyDisplay() {
-  const modifierKey = document.getElementById('modifier-key');
-  if (!modifierKey) return;
-  
-  const os = detectOS();
-  if (os === 'macOS' || os === 'iOS') {
-    modifierKey.textContent = '⌘';
-  } else {
-    modifierKey.textContent = 'Ctrl';
-  }
-}
-
-/**
  * Populate shortcuts based on OS
  * @param {HTMLElement} container - Container to add shortcuts to
  * @param {string} os - Operating system name
@@ -1509,12 +1402,12 @@ function populateShortcuts(container, os) {
 }
 
 /**
- * Show confetti animation
+ * Show confetti animation with improved physics
  */
 function showConfetti() {
   // Create confetti pieces
   const colors = ['#ff577f', '#ff884b', '#ffd384', '#fff9b0', '#7761ff', '#34b3f1', '#39c5bb', '#51cf66'];
-  const confettiCount = 180; // Increased for better effect
+  const confettiCount = 180;
   const confettiContainer = document.createElement('div');
   confettiContainer.id = 'confetti-container';
   confettiContainer.style.position = 'fixed';
@@ -1529,9 +1422,11 @@ function showConfetti() {
   
   // Create confetti pieces from both bottom corners
   for (let i = 0; i < confettiCount; i++) {
-    // Alternate between left and right corner launch points
-    const isLeftCorner = i % 2 === 0;
-    createConfettiPiece(confettiContainer, colors, isLeftCorner);
+    setTimeout(() => {
+      // Alternate between left and right corner launch points
+      const isLeftCorner = i % 2 === 0;
+      createConfettiPiece(confettiContainer, colors, isLeftCorner);
+    }, i * 15); // Staggered launch for more natural effect
   }
   
   // Clean up after animation completes
@@ -1547,7 +1442,7 @@ function showConfetti() {
         }
       }, 500);
     }
-  }, 4500); // Increased duration to account for longer animation
+  }, 5000);
 }
 
 /**
@@ -1561,22 +1456,29 @@ function createConfettiPiece(container, colors, isLeftCorner) {
   piece.className = 'confetti-piece';
   
   // Random properties with improved sizes
-  const size = Math.random() * 15 + 8; // Bigger confetti
+  const size = Math.random() * 10 + 5; // Smaller confetti (5-15px)
   const shape = Math.random() > 0.6 ? '50%' : Math.random() > 0.5 ? '0%' : '5px'; // Circle, square, or rounded
   const color = colors[Math.floor(Math.random() * colors.length)];
   
-  // Starting position (from bottom corners)
-  const startX = isLeftCorner ? Math.random() * 20 : (100 - Math.random() * 20);
-  const startY = window.innerHeight - Math.random() * 20; // Start from near bottom
+  // Starting position (from bottom corners with spread)
+  const cornerOffset = 100; // Distance from corner
+  const startX = isLeftCorner 
+    ? Math.random() * cornerOffset // Left side: 0 to cornerOffset
+    : window.innerWidth - (Math.random() * cornerOffset); // Right side: width-cornerOffset to width
+    
+  const startY = window.innerHeight + 10; // Start just below screen
   
-  // Launch velocity and physics
-  const horizontalVelocity = isLeftCorner 
-    ? Math.random() * 40 + 10 // Moving right from left corner
-    : -(Math.random() * 40 + 10); // Moving left from right corner
+  // Initial angle of launch (upwards with spread)
+  const baseAngle = isLeftCorner ? -30 : -150; // Base angle in degrees (-30 for right, -150 for left)
+  const angleVariation = 30; // Variation in degrees
+  const launchAngle = (baseAngle + (Math.random() * angleVariation - angleVariation/2)) * (Math.PI / 180); // Convert to radians
   
-  const upwardVelocity = Math.random() * 70 + 50; // Upward velocity (50-120)
-  const duration = Math.random() * 2.5 + 3.5; // 3.5-6 seconds
-  const rotationSpeed = (Math.random() - 0.5) * 720; // Random rotation speed and direction
+  // Launch velocity
+  const speed = Math.random() * 250 + 350; // Speed (pixels per second)
+  
+  // Set velocity components
+  const vx = Math.cos(launchAngle) * speed;
+  const vy = Math.sin(launchAngle) * speed;
   
   // Set initial styles
   piece.style.width = `${size}px`;
@@ -1584,47 +1486,212 @@ function createConfettiPiece(container, colors, isLeftCorner) {
   piece.style.backgroundColor = color;
   piece.style.borderRadius = shape;
   piece.style.position = 'absolute';
-  piece.style.bottom = `0px`;
-  piece.style.left = `${startX}vw`;
-  piece.style.willChange = 'transform, opacity';
-  
-  // Create keyframes with bezier paths for more natural movement
-  const randomId = Math.floor(Math.random() * 10000);
-  const keyframes = `
-    @keyframes confetti-launch-${randomId} {
-      0% { 
-        transform: translate(0, 0) rotate(0deg); 
-        opacity: 1; 
-      }
-      25% { 
-        transform: translate(${horizontalVelocity * 0.5}px, -${upwardVelocity * 0.9}px) rotate(${rotationSpeed * 0.25}deg); 
-        opacity: 1; 
-      }
-      50% { 
-        transform: translate(${horizontalVelocity}px, -${upwardVelocity}px) rotate(${rotationSpeed * 0.5}deg); 
-        opacity: 1; 
-      }
-      75% { 
-        transform: translate(${horizontalVelocity * 1.5}px, -${upwardVelocity * 0.6}px) rotate(${rotationSpeed * 0.75}deg); 
-        opacity: 0.7; 
-      }
-      100% { 
-        transform: translate(${horizontalVelocity * 2}px, ${window.innerHeight}px) rotate(${rotationSpeed}deg); 
-        opacity: 0; 
-      }
-    }
-  `;
-  
-  // Add keyframes to document
-  const style = document.createElement('style');
-  style.innerHTML = keyframes;
-  document.head.appendChild(style);
-  
-  // Apply animation with cubic-bezier for realistic arc
-  piece.style.animation = `confetti-launch-${randomId} ${duration}s cubic-bezier(0.215, 0.61, 0.355, 1) forwards`;
+  piece.style.bottom = `${window.innerHeight - startY}px`;
+  piece.style.left = `${startX}px`;
+  piece.style.willChange = 'transform';
   
   // Add to container
   container.appendChild(piece);
+  
+  // Animation variables
+  const gravity = 800; // Pixels per second squared
+  let x = startX;
+  let y = startY;
+  let lastTimestamp = null;
+  let rotation = 0;
+  const rotationSpeed = (Math.random() - 0.5) * 720; // Random rotation speed and direction
+  
+  // Animate using requestAnimationFrame for smoother physics
+  function animate(timestamp) {
+    if (!lastTimestamp) {
+      lastTimestamp = timestamp;
+      requestAnimationFrame(animate);
+      return;
+    }
+    
+    const deltaTime = (timestamp - lastTimestamp) / 1000; // Convert to seconds
+    lastTimestamp = timestamp;
+    
+    // Update position with physics
+    x += vx * deltaTime;
+    y += vy * deltaTime;
+    
+    // Apply gravity
+    const newVy = vy + gravity * deltaTime;
+    vy = newVy;
+    
+    // Update rotation
+    rotation += rotationSpeed * deltaTime;
+    
+    // Apply position and rotation
+    piece.style.transform = `translate(${x - startX}px, ${startY - y}px) rotate(${rotation}deg)`;
+    
+    // Apply fade out when rising is complete
+    if (vy > 0) {
+      const opacity = Math.max(0, 1 - (vy / (speed * 1.5)));
+      piece.style.opacity = opacity.toString();
+    }
+    
+    // Continue animation if on screen
+    if (y < window.innerHeight + 200 && x > -100 && x < window.innerWidth + 100) {
+      requestAnimationFrame(animate);
+    } else {
+      // Remove when off screen
+      container.removeChild(piece);
+    }
+  }
+  
+  // Start animation
+  requestAnimationFrame(animate);
+}
+
+/**
+ * Setup header search functionality
+ */
+function setupHeaderSearch() {
+  const headerSearch = document.querySelector('.header-search-input');
+  
+  if (!headerSearch) return;
+  
+  // Open search modal when header search is clicked
+  headerSearch.addEventListener('click', (e) => {
+    e.preventDefault();
+    toggleSearchModal();
+  });
+  
+  // Prevent typing in the header search (it just opens the modal)
+  headerSearch.addEventListener('keydown', (e) => {
+    e.preventDefault();
+    toggleSearchModal();
+  });
+}
+
+/**
+ * Initialize theme handling
+ */
+function initializeTheme() {
+  // Add CSS variables for light theme
+  const style = document.createElement('style');
+  document.head.appendChild(style);
+  
+  // Get theme preference or use system default
+  const savedTheme = localStorage.getItem('theme') || 'system';
+  applyTheme(savedTheme);
+  
+  // Watch for system preference changes
+  if (window.matchMedia) {
+    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Apply system theme when it changes if system preference is selected
+    darkModeMediaQuery.addEventListener('change', () => {
+      if (localStorage.getItem('theme') === 'system') {
+        applyTheme('system');
+      }
+    });
+  }
+}
+
+/**
+ * Apply a theme
+ * @param {string} theme - Theme to apply ('dark', 'light', or 'system')
+ */
+function applyTheme(theme) {
+  const root = document.documentElement;
+  
+  // Save theme preference
+  localStorage.setItem('theme', theme);
+  
+  // Determine if we should use dark mode
+  let useDarkMode = true;
+  
+  if (theme === 'system') {
+    // Check system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      useDarkMode = false;
+    }
+  } else if (theme === 'light') {
+    useDarkMode = false;
+  }
+  
+  // Apply appropriate theme
+  if (useDarkMode) {
+    applyDarkTheme();
+  } else {
+    applyLightTheme();
+  }
+  
+  // Update preference UI if it exists
+  updateThemePreferenceUI(theme);
+}
+
+/**
+ * Apply dark theme
+ */
+function applyDarkTheme() {
+  const root = document.documentElement;
+  
+  // Dark theme variables
+  root.style.setProperty('--sidebar-bg', '#000000');
+  root.style.setProperty('--main-bg', '#000000');
+  root.style.setProperty('--card-bg', '#151718');
+  root.style.setProperty('--hover-bg', 'rgba(255, 255, 255, 0.08)');
+  root.style.setProperty('--active-bg', 'rgba(255, 255, 255, 0.15)');
+  root.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.08)');
+  
+  root.style.setProperty('--text-primary', '#F7F8F8');
+  root.style.setProperty('--text-secondary', '#B5B6B6');
+  root.style.setProperty('--text-tertiary', '#707070');
+  
+  document.body.classList.remove('light-theme');
+  document.body.classList.add('dark-theme');
+}
+
+/**
+ * Apply light theme
+ */
+function applyLightTheme() {
+  const root = document.documentElement;
+  
+  // Light theme variables
+  root.style.setProperty('--sidebar-bg', '#f5f5f7');
+  root.style.setProperty('--main-bg', '#ffffff');
+  root.style.setProperty('--card-bg', '#ffffff');
+  root.style.setProperty('--hover-bg', 'rgba(0, 0, 0, 0.05)');
+  root.style.setProperty('--active-bg', 'rgba(0, 0, 0, 0.08)');
+  root.style.setProperty('--border-color', 'rgba(0, 0, 0, 0.1)');
+  
+  root.style.setProperty('--text-primary', '#1d1d1f');
+  root.style.setProperty('--text-secondary', '#484848');
+  root.style.setProperty('--text-tertiary', '#86868b');
+  
+  document.body.classList.remove('dark-theme');
+  document.body.classList.add('light-theme');
+}
+
+/**
+ * Update theme preference UI
+ * @param {string} theme - Current theme
+ */
+function updateThemePreferenceUI(theme) {
+  const darkBtn = document.querySelector('.preference-btn:nth-child(1)');
+  const lightBtn = document.querySelector('.preference-btn:nth-child(2)');
+  const systemBtn = document.querySelector('.preference-btn:nth-child(3)');
+  
+  if (!darkBtn || !lightBtn || !systemBtn) return;
+  
+  // Remove active class from all
+  darkBtn.classList.remove('active');
+  lightBtn.classList.remove('active');
+  systemBtn.classList.remove('active');
+  
+  // Set active class on current theme
+  if (theme === 'dark') {
+    darkBtn.classList.add('active');
+  } else if (theme === 'light') {
+    lightBtn.classList.add('active');
+  } else {
+    systemBtn.classList.add('active');
+  }
 }
 
 // Mobile menu toggle functionality (for responsive design)
@@ -1680,5 +1747,139 @@ function navigateTo(section) {
   const navItem = document.querySelector(`.nav-link[href="#${section}"]`);
   if (navItem) {
     navItem.click();
+  }
+}
+
+/**
+ * Setup the search modal with autofill and smart suggestions
+ */
+function setupSearchModal() {
+  const searchModal = document.getElementById('search-modal');
+  const searchInput = document.getElementById('search-modal-input');
+  
+  if (!searchModal || !searchInput) return;
+  
+  // Update the shortcut key based on OS
+  updateShortcutKeyDisplay();
+  
+  // Initialize search usage history from localStorage or create new
+  let searchHistory = JSON.parse(localStorage.getItem('searchUsageHistory') || '{}');
+  
+  // Close when clicking outside the modal content
+  searchModal.addEventListener('click', (e) => {
+    if (e.target === searchModal) {
+      searchModal.classList.remove('active');
+    }
+  });
+  
+  // Handle input for search filtering
+  searchInput.addEventListener('input', (e) => {
+    handleSearchInput(e);
+    updateAutofillSuggestion(e.target.value);
+  });
+  
+  // Handle arrow key navigation, enter selection, and tab for autofill
+  searchInput.addEventListener('keydown', (e) => {
+    const results = Array.from(document.querySelectorAll('.search-result')).filter(
+      el => el.style.display !== 'none'
+    );
+    
+    if (results.length === 0) return;
+    
+    const currentIndex = results.findIndex(el => el.classList.contains('selected'));
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectSearchResult(results, currentIndex + 1 >= results.length ? 0 : currentIndex + 1);
+        break;
+      
+      case 'ArrowUp':
+        e.preventDefault();
+        selectSearchResult(results, currentIndex <= 0 ? results.length - 1 : currentIndex - 1);
+        break;
+      
+      case 'Tab':
+      case 'ArrowRight':
+        // Handle autofill if we have a suggestion
+        const autofillText = document.getElementById('autofill-suggestion')?.textContent;
+        if (autofillText) {
+          e.preventDefault();
+          searchInput.value = autofillText;
+          handleSearchInput({ target: searchInput });
+          updateAutofillSuggestion(autofillText);
+        }
+        break;
+      
+      case 'Enter':
+        e.preventDefault();
+        if (currentIndex >= 0) {
+          const selectedResult = results[currentIndex];
+          selectAndRecordUsage(selectedResult);
+        } else if (results.length > 0) {
+          selectAndRecordUsage(results[0]);
+        }
+        break;
+    }
+  });
+  
+  // Function to handle selection and record usage
+  function selectAndRecordUsage(resultElement) {
+    // Record usage for this option
+    const resultTitle = resultElement.querySelector('.search-result-title')?.textContent;
+    if (resultTitle) {
+      searchHistory[resultTitle] = (searchHistory[resultTitle] || 0) + 1;
+      localStorage.setItem('searchUsageHistory', JSON.stringify(searchHistory));
+    }
+    
+    // Click the result
+    resultElement.click();
+  }
+  
+  // Add autofill suggestion element if it doesn't exist
+  if (!document.getElementById('autofill-container')) {
+    const autofillContainer = document.createElement('div');
+    autofillContainer.id = 'autofill-container';
+    autofillContainer.innerHTML = `
+      <span id="autofill-suggestion"></span>
+    `;
+    searchModal.querySelector('.search-modal-header').appendChild(autofillContainer);
+    
+    // Add autofill hint to the footer instead of inline
+    const autofillHint = document.createElement('div');
+    autofillHint.className = 'autofill-hint';
+    autofillHint.innerHTML = `
+      <span>Tab</span> or <span>→</span> to autofill
+    `;
+    searchModal.querySelector('.search-modal-footer').appendChild(autofillHint);
+  }
+}
+
+/**
+ * Select a search result
+ * @param {Array} results - Array of search result elements
+ * @param {number} index - Index to select
+ */
+function selectSearchResult(results, index) {
+  results.forEach(result => result.classList.remove('selected'));
+  
+  if (index >= 0 && index < results.length) {
+    results[index].classList.add('selected');
+    results[index].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+/**
+ * Update shortcut key display based on OS
+ */
+function updateShortcutKeyDisplay() {
+  const modifierKey = document.getElementById('modifier-key');
+  if (!modifierKey) return;
+  
+  const os = detectOS();
+  if (os === 'macOS' || os === 'iOS') {
+    modifierKey.textContent = '⌘';
+  } else {
+    modifierKey.textContent = 'Ctrl';
   }
 } 
