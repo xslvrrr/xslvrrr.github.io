@@ -85,7 +85,7 @@ function setupNavigation() {
   const navItems = document.querySelectorAll('.nav-item');
   const pageTitle = document.querySelector('.page-title');
   
-  // Debug state to track loaded content (would be replaced with actual API calls)
+  // Keep track of loaded sections for caching
   const loadedContent = new Set(['home']);
   
   navItems.forEach(item => {
@@ -106,10 +106,459 @@ function setupNavigation() {
         pageTitle.textContent = this.querySelector('span:last-child').textContent;
       }
       
-      // Simulate content loading (in a real app, this would load actual content)
-      simulateContentLoading(targetSection, loadedContent);
+      // Load section content
+      loadSectionContent(targetSection, loadedContent);
     });
   });
+}
+
+/**
+ * Loads section-specific content
+ * @param {string} section - Section identifier
+ * @param {Set} loadedContent - Set of already loaded content sections
+ */
+function loadSectionContent(section, loadedContent) {
+  const contentWrapper = document.querySelector('.content-wrapper');
+  
+  if (!contentWrapper) return;
+  
+  // Add loading state
+  contentWrapper.classList.add('loading');
+  
+  // Create a slight delay for visual feedback
+  setTimeout(() => {
+    // Generate section content
+    const content = generateSectionContent(section);
+    
+    // Update the DOM
+    const contentInner = contentWrapper.querySelector('.content-wrapper-inner');
+    if (contentInner) {
+      // Cache old content for quick retrieval later
+      if (!loadedContent.has(section)) {
+        loadedContent.add(section);
+      }
+      
+      // Replace content
+      contentInner.innerHTML = content;
+      
+      // Initialize any components in the new content
+      initializeSectionComponents(section);
+    }
+    
+    // Remove loading state
+    contentWrapper.classList.remove('loading');
+  }, 100);
+}
+
+/**
+ * Generate content for different sections
+ * @param {string} section - Section identifier
+ * @returns {string} - HTML content for the section
+ */
+function generateSectionContent(section) {
+  switch(section) {
+    case 'home':
+      return `
+        <!-- Welcome card -->
+        <div class="card welcome-card">
+          <div class="card-content">
+            <h2 class="card-title">Welcome to Millennium</h2>
+            <p class="card-text">This is the new Millennium interface, designed for productivity and ease of use.</p>
+            <p class="card-text">You are currently using a test account with no special permissions.</p>
+          </div>
+        </div>
+
+        <!-- Quick access grid -->
+        <div class="grid-section">
+          <h2 class="section-title">Quick Access</h2>
+          <div class="card-grid">
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <img src="Assets/today-icon.svg" alt="Today">
+              </div>
+              <h3 class="quick-card-title">Today's Classes</h3>
+              <p class="quick-card-text">View your schedule for today</p>
+            </div>
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <img src="Assets/homework-icon.svg" alt="Homework">
+              </div>
+              <h3 class="quick-card-title">Assignments</h3>
+              <p class="quick-card-text">Check your pending assignments</p>
+            </div>
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <img src="Assets/notification-icon.svg" alt="Notifications">
+              </div>
+              <h3 class="quick-card-title">Notifications</h3>
+              <p class="quick-card-text">View recent notifications</p>
+            </div>
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <img src="Assets/resources-icon.svg" alt="Resources">
+              </div>
+              <h3 class="quick-card-title">Resources</h3>
+              <p class="quick-card-text">Access learning materials</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="list-section">
+          <h2 class="section-title">Recent Activity</h2>
+          <div class="card activity-card">
+            <ul class="activity-list">
+              <li class="activity-item">
+                <div class="activity-icon">
+                  <img src="Assets/activity-icon.svg" alt="Activity">
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">English Assignment Submitted</div>
+                  <div class="activity-time">Yesterday</div>
+                </div>
+              </li>
+              <li class="activity-item">
+                <div class="activity-icon">
+                  <img src="Assets/activity-icon.svg" alt="Activity">
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">Math Test Graded</div>
+                  <div class="activity-time">2 days ago</div>
+                </div>
+              </li>
+              <li class="activity-item">
+                <div class="activity-icon">
+                  <img src="Assets/activity-icon.svg" alt="Activity">
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">Science Project Reminder</div>
+                  <div class="activity-time">3 days ago</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Classes list (linear style) -->
+        <div class="list-section">
+          <h2 class="section-title">Your Classes</h2>
+          <div class="card">
+            <table class="list-table">
+              <thead class="list-table-header">
+                <tr>
+                  <th>Subject</th>
+                  <th>Teacher</th>
+                  <th>Room</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="list-table-row">
+                  <td>English</td>
+                  <td>Ms. Johnson</td>
+                  <td>E301</td>
+                  <td>9:00 AM</td>
+                </tr>
+                <tr class="list-table-row">
+                  <td>Mathematics</td>
+                  <td>Mr. Williams</td>
+                  <td>M105</td>
+                  <td>10:30 AM</td>
+                </tr>
+                <tr class="list-table-row">
+                  <td>Science</td>
+                  <td>Dr. Brown</td>
+                  <td>S204</td>
+                  <td>1:15 PM</td>
+                </tr>
+                <tr class="list-table-row">
+                  <td>History</td>
+                  <td>Mrs. Davis</td>
+                  <td>H102</td>
+                  <td>2:45 PM</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      
+    case 'account':
+      return `
+        <div class="card welcome-card">
+          <div class="card-content">
+            <h2 class="card-title">Your Account</h2>
+            <p class="card-text">Manage your profile, settings, and preferences.</p>
+          </div>
+        </div>
+        
+        <!-- Account information -->
+        <div class="grid-section">
+          <h2 class="section-title">Personal Information</h2>
+          <div class="card">
+            <div class="card-content">
+              <div class="account-field">
+                <div class="account-field-label">Name</div>
+                <div class="account-field-value" id="account-name">Test Student</div>
+              </div>
+              <div class="account-field">
+                <div class="account-field-label">School</div>
+                <div class="account-field-value" id="account-school">Test School</div>
+              </div>
+              <div class="account-field">
+                <div class="account-field-label">Email</div>
+                <div class="account-field-value">student@testschool.edu</div>
+              </div>
+              <div class="account-field">
+                <div class="account-field-label">Role</div>
+                <div class="account-field-value">Student</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Preferences section -->
+        <div class="list-section">
+          <h2 class="section-title">Preferences</h2>
+          <div class="card">
+            <div class="card-content">
+              <div class="preference-group">
+                <h3 class="preference-title">Theme</h3>
+                <div class="preference-options">
+                  <button class="preference-btn active">Dark</button>
+                  <button class="preference-btn">Light</button>
+                  <button class="preference-btn">System</button>
+                </div>
+              </div>
+              <div class="preference-group">
+                <h3 class="preference-title">Notifications</h3>
+                <div class="preference-toggle-group">
+                  <div class="preference-toggle-item">
+                    <span>Email notifications</span>
+                    <label class="toggle">
+                      <input type="checkbox" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="preference-toggle-item">
+                    <span>Browser notifications</span>
+                    <label class="toggle">
+                      <input type="checkbox">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+    case 'notices':
+      return `
+        <div class="card welcome-card">
+          <div class="card-content">
+            <h2 class="card-title">Notices</h2>
+            <p class="card-text">View important announcements and notifications.</p>
+          </div>
+        </div>
+        
+        <!-- Notices list -->
+        <div class="list-section">
+          <h2 class="section-title">Latest Notices</h2>
+          <div class="card">
+            <ul class="notices-list">
+              <li class="notice-item">
+                <div class="notice-header">
+                  <h3 class="notice-title">School Assembly - Friday</h3>
+                  <span class="notice-date">Today</span>
+                </div>
+                <p class="notice-content">All students should attend the assembly in the main hall at 9:00 AM on Friday.</p>
+              </li>
+              <li class="notice-item">
+                <div class="notice-header">
+                  <h3 class="notice-title">Parent-Teacher Conference</h3>
+                  <span class="notice-date">Yesterday</span>
+                </div>
+                <p class="notice-content">Parent-Teacher conferences will be held next Tuesday from 4:00 PM to 7:00 PM.</p>
+              </li>
+              <li class="notice-item">
+                <div class="notice-header">
+                  <h3 class="notice-title">System Maintenance</h3>
+                  <span class="notice-date">3 days ago</span>
+                </div>
+                <p class="notice-content">The portal will be undergoing scheduled maintenance this weekend.</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+      `;
+      
+    case 'calendar':
+      return `
+        <div class="card welcome-card">
+          <div class="card-content">
+            <h2 class="card-title">Calendar</h2>
+            <p class="card-text">View and manage your schedule and important dates.</p>
+          </div>
+        </div>
+        
+        <!-- Calendar view placeholder -->
+        <div class="grid-section">
+          <div class="calendar-header">
+            <button class="calendar-nav-btn">&lt;</button>
+            <h2 class="calendar-title">October 2023</h2>
+            <button class="calendar-nav-btn">&gt;</button>
+          </div>
+          <div class="calendar-container">
+            <div class="calendar-weekdays">
+              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+            </div>
+            <div class="calendar-days">
+              <!-- Empty cells for days from previous month -->
+              <div class="calendar-day empty"></div>
+              <div class="calendar-day empty"></div>
+              <div class="calendar-day empty"></div>
+              <div class="calendar-day empty"></div>
+              <div class="calendar-day empty"></div>
+              <div class="calendar-day empty"></div>
+              
+              <!-- Days of current month -->
+              <div class="calendar-day">1</div>
+              <div class="calendar-day">2</div>
+              <div class="calendar-day">3</div>
+              <div class="calendar-day">4</div>
+              <div class="calendar-day">5</div>
+              <div class="calendar-day">6</div>
+              <div class="calendar-day">7</div>
+              <div class="calendar-day">8</div>
+              <div class="calendar-day">9</div>
+              <div class="calendar-day">10</div>
+              <div class="calendar-day">11</div>
+              <div class="calendar-day">12</div>
+              <div class="calendar-day has-event">13</div>
+              <div class="calendar-day">14</div>
+              <div class="calendar-day">15</div>
+              <div class="calendar-day has-event">16</div>
+              <div class="calendar-day">17</div>
+              <div class="calendar-day">18</div>
+              <div class="calendar-day">19</div>
+              <div class="calendar-day">20</div>
+              <div class="calendar-day">21</div>
+              <div class="calendar-day">22</div>
+              <div class="calendar-day today">23</div>
+              <div class="calendar-day">24</div>
+              <div class="calendar-day">25</div>
+              <div class="calendar-day">26</div>
+              <div class="calendar-day">27</div>
+              <div class="calendar-day has-event">28</div>
+              <div class="calendar-day">29</div>
+              <div class="calendar-day">30</div>
+              <div class="calendar-day">31</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Upcoming events -->
+        <div class="list-section">
+          <h2 class="section-title">Upcoming Events</h2>
+          <div class="card">
+            <ul class="events-list">
+              <li class="event-item">
+                <div class="event-date">Oct 13</div>
+                <div class="event-content">
+                  <div class="event-title">School Sports Day</div>
+                  <div class="event-time">All day</div>
+                </div>
+              </li>
+              <li class="event-item">
+                <div class="event-date">Oct 16</div>
+                <div class="event-content">
+                  <div class="event-title">Science Fair</div>
+                  <div class="event-time">1:00 PM - 4:00 PM</div>
+                </div>
+              </li>
+              <li class="event-item">
+                <div class="event-date">Oct 28</div>
+                <div class="event-content">
+                  <div class="event-title">Parent-Teacher Conference</div>
+                  <div class="event-time">4:00 PM - 7:00 PM</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      `;
+      
+    case 'classes':
+    case 'timetable':
+    case 'reports':
+    case 'attendance':
+    default:
+      return `
+        <div class="card welcome-card">
+          <div class="card-content">
+            <h2 class="card-title">Welcome to ${section.charAt(0).toUpperCase() + section.slice(1)}</h2>
+            <p class="card-text">This section is under development. Check back soon!</p>
+          </div>
+        </div>
+        
+        <!-- Placeholder content -->
+        <div class="grid-section">
+          <h2 class="section-title">Coming Soon</h2>
+          <div class="placeholder-message">
+            <img src="Assets/${section}-icon.svg" alt="${section}" class="placeholder-icon">
+            <h3>This feature is coming soon</h3>
+            <p>We're working hard to bring you the best ${section} experience.</p>
+          </div>
+        </div>
+      `;
+  }
+}
+
+/**
+ * Initialize components in newly loaded sections
+ * @param {string} section - Section identifier
+ */
+function initializeSectionComponents(section) {
+  // Attach click handlers to quick cards
+  document.querySelectorAll('.quick-card').forEach(card => {
+    card.addEventListener('click', function() {
+      this.classList.add('clicked');
+      setTimeout(() => {
+        this.classList.remove('clicked');
+      }, 300);
+    });
+  });
+  
+  // Update any account data
+  if (section === 'account') {
+    const nameElement = document.getElementById('account-name');
+    const schoolElement = document.getElementById('account-school');
+    
+    const userDisplayName = document.getElementById('user-display-name');
+    const userSchool = document.getElementById('user-school');
+    
+    if (nameElement && userDisplayName) {
+      nameElement.textContent = userDisplayName.textContent;
+    }
+    
+    if (schoolElement && userSchool) {
+      schoolElement.textContent = userSchool.textContent;
+    }
+    
+    // Add event listeners to preference buttons
+    document.querySelectorAll('.preference-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Remove active class from siblings
+        this.parentNode.querySelectorAll('.preference-btn').forEach(sibling => {
+          sibling.classList.remove('active');
+        });
+        // Add active class to clicked button
+        this.classList.add('active');
+      });
+    });
+  }
 }
 
 /**
@@ -358,15 +807,52 @@ function setupUserDropdown() {
   userProfile.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent document click from immediately closing the dropdown
     userDropdown.classList.toggle('active');
+    // Debug info
     console.log('User profile clicked, dropdown toggled:', userDropdown.classList.contains('active'));
+    
+    // Position the dropdown correctly
+    positionUserDropdown();
   });
+  
+  // Function to position the dropdown
+  function positionUserDropdown() {
+    // Make sure it's visible first to get proper dimensions
+    userDropdown.style.visibility = 'hidden';
+    userDropdown.style.display = 'block';
+    
+    // Get positions
+    const userProfileRect = userProfile.getBoundingClientRect();
+    const dropdownRect = userDropdown.getBoundingClientRect();
+    
+    // Check if there's enough space above
+    const spaceAbove = userProfileRect.top;
+    const dropdownHeight = dropdownRect.height;
+    
+    if (spaceAbove < dropdownHeight + 10) {
+      // Not enough space above, position below
+      userDropdown.style.bottom = 'auto';
+      userDropdown.style.top = '100%';
+      userDropdown.style.marginBottom = '0';
+      userDropdown.style.marginTop = '8px';
+    } else {
+      // Position above (default)
+      userDropdown.style.top = 'auto';
+      userDropdown.style.bottom = 'calc(100% + 8px)';
+      userDropdown.style.marginTop = '0';
+    }
+    
+    // Reset display
+    userDropdown.style.display = '';
+    userDropdown.style.visibility = '';
+  }
   
   // Handle preferences option click
   if (preferencesOption) {
     preferencesOption.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent event from bubbling to document
       userDropdown.classList.remove('active');
-      alert('Preferences functionality would be implemented here.');
+      // Navigate to preferences/account page
+      navigateTo('account');
     });
   }
   
@@ -381,8 +867,17 @@ function setupUserDropdown() {
   
   // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
-    if (userDropdown.classList.contains('active') && !userProfile.contains(e.target)) {
+    if (userDropdown.classList.contains('active') && 
+        !userProfile.contains(e.target) && 
+        !userDropdown.contains(e.target)) {
       userDropdown.classList.remove('active');
+    }
+  });
+  
+  // Update dropdown position on window resize
+  window.addEventListener('resize', () => {
+    if (userDropdown.classList.contains('active')) {
+      positionUserDropdown();
     }
   });
 }
@@ -582,7 +1077,7 @@ function handleSearchInput(e) {
 }
 
 /**
- * Setup the search modal
+ * Setup the search modal with autofill and smart suggestions
  */
 function setupSearchModal() {
   const searchModal = document.getElementById('search-modal');
@@ -593,6 +1088,9 @@ function setupSearchModal() {
   // Update the shortcut key based on OS
   updateShortcutKeyDisplay();
   
+  // Initialize search usage history from localStorage or create new
+  let searchHistory = JSON.parse(localStorage.getItem('searchUsageHistory') || '{}');
+  
   // Close when clicking outside the modal content
   searchModal.addEventListener('click', (e) => {
     if (e.target === searchModal) {
@@ -601,9 +1099,12 @@ function setupSearchModal() {
   });
   
   // Handle input for search filtering
-  searchInput.addEventListener('input', handleSearchInput);
+  searchInput.addEventListener('input', (e) => {
+    handleSearchInput(e);
+    updateAutofillSuggestion(e.target.value);
+  });
   
-  // Handle arrow key navigation and enter selection
+  // Handle arrow key navigation, enter selection, and tab for autofill
   searchInput.addEventListener('keydown', (e) => {
     const results = Array.from(document.querySelectorAll('.search-result')).filter(
       el => el.style.display !== 'none'
@@ -624,16 +1125,94 @@ function setupSearchModal() {
         selectSearchResult(results, currentIndex <= 0 ? results.length - 1 : currentIndex - 1);
         break;
       
+      case 'Tab':
+      case 'ArrowRight':
+        // Handle autofill if we have a suggestion
+        const autofillText = document.getElementById('autofill-suggestion')?.textContent;
+        if (autofillText) {
+          e.preventDefault();
+          searchInput.value = autofillText;
+          handleSearchInput({ target: searchInput });
+          updateAutofillSuggestion(autofillText);
+        }
+        break;
+      
       case 'Enter':
         e.preventDefault();
         if (currentIndex >= 0) {
-          results[currentIndex].click();
+          const selectedResult = results[currentIndex];
+          selectAndRecordUsage(selectedResult);
         } else if (results.length > 0) {
-          results[0].click();
+          selectAndRecordUsage(results[0]);
         }
         break;
     }
   });
+  
+  // Function to handle selection and record usage
+  function selectAndRecordUsage(resultElement) {
+    // Record usage for this option
+    const resultTitle = resultElement.querySelector('.search-result-title')?.textContent;
+    if (resultTitle) {
+      searchHistory[resultTitle] = (searchHistory[resultTitle] || 0) + 1;
+      localStorage.setItem('searchUsageHistory', JSON.stringify(searchHistory));
+    }
+    
+    // Click the result
+    resultElement.click();
+  }
+  
+  // Add autofill suggestion element if it doesn't exist
+  if (!document.getElementById('autofill-container')) {
+    const autofillContainer = document.createElement('div');
+    autofillContainer.id = 'autofill-container';
+    autofillContainer.innerHTML = `
+      <span id="autofill-suggestion"></span>
+      <div class="autofill-hint">
+        <span>Tab</span> or <span>→</span> to autofill
+      </div>
+    `;
+    searchModal.querySelector('.search-modal-header').appendChild(autofillContainer);
+    
+    // Add CSS styles for autofill
+    const style = document.createElement('style');
+    style.textContent = `
+      #autofill-container {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: none;
+      }
+      #autofill-suggestion {
+        color: var(--text-tertiary);
+        font-weight: 400;
+      }
+      .autofill-hint {
+        font-size: 11px;
+        color: var(--text-tertiary);
+        opacity: 0.6;
+      }
+      .autofill-hint span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        padding: 0 4px;
+        height: 16px;
+        min-width: 16px;
+        font-size: 10px;
+      }
+      #search-modal-input {
+        padding-right: 160px; /* Make room for autofill suggestion */
+      }
+    `;
+    document.head.appendChild(style);
+  }
 }
 
 /**
@@ -647,6 +1226,60 @@ function selectSearchResult(results, index) {
   if (index >= 0 && index < results.length) {
     results[index].classList.add('selected');
     results[index].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+/**
+ * Update autofill suggestion based on input
+ * @param {string} input - Current input value
+ */
+function updateAutofillSuggestion(input) {
+  const autofillElement = document.getElementById('autofill-suggestion');
+  if (!autofillElement) return;
+  
+  // If input is empty, clear suggestion
+  if (!input.trim()) {
+    autofillElement.textContent = '';
+    return;
+  }
+  
+  // Get all available search options
+  const allResults = document.querySelectorAll('.search-result');
+  if (allResults.length === 0) return;
+  
+  // Get search history to rank by usage
+  const searchHistory = JSON.parse(localStorage.getItem('searchUsageHistory') || '{}');
+  
+  // Filter visible results
+  const visibleResults = Array.from(allResults).filter(
+    el => el.style.display !== 'none'
+  );
+  
+  if (visibleResults.length > 0) {
+    // Sort by usage frequency
+    visibleResults.sort((a, b) => {
+      const titleA = a.querySelector('.search-result-title')?.textContent || '';
+      const titleB = b.querySelector('.search-result-title')?.textContent || '';
+      const usageA = searchHistory[titleA] || 0;
+      const usageB = searchHistory[titleB] || 0;
+      return usageB - usageA; // Sort by most used first
+    });
+    
+    // Get the top result that starts with the current input
+    const topResult = visibleResults.find(result => {
+      const title = result.querySelector('.search-result-title')?.textContent || '';
+      return title.toLowerCase().startsWith(input.toLowerCase()) && title.toLowerCase() !== input.toLowerCase();
+    });
+    
+    // Set the suggestion
+    if (topResult) {
+      const suggestionText = topResult.querySelector('.search-result-title')?.textContent || '';
+      autofillElement.textContent = suggestionText;
+    } else {
+      autofillElement.textContent = '';
+    }
+  } else {
+    autofillElement.textContent = '';
   }
 }
 
@@ -881,7 +1514,7 @@ function populateShortcuts(container, os) {
 function showConfetti() {
   // Create confetti pieces
   const colors = ['#ff577f', '#ff884b', '#ffd384', '#fff9b0', '#7761ff', '#34b3f1', '#39c5bb', '#51cf66'];
-  const confettiCount = 150; // More confetti for better effect
+  const confettiCount = 180; // Increased for better effect
   const confettiContainer = document.createElement('div');
   confettiContainer.id = 'confetti-container';
   confettiContainer.style.position = 'fixed';
@@ -894,9 +1527,11 @@ function showConfetti() {
   confettiContainer.style.overflow = 'hidden';
   document.body.appendChild(confettiContainer);
   
-  // Create confetti pieces
+  // Create confetti pieces from both bottom corners
   for (let i = 0; i < confettiCount; i++) {
-    createConfettiPiece(confettiContainer, colors);
+    // Alternate between left and right corner launch points
+    const isLeftCorner = i % 2 === 0;
+    createConfettiPiece(confettiContainer, colors, isLeftCorner);
   }
   
   // Clean up after animation completes
@@ -912,45 +1547,71 @@ function showConfetti() {
         }
       }, 500);
     }
-  }, 3500);
+  }, 4500); // Increased duration to account for longer animation
 }
 
 /**
- * Create a confetti piece
+ * Create a confetti piece with improved physics
  * @param {HTMLElement} container - Container to add confetti to
  * @param {Array} colors - Array of colors
+ * @param {boolean} isLeftCorner - Whether to launch from left corner (otherwise right)
  */
-function createConfettiPiece(container, colors) {
+function createConfettiPiece(container, colors, isLeftCorner) {
   const piece = document.createElement('div');
   piece.className = 'confetti-piece';
   
-  // Random properties
-  const size = Math.random() * 10 + 5;
-  const shape = Math.random() > 0.5 ? '50%' : '0%'; // Circle or square
+  // Random properties with improved sizes
+  const size = Math.random() * 15 + 8; // Bigger confetti
+  const shape = Math.random() > 0.6 ? '50%' : Math.random() > 0.5 ? '0%' : '5px'; // Circle, square, or rounded
   const color = colors[Math.floor(Math.random() * colors.length)];
-  const left = Math.random() * 100 + 'vw';
-  const duration = Math.random() * 3 + 2;
-  const delay = Math.random() * 0.5;
-  const rotation = Math.random() * 360;
+  
+  // Starting position (from bottom corners)
+  const startX = isLeftCorner ? Math.random() * 20 : (100 - Math.random() * 20);
+  const startY = window.innerHeight - Math.random() * 20; // Start from near bottom
+  
+  // Launch velocity and physics
+  const horizontalVelocity = isLeftCorner 
+    ? Math.random() * 40 + 10 // Moving right from left corner
+    : -(Math.random() * 40 + 10); // Moving left from right corner
+  
+  const upwardVelocity = Math.random() * 70 + 50; // Upward velocity (50-120)
+  const duration = Math.random() * 2.5 + 3.5; // 3.5-6 seconds
   const rotationSpeed = (Math.random() - 0.5) * 720; // Random rotation speed and direction
   
-  // Set styles
+  // Set initial styles
   piece.style.width = `${size}px`;
   piece.style.height = `${size}px`;
   piece.style.backgroundColor = color;
   piece.style.borderRadius = shape;
   piece.style.position = 'absolute';
-  piece.style.top = '-20px';
-  piece.style.left = left;
+  piece.style.bottom = `0px`;
+  piece.style.left = `${startX}vw`;
   piece.style.willChange = 'transform, opacity';
-  piece.style.transform = `rotate(${rotation}deg)`;
   
-  // Create keyframes for this specific piece
+  // Create keyframes with bezier paths for more natural movement
+  const randomId = Math.floor(Math.random() * 10000);
   const keyframes = `
-    @keyframes confetti-fall-${Math.floor(Math.random() * 1000)} {
-      0% { transform: translateY(-20px) rotate(${rotation}deg); opacity: 1; }
-      80% { opacity: 1; }
-      100% { transform: translateY(${window.innerHeight + 20}px) rotate(${rotation + rotationSpeed}deg); opacity: 0; }
+    @keyframes confetti-launch-${randomId} {
+      0% { 
+        transform: translate(0, 0) rotate(0deg); 
+        opacity: 1; 
+      }
+      25% { 
+        transform: translate(${horizontalVelocity * 0.5}px, -${upwardVelocity * 0.9}px) rotate(${rotationSpeed * 0.25}deg); 
+        opacity: 1; 
+      }
+      50% { 
+        transform: translate(${horizontalVelocity}px, -${upwardVelocity}px) rotate(${rotationSpeed * 0.5}deg); 
+        opacity: 1; 
+      }
+      75% { 
+        transform: translate(${horizontalVelocity * 1.5}px, -${upwardVelocity * 0.6}px) rotate(${rotationSpeed * 0.75}deg); 
+        opacity: 0.7; 
+      }
+      100% { 
+        transform: translate(${horizontalVelocity * 2}px, ${window.innerHeight}px) rotate(${rotationSpeed}deg); 
+        opacity: 0; 
+      }
     }
   `;
   
@@ -959,8 +1620,8 @@ function createConfettiPiece(container, colors) {
   style.innerHTML = keyframes;
   document.head.appendChild(style);
   
-  // Apply animation
-  piece.style.animation = `confetti-fall-${Math.floor(Math.random() * 1000)} ${duration}s ease-out ${delay}s forwards`;
+  // Apply animation with cubic-bezier for realistic arc
+  piece.style.animation = `confetti-launch-${randomId} ${duration}s cubic-bezier(0.215, 0.61, 0.355, 1) forwards`;
   
   // Add to container
   container.appendChild(piece);
