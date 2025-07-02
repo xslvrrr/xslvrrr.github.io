@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Millennium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="icon" href="Assets/Millennium Logo.png" type="image/png">
+</head>
+<body class="dashboard-body">
+  <div class="dashboard-container">
+    <!-- Left sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo-container">
+          <img src="Assets/Millennium Logo 2.png" alt="Millennium Logo" class="sidebar-logo">
+        </div>
+        
+        <!-- Search bar -->
+        <div class="search-container">
+          <input type="text" class="search-input" placeholder="Search..." aria-label="Search">
+        </div>
+        
+        <!-- Navigation categories -->
+        <div class="nav-section">
+          <h2 class="nav-heading">Essentials</h2>
+          <ul class="nav-list">
+            <li class="nav-item active">
+              <a href="#home" class="nav-link">
+                <span class="nav-icon">
+                  <!-- home-icon.svg -->
+                </span>
+                <span>Home</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#account" class="nav-link">
+                <span class="nav-icon">
+                  <!-- account-icon.svg -->
+                </span>
+                <span>Account</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#notices" class="nav-link">
+                <span class="nav-icon">
+                  <!-- notices-icon.svg -->
+                </span>
+                <span>Notices</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#calendar" class="nav-link">
+                <span class="nav-icon">
+                  <!-- calendar-icon.svg -->
+                </span>
+                <span>Calendar</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="nav-section">
+          <h2 class="nav-heading">Register</h2>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#classes" class="nav-link">
+                <span class="nav-icon">
+                  <!-- classes-icon.svg -->
+                </span>
+                <span>Classes</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#timetable" class="nav-link">
+                <span class="nav-icon">
+                  <!-- timetable-icon.svg -->
+                </span>
+                <span>Timetable</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#reports" class="nav-link">
+                <span class="nav-icon">
+                  <!-- reports-icon.svg -->
+                </span>
+                <span>Reports</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#attendance" class="nav-link">
+                <span class="nav-icon">
+                  <!-- attendance-icon.svg -->
+                </span>
+                <span>Attendance</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="sidebar-bottom">
+        <div class="user-profile">
+          <div class="user-avatar">
+            <!-- Will show initials if no avatar is set -->
+            <span class="user-initials">TS</span>
+          </div>
+          <div class="user-info">
+            <div class="user-name" id="user-display-name">Test Student</div>
+            <div class="user-school" id="user-school">Test School</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main content area -->
+    <main class="main-content">
+      <header class="content-header">
+        <h1 class="page-title">Home</h1>
+        <div class="header-actions">
+          <button class="header-action-btn" aria-label="Refresh">
+            <!-- refresh-icon.svg -->
+          </button>
+          <button class="header-action-btn" aria-label="Settings">
+            <!-- settings-icon.svg -->
+          </button>
+        </div>
+      </header>
+
+      <div class="content-wrapper">
+        <!-- Welcome card -->
+        <div class="card welcome-card">
+          <div class="card-content">
+            <h2 class="card-title">Welcome to Millennium</h2>
+            <p class="card-text">This is the new Millennium interface, designed for productivity and ease of use.</p>
+            <p class="card-text">You are currently using a test account with no special permissions.</p>
+          </div>
+        </div>
+
+        <!-- Quick access grid -->
+        <div class="grid-section">
+          <h2 class="section-title">Quick Access</h2>
+          <div class="card-grid">
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <!-- today-icon.svg -->
+              </div>
+              <h3 class="quick-card-title">Today's Classes</h3>
+              <p class="quick-card-text">View your schedule for today</p>
+            </div>
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <!-- homework-icon.svg -->
+              </div>
+              <h3 class="quick-card-title">Assignments</h3>
+              <p class="quick-card-text">Check your pending assignments</p>
+            </div>
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <!-- notification-icon.svg -->
+              </div>
+              <h3 class="quick-card-title">Notifications</h3>
+              <p class="quick-card-text">View recent notifications</p>
+            </div>
+            <div class="quick-card">
+              <div class="quick-card-icon">
+                <!-- resources-icon.svg -->
+              </div>
+              <h3 class="quick-card-title">Resources</h3>
+              <p class="quick-card-text">Access learning materials</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="list-section">
+          <h2 class="section-title">Recent Activity</h2>
+          <div class="card activity-card">
+            <ul class="activity-list">
+              <li class="activity-item">
+                <div class="activity-icon">
+                  <!-- activity-icon.svg -->
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">English Assignment Submitted</div>
+                  <div class="activity-time">Yesterday</div>
+                </div>
+              </li>
+              <li class="activity-item">
+                <div class="activity-icon">
+                  <!-- activity-icon.svg -->
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">Math Test Graded</div>
+                  <div class="activity-time">2 days ago</div>
+                </div>
+              </li>
+              <li class="activity-item">
+                <div class="activity-icon">
+                  <!-- activity-icon.svg -->
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">Science Project Reminder</div>
+                  <div class="activity-time">3 days ago</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html> 
