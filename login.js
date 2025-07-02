@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginOptions = document.getElementById('login-options');
   const detailsBtn = document.getElementById('details-btn');
   const doeBtn = document.getElementById('doe-btn');
+  const debugBtn = document.getElementById('debug-btn');
   const question1 = document.getElementById('question-1');
   const question2 = document.getElementById('question-2');
   const question3 = document.getElementById('question-3');
@@ -19,6 +20,34 @@ document.addEventListener('DOMContentLoaded', function() {
   const completionTitle = document.querySelector('#completion .question-title');
   const completionSubtitle = document.querySelector('#completion .question-subtitle');
 
+  // Debug mode settings
+  const debugMode = true; // Set to true to enable debug login
+  const debugCredentials = {
+    username: 'debug',
+    password: 'debug123',
+    school: 'Test School'
+  };
+
+  // Check for debug query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const isDebugLogin = urlParams.get('debug') === 'true';
+
+  // Auto login for debug with query param
+  if (debugMode && isDebugLogin) {
+    setTimeout(() => {
+      loginContainer.classList.add('fade-in');
+      localStorage.setItem('millenniumDebugSession', JSON.stringify({
+        loggedIn: true,
+        isDebug: true,
+        username: debugCredentials.username,
+        school: debugCredentials.school,
+        timestamp: new Date().toISOString()
+      }));
+      window.location.href = 'dashboard.html';
+    }, 100);
+    return;
+  }
+
   // Form inputs
   const usernameInput = document.getElementById('username-input');
   const passwordInput = document.getElementById('password-input');
@@ -30,6 +59,34 @@ document.addEventListener('DOMContentLoaded', function() {
     password: '',
     school: ''
   };
+
+  // Handle debug login button click
+  if (debugBtn) {
+    debugBtn.addEventListener('click', function() {
+      // Create debug session
+      localStorage.setItem('millenniumDebugSession', JSON.stringify({
+        loggedIn: true,
+        isDebug: true,
+        username: debugCredentials.username,
+        school: debugCredentials.school,
+        timestamp: new Date().toISOString()
+      }));
+      
+      // Show transition message
+      completionTitle.textContent = 'Debug Login Successful';
+      completionSubtitle.textContent = 'Redirecting to dashboard...';
+      
+      // Hide return link during transition
+      returnLinkContainer.style.display = 'none';
+      
+      // Transition to completion and then redirect
+      transition(loginOptions, completion, true);
+      
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1500);
+    });
+  }
 
   // Create login verification display
   const verificationDisplay = document.createElement('div');
@@ -91,18 +148,57 @@ document.addEventListener('DOMContentLoaded', function() {
   submit1.addEventListener('click', function() {
     // Store username
     loginData.username = usernameInput.value;
+    
+    // Check for debug login
+    if (debugMode && loginData.username === debugCredentials.username) {
+      // Pre-fill password for debug mode
+      passwordInput.value = debugCredentials.password;
+    }
+    
     transition(question1, question2, true);
   });
 
   submit2.addEventListener('click', function() {
     // Store password
     loginData.password = passwordInput.value;
+    
+    // Check for debug login
+    if (debugMode && loginData.username === debugCredentials.username && 
+        loginData.password === debugCredentials.password) {
+      // Pre-fill school for debug mode
+      schoolInput.value = debugCredentials.school;
+    }
+    
     transition(question2, question3, true);
   });
 
   submit3.addEventListener('click', function() {
     // Store school name
     loginData.school = schoolInput.value;
+    
+    // Check for debug login
+    if (debugMode && loginData.username === debugCredentials.username && 
+        loginData.password === debugCredentials.password) {
+      // Bypass actual login verification
+      localStorage.setItem('millenniumDebugSession', JSON.stringify({
+        loggedIn: true,
+        isDebug: true,
+        username: loginData.username,
+        school: loginData.school,
+        timestamp: new Date().toISOString()
+      }));
+      
+      // Redirect to dashboard after short delay
+      completionTitle.textContent = 'Debug Login Successful';
+      completionSubtitle.textContent = 'Redirecting to dashboard...';
+      transition(question3, completion, true);
+      
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1500);
+      
+      return;
+    }
     
     // Hide the return to main page text on the completion page
     returnLinkContainer.style.display = 'none';
