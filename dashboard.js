@@ -19,8 +19,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Set up navigation item click handlers
   setupNavigation();
   
+  // Set up collapsible sections
+  setupCollapsibleSections();
+  
   // Initialize performance optimizations
   initPerformanceOptimizations();
+  
+  // Check if icons are loaded properly
+  checkIcons();
 });
 
 /**
@@ -92,6 +98,37 @@ function setupNavigation() {
 }
 
 /**
+ * Sets up collapsible sections
+ */
+function setupCollapsibleSections() {
+  const sectionHeadings = document.querySelectorAll('.nav-heading-container');
+  
+  sectionHeadings.forEach(heading => {
+    heading.addEventListener('click', () => {
+      const section = heading.closest('.nav-section');
+      section.classList.toggle('collapsed');
+      
+      // Save section state to localStorage for persistence
+      const sectionName = heading.dataset.section;
+      if (sectionName) {
+        const collapsedSections = JSON.parse(localStorage.getItem('collapsedSections') || '{}');
+        collapsedSections[sectionName] = section.classList.contains('collapsed');
+        localStorage.setItem('collapsedSections', JSON.stringify(collapsedSections));
+      }
+    });
+  });
+  
+  // Restore collapsed state from localStorage
+  const collapsedSections = JSON.parse(localStorage.getItem('collapsedSections') || '{}');
+  for (const [sectionName, isCollapsed] of Object.entries(collapsedSections)) {
+    const section = document.querySelector(`.nav-heading-container[data-section="${sectionName}"]`)?.closest('.nav-section');
+    if (section && isCollapsed) {
+      section.classList.add('collapsed');
+    }
+  }
+}
+
+/**
  * Simulates loading content for different sections
  * @param {string} section - Section identifier
  * @param {Set} loadedContent - Set of already loaded content sections
@@ -126,6 +163,43 @@ function simulateContentLoading(section, loadedContent) {
 }
 
 /**
+ * Check if icons are loading properly
+ */
+function checkIcons() {
+  const icons = document.querySelectorAll('img[src^="Assets/"]');
+  const iconErrorCount = { count: 0 };
+  
+  icons.forEach(icon => {
+    // Add error handler to detect if icons fail to load
+    icon.addEventListener('error', () => {
+      iconErrorCount.count++;
+      
+      // Check if there are multiple icon loading errors
+      if (iconErrorCount.count > 2 && !localStorage.getItem('iconErrorLogged')) {
+        console.warn('Multiple icons failed to load. Check that icon files exist in the Assets folder.');
+        localStorage.setItem('iconErrorLogged', true);
+        
+        // Replace broken icon with a text placeholder
+        icon.style.display = 'none';
+        const iconText = document.createElement('span');
+        iconText.textContent = icon.alt ? icon.alt.charAt(0) : 'I';
+        iconText.style.fontWeight = '600';
+        iconText.style.opacity = '0.8';
+        icon.parentNode.appendChild(iconText);
+      }
+    });
+    
+    // Add a handler to confirm successful loading
+    icon.addEventListener('load', () => {
+      // Reset cached error state if icons start loading
+      if (localStorage.getItem('iconErrorLogged')) {
+        localStorage.removeItem('iconErrorLogged');
+      }
+    });
+  });
+}
+
+/**
  * Initializes performance optimizations
  */
 function initPerformanceOptimizations() {
@@ -152,7 +226,7 @@ function prefetchResources() {
   };
   
   // Icons that might be needed (actual icons would be defined in production)
-  [
+  const commonIcons = [
     'home-icon.svg',
     'account-icon.svg',
     'notices-icon.svg',
@@ -160,8 +234,18 @@ function prefetchResources() {
     'classes-icon.svg',
     'timetable-icon.svg',
     'reports-icon.svg',
-    'attendance-icon.svg'
-  ].forEach(icon => prefetch(`Assets/${icon}`));
+    'attendance-icon.svg',
+    'refresh-icon.svg',
+    'settings.svg',
+    'angle-down.svg'
+  ];
+  
+  // Only prefetch icons that haven't been loaded yet
+  commonIcons.forEach(icon => {
+    if (!document.querySelector(`img[src="Assets/${icon}"]`)) {
+      prefetch(`Assets/${icon}`);
+    }
+  });
 }
 
 /**
