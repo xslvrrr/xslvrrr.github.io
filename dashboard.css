@@ -3,12 +3,13 @@
   /* Core color palette - Updated with precise colors */
   --sidebar-bg: #050505; /* Brightened background */
   --main-bg: #050505; /* Brightened background */
-  --card-bg: #151515; /* Dimmed content area */
+  --content-bg: #0f0f0f; /* Content container background */
+  --card-bg: transparent; /* Transparent card background to match Linear */
   --hover-bg: rgba(255, 255, 255, 0.05);
   --active-bg: rgba(255, 255, 255, 0.1);
-  --border-color: rgba(255, 255, 255, 0.06);
-  --hover-card-bg: #1a1a1a; /* Slightly lighter than card-bg */
-  --hover-border-color: rgba(255, 255, 255, 0.1);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --hover-card-bg: rgba(255, 255, 255, 0.03); /* Subtle hover effect */
+  --hover-border-color: rgba(255, 255, 255, 0.12);
   
   /* Text colors - Improved contrast */
   --text-primary: #F7F8F8;
@@ -17,37 +18,34 @@
   
   /* Sizing - Updated with golden ratio */
   --sidebar-width: 220px;
-  --header-height: 64px; /* Increased height for better proportions */
-  --card-radius: 8px; /* Increased for better visual distinction */
+  --header-height: 60px; /* Reduced from 64px */
+  --card-radius: 6px; /* Reduced for better visual alignment with Linear */
   
   /* Spacing - Updated to golden ratio */
   --space-xs: 4px;
-  --space-sm: 8px; /* Increased from 6px for better spacing */
-  --space-md: 12px; /* Increased from 10px */
-  --space-lg: 20px; /* Increased from 16px */
-  --space-xl: 32px; /* Increased from 26px */
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px; /* Reduced from 20px */
+  --space-xl: 24px; /* Reduced from 32px */
   
   /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2); /* Enhanced shadows */
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.24);
   
   /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
   --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   
-  /* Golden ratio based typography system - Increased for better readability */
-  /* Base font size */
-  --font-size-base: 14px; /* Increased from 13px */
-  
-  /* Font sizes following golden ratio (1.618) */
-  --font-size-xs: 10px;   /* Increased from 8px */
-  --font-size-sm: 12px;   /* Increased from 10px */
-  --font-size-md: 14px;   /* Base - increased from 13px */
-  --font-size-lg: 18px;   /* Increased from 16px */
-  --font-size-xl: 24px;   /* Increased from 21px */
-  --font-size-xxl: 38px;  /* Increased from 34px */
+  /* Font sizes - Adjusted to match Linear better */
+  --font-size-base: 13px;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 13px; /* Reduced from 14px */
+  --font-size-lg: 15px; /* Reduced from 18px */
+  --font-size-xl: 18px; /* Reduced from 24px */
+  --font-size-xxl: 28px; /* Reduced from 38px */
   
   /* Line heights for harmony */
   --line-height-tight: 1.2;
@@ -55,16 +53,17 @@
   --line-height-relaxed: 1.618;
 }
 
-/* Light theme variables */
+/* Light theme variables - updated for consistent transparent cards */
 body.light-theme {
   --sidebar-bg: #f0f0f5;
-  --main-bg: #f0f0f3; /* Slightly darker than before */
-  --card-bg: transparent; /* Transparent background for cards */
+  --main-bg: #f0f0f3;
+  --content-bg: #f8f8fa; /* Light mode content background */
+  --card-bg: transparent;
   --hover-bg: rgba(0, 0, 0, 0.04);
   --active-bg: rgba(0, 0, 0, 0.07);
-  --border-color: rgba(0, 0, 0, 0.08); /* Dimmed outline for balanced contrast */
-  --hover-card-bg: rgba(0, 0, 0, 0.01); /* Very subtle hover background */
-  --hover-border-color: rgba(0, 0, 0, 0.12);
+  --border-color: rgba(0, 0, 0, 0.1); /* Slightly darker for better visibility */
+  --hover-card-bg: rgba(0, 0, 0, 0.02);
+  --hover-border-color: rgba(0, 0, 0, 0.14);
   
   /* Text colors with better contrast */
   --text-primary: #1a1a1f;
@@ -619,7 +618,7 @@ body.light-theme .quick-card:hover {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Changed from overflow-y: auto to let content-wrapper handle scrolling */
+  overflow: hidden; 
   position: relative;
   background-color: var(--main-bg);
   height: 100%;
@@ -653,17 +652,14 @@ body.light-theme .quick-card:hover {
   padding: 0 var(--space-xl);
   position: sticky;
   top: 0;
-  background-color: rgba(5, 5, 5, 0.8); /* Semi-transparent background */
-  backdrop-filter: blur(12px); /* Add blur effect like Linear */
-  -webkit-backdrop-filter: blur(12px);
+  background-color: var(--main-bg);
   z-index: 5;
-  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 /* Updated page title styling */
 .page-title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -672,7 +668,7 @@ body.light-theme .quick-card:hover {
 
 /* Search container now positioned to the right */
 .header-search-container {
-  width: 280px; /* Increased width */
+  width: 240px;
   margin-left: auto;
 }
 
@@ -680,8 +676,8 @@ body.light-theme .quick-card:hover {
   width: 100%;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
-  border-radius: 6px; /* Increased radius */
-  padding: 8px 16px; /* Increased padding */
+  border-radius: 4px;
+  padding: 8px 12px;
   color: var(--text-primary);
   font-size: var(--font-size-md);
   transition: var(--transition-fast);
@@ -697,57 +693,16 @@ body.light-theme .quick-card:hover {
   color: var(--text-tertiary);
 }
 
-/* Header actions */
-.header-actions {
+/* Content container - The main area with different background */
+.content-container {
+  flex: 1;
+  background-color: var(--content-bg);
+  border-radius: 12px 12px 0 0;
+  margin-top: var(--space-md);
+  overflow: hidden;
   display: flex;
-  gap: var(--space-md);
-  margin-left: var(--space-lg);
-}
-
-.header-action-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
-  color: var(--text-secondary);
-  position: relative;
-}
-
-.header-action-btn img {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-  filter: invert(1); /* Make icon light */
-  transition: opacity var(--transition-fast);
-}
-
-.header-action-btn:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
-}
-
-.header-action-btn:hover img {
-  opacity: 1;
-}
-
-/* Notification dot indicator */
-.header-action-btn.has-notification::after {
-  content: '';
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
-  background-color: #ff5757;
-  border-radius: 50%;
-  border: 2px solid var(--main-bg);
+  flex-direction: column;
+  padding: 0 var(--space-md);
 }
 
 /* Content wrapper - Updated to handle scrolling and extend full height */
@@ -755,11 +710,9 @@ body.light-theme .quick-card:hover {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--main-bg);
   min-height: 0; /* Allow content to shrink */
   overflow-y: auto; /* Handle scrolling here */
-  padding: 0 var(--space-xl);
-  height: 100%; /* Take full height */
+  padding: 0 var(--space-lg);
 }
 
 .content-wrapper-inner {
@@ -775,30 +728,28 @@ body.light-theme .quick-card:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards - Updated with improved visuals and proper spacing */
+/* Cards - Updated to be transparent with borders like Linear */
 .card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
   border: 1px solid var(--border-color);
   overflow: hidden;
   will-change: opacity, transform;
-  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
-  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-normal), transform var(--transition-normal);
 }
 
 .card:hover {
   border-color: var(--hover-border-color);
-  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
 .card-content {
-  padding: var(--space-xl);
+  padding: var(--space-lg) var(--space-lg);
 }
 
 /* Card title and text - Improved typography */
 .card-title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 600;
   margin: 0 0 var(--space-md);
   color: var(--text-primary);
@@ -818,15 +769,15 @@ body.light-theme .quick-card:hover {
 
 /* Sections - Improved spacing and typography */
 .section-title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-md);
   font-weight: 600;
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-md);
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .grid-section, .list-section {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 /* First section title - no top padding needed */
@@ -847,30 +798,27 @@ body.light-theme .quick-card:hover {
 .quick-card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
-  padding: var(--space-xl);
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  padding: var(--space-lg);
+  transition: transform 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
   position: relative;
   border: 1px solid var(--border-color);
   z-index: 1;
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  box-shadow: var(--shadow-sm);
+  will-change: transform;
   display: flex;
   flex-direction: column;
 }
 
 .quick-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   border-color: var(--hover-border-color);
   background-color: var(--hover-card-bg);
-  box-shadow: var(--shadow-md);
   z-index: 10;
 }
 
 .quick-card-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   margin-bottom: var(--space-md);
   color: var(--text-secondary);
   display: flex;
@@ -879,11 +827,10 @@ body.light-theme .quick-card:hover {
 }
 
 .quick-card-icon img {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   opacity: 0.7;
   filter: invert(1);
-  transition: opacity var(--transition-normal);
 }
 
 .quick-card:hover .quick-card-icon img {
@@ -893,7 +840,7 @@ body.light-theme .quick-card:hover {
 .quick-card-title {
   font-size: var(--font-size-md);
   font-weight: 600;
-  margin: 0 0 var(--space-sm);
+  margin: 0 0 var(--space-xs);
   color: var(--text-primary);
 }
 
@@ -924,7 +871,7 @@ body.light-theme .quick-card:hover {
 .activity-item {
   display: flex;
   align-items: center;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border-bottom: 1px solid var(--border-color);
   transition: background-color var(--transition-normal);
 }
@@ -938,8 +885,8 @@ body.light-theme .quick-card:hover {
 }
 
 .activity-icon {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   margin-right: var(--space-md);
   color: var(--text-secondary);
   display: flex;
@@ -949,8 +896,8 @@ body.light-theme .quick-card:hover {
 }
 
 .activity-icon img {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   opacity: 0.7;
   filter: invert(1);
 }
@@ -991,14 +938,14 @@ body.light-theme .quick-card:hover {
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-tertiary);
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .list-table-row {
   border-bottom: 1px solid var(--border-color);
-  transition: var(--transition-fast);
+  transition: background-color var(--transition-normal);
 }
 
 .list-table-row:last-child {
@@ -1010,7 +957,7 @@ body.light-theme .quick-card:hover {
 }
 
 .list-table-row td {
-  padding: var(--space-lg);
+  padding: var(--space-md);
   font-size: var(--font-size-md);
   color: var(--text-secondary);
 }
@@ -1022,11 +969,11 @@ body.light-theme .quick-card:hover {
 
 /* Welcome card - More spacious, distinct styling */
 .welcome-card {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .welcome-card .card-content {
-  padding: var(--space-xl);
+  padding: var(--space-lg);
 }
 
 /* Search modal */
@@ -2039,4 +1986,94 @@ body.light-theme .list-table-row:hover {
 
 .search-category-header:first-child {
   margin-top: 0;
+}
+
+/* Header actions */
+.header-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-left: var(--space-lg);
+}
+
+.header-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.header-action-btn img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  filter: invert(1); /* Make icon light */
+  transition: opacity var(--transition-fast);
+}
+
+.header-action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.header-action-btn:hover img {
+  opacity: 1;
+}
+
+/* Notification dot indicator */
+.header-action-btn.has-notification::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  background-color: #ff5757;
+  border-radius: 50%;
+  border: 1px solid var(--main-bg);
+}
+
+/* Light mode adjustments for transparent cards and content container */
+body.light-theme .card {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .quick-card {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .content-container {
+  background-color: var(--content-bg);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .content-header {
+  background-color: var(--main-bg);
+}
+
+body.light-theme .header-action-btn {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .header-action-btn img {
+  filter: invert(0.2);
+}
+
+body.light-theme .header-action-btn.has-notification::after {
+  border-color: var(--main-bg);
+}
+
+body.light-theme .activity-icon img,
+body.light-theme .quick-card-icon img,
+body.light-theme .nav-icon img {
+  filter: invert(0.2);
 } 
