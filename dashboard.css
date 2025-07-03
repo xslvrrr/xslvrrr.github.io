@@ -319,7 +319,7 @@ body.light-theme .preference-btn.active {
 
 /* Card hover styles for light theme */
 body.light-theme .quick-card:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: rgba(0, 0, 0, 0.03);
   border-color: rgba(0, 0, 0, 0.12);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -645,9 +645,9 @@ body.light-theme .quick-card:hover {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Content header merged with main content */
+/* Content header merged with main content - reduced height */
 .content-header {
-  height: var(--header-height);
+  height: 48px; /* Reduced from var(--header-height) */
   display: flex;
   align-items: center;
   padding: 0 var(--space-lg);
@@ -695,6 +695,30 @@ body.light-theme .quick-card:hover {
   color: var(--text-tertiary);
 }
 
+/* Add header search shortcut style */
+.header-search-shortcut {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+}
+
+.header-search-shortcut .shortcut-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin: 0 2px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
 /* Content container - The main area with different background */
 .content-container {
   flex: 1;
@@ -729,9 +753,9 @@ body.light-theme .quick-card:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards - Updated to be transparent with borders like Linear */
+/* Cards - Fully transparent with borders like Linear */
 .card {
-  background-color: var(--card-bg);
+  background-color: transparent;
   border-radius: var(--card-radius);
   border: 1px solid var(--border-color);
   overflow: hidden;
@@ -794,9 +818,9 @@ body.light-theme .quick-card:hover {
   width: 100%;
 }
 
-/* Quick action card - Updated to match Linear style */
+/* Quick action card - Fully transparent with Linear style */
 .quick-card {
-  background-color: var(--card-bg);
+  background-color: transparent;
   border-radius: var(--card-radius);
   padding: var(--space-md); /* Reduced from lg */
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -813,7 +837,7 @@ body.light-theme .quick-card:hover {
 .quick-card:hover {
   transform: translateY(-1px);
   border-color: var(--hover-border-color);
-  background-color: var(--hover-card-bg);
+  background-color: var(--hover-bg);
   z-index: 10;
 }
 
@@ -965,6 +989,20 @@ body.light-theme .quick-card:hover {
 .list-table-row td:first-child {
   color: var(--text-primary);
   font-weight: 400; /* Match Linear's weight */
+}
+
+/* Fix spacing in the Your Classes section */
+.list-section .list-table {
+  border-spacing: 0;
+}
+
+.list-section .list-table-header th {
+  padding: var(--space-md) var(--space-md); /* Increased padding */
+}
+
+.list-section .list-table-row td {
+  padding: var(--space-md) var(--space-md); /* Increased padding */
+  line-height: 1.4; /* Improved line height for readability */
 }
 
 /* Welcome card - More spacious, distinct styling */
