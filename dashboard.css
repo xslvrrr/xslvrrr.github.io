@@ -1,53 +1,53 @@
 /* Dashboard Styles - Inspired by Linear.app */
 :root {
-  /* Core color palette - Updated for Linear-like aesthetics */
-  --sidebar-bg: #050505; /* Lightened to 5,5,5 as requested */
-  --main-bg: #050505; /* Lightened background */
-  --card-bg: #151515; /* Darkened card background to 15,15,15 */
+  /* Core color palette - Updated with precise colors */
+  --sidebar-bg: #050505; /* Brightened background */
+  --main-bg: #050505; /* Brightened background */
+  --card-bg: #151515; /* Dimmed content area */
   --hover-bg: rgba(255, 255, 255, 0.05);
   --active-bg: rgba(255, 255, 255, 0.1);
-  --border-color: rgba(255, 255, 255, 0.06); /* Dimmed outline for balanced contrast */
-  --hover-card-bg: rgba(255, 255, 255, 0.02); /* Very subtle hover background */
+  --border-color: rgba(255, 255, 255, 0.06);
+  --hover-card-bg: #1a1a1a; /* Slightly lighter than card-bg */
   --hover-border-color: rgba(255, 255, 255, 0.1);
   
-  /* Text colors */
+  /* Text colors - Improved contrast */
   --text-primary: #F7F8F8;
-  --text-secondary: #B5B6B6;
+  --text-secondary: #A0A0A0; /* Slightly brighter for better readability */
   --text-tertiary: #707070;
   
   /* Sizing - Updated with golden ratio */
   --sidebar-width: 220px;
-  --header-height: 48px;
-  --card-radius: 6px;
+  --header-height: 64px; /* Increased height for better proportions */
+  --card-radius: 8px; /* Increased for better visual distinction */
   
   /* Spacing - Updated to golden ratio */
   --space-xs: 4px;
-  --space-sm: 6px; /* ~4 * 1.618 */
-  --space-md: 10px; /* ~6 * 1.618 */
-  --space-lg: 16px; /* ~10 * 1.618 */
-  --space-xl: 26px; /* ~16 * 1.618 */
+  --space-sm: 8px; /* Increased from 6px for better spacing */
+  --space-md: 12px; /* Increased from 10px */
+  --space-lg: 20px; /* Increased from 16px */
+  --space-xl: 32px; /* Increased from 26px */
   
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15);
-  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2); /* Enhanced shadows */
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
   
   /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
   --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   
-  /* Golden ratio based typography system */
+  /* Golden ratio based typography system - Increased for better readability */
   /* Base font size */
-  --font-size-base: 13px;
+  --font-size-base: 14px; /* Increased from 13px */
   
   /* Font sizes following golden ratio (1.618) */
-  --font-size-xs: 8px;    /* Base ÷ 1.618 */
-  --font-size-sm: 10px;   /* XS × 1.272 (√1.618) */
-  --font-size-md: 13px;   /* Base */
-  --font-size-lg: 16px;   /* Base × 1.272 */
-  --font-size-xl: 21px;   /* Base × 1.618 */
-  --font-size-xxl: 34px;  /* Base × 1.618² */
+  --font-size-xs: 10px;   /* Increased from 8px */
+  --font-size-sm: 12px;   /* Increased from 10px */
+  --font-size-md: 14px;   /* Base - increased from 13px */
+  --font-size-lg: 18px;   /* Increased from 16px */
+  --font-size-xl: 24px;   /* Increased from 21px */
+  --font-size-xxl: 38px;  /* Increased from 34px */
   
   /* Line heights for harmony */
   --line-height-tight: 1.2;
@@ -72,7 +72,7 @@ body.light-theme {
   --text-tertiary: #6a6a75;
 }
 
-/* Core layout - Updated to match Linear style with merged header */
+/* Core layout - Updated to ensure full height content */
 .dashboard-body {
   margin: 0;
   padding: 0;
@@ -94,7 +94,7 @@ body.light-theme {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Dashboard container - Full height layout */
+/* Performance optimizations */
 .dashboard-container {
   display: flex;
   height: 100vh;
@@ -325,10 +325,10 @@ body.light-theme .quick-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Sidebar styling - Full height */
+/* Sidebar styling - Enhanced with Linear-like aesthetic */
 .sidebar {
   width: var(--sidebar-width);
-  height: 100vh; /* Full height */
+  height: 100%;
   background-color: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
@@ -341,7 +341,7 @@ body.light-theme .quick-card:hover {
   transform: translateZ(0);
   contain: layout style;
   padding: var(--space-md) 0;
-  border-right: 1px solid var(--border-color); /* Subtle separator */
+  border-right: 1px solid var(--border-color);
 }
 
 .sidebar::-webkit-scrollbar {
@@ -364,8 +364,7 @@ body.light-theme .quick-card:hover {
 .sidebar-top {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  padding: var(--space-lg) var(--space-md) 0;
+  gap: var(--space-md);
 }
 
 /* Search bar */
@@ -397,7 +396,7 @@ body.light-theme .quick-card:hover {
 
 /* Navigation sections */
 .nav-section {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .nav-heading-container {
@@ -406,9 +405,9 @@ body.light-theme .quick-card:hover {
   justify-content: space-between;
   padding: 0 var(--space-md) 0 var(--space-md);
   cursor: pointer;
-  margin-bottom: var(--space-sm);
+  margin-bottom: 2px;
   border-radius: 4px;
-  margin: 0 var(--space-xs) var(--space-sm);
+  margin: 0 var(--space-xs);
   transition: var(--transition-fast);
 }
 
@@ -481,8 +480,8 @@ body.light-theme .quick-card:hover {
 }
 
 .nav-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   margin-right: var(--space-md);
   opacity: 0.8;
   display: flex;
@@ -491,8 +490,8 @@ body.light-theme .quick-card:hover {
 }
 
 .nav-icon img {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   opacity: 0.7;
   filter: invert(1); /* Make icons light */
   transition: opacity var(--transition-fast);
@@ -503,14 +502,14 @@ body.light-theme .quick-card:hover {
   opacity: 1;
 }
 
-/* User profile section - Improved spacing */
+/* User profile section - moved to top of sidebar */
 .user-profile {
   display: flex;
   align-items: center;
   gap: var(--space-md);
   position: relative;
   cursor: pointer;
-  padding: var(--space-md) var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
   margin-bottom: var(--space-md);
   border-radius: 4px;
   transition: var(--transition-fast);
@@ -523,14 +522,14 @@ body.light-theme .quick-card:hover {
 .user-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 4px; /* Square with rounded corners like Linear */
-  background-color: #2e2e2e; /* Darker gray background */
+  border-radius: 50%;
+  background-color: #444;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: white;
   flex-shrink: 0;
 }
 
@@ -615,15 +614,15 @@ body.light-theme .quick-card:hover {
   opacity: 1;
 }
 
-/* Main content area - Full height with merged header */
+/* Main content area - Fixed to extend full height */
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  overflow: hidden; /* Changed from overflow-y: auto to let content-wrapper handle scrolling */
   position: relative;
   background-color: var(--main-bg);
+  height: 100%;
   will-change: transform;
   transform: translateZ(0);
   contain: content;
@@ -651,100 +650,116 @@ body.light-theme .quick-card:hover {
   height: var(--header-height);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 var(--space-xl);
   position: sticky;
   top: 0;
-  background-color: var(--main-bg);
+  background-color: rgba(5, 5, 5, 0.8); /* Semi-transparent background */
+  backdrop-filter: blur(12px); /* Add blur effect like Linear */
+  -webkit-backdrop-filter: blur(12px);
   z-index: 5;
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-.header-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.header-action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition-fast);
-  color: var(--text-secondary);
-}
-
-.header-action-btn:hover {
-  background-color: var(--hover-bg);
+/* Updated page title styling */
+.page-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
   color: var(--text-primary);
+  margin: 0;
+  flex: 1;
 }
 
-.header-action-btn img {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-  filter: invert(1);
-  transition: opacity var(--transition-fast);
-}
-
-.header-action-btn:hover img {
-  opacity: 1;
-}
-
-/* Improved header search */
+/* Search container now positioned to the right */
 .header-search-container {
-  width: 300px;
-  position: relative;
+  width: 280px; /* Increased width */
+  margin-left: auto;
 }
 
 .header-search-input {
   width: 100%;
-  background-color: #151515; /* Match card background */
+  background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 8px 12px;
+  border-radius: 6px; /* Increased radius */
+  padding: 8px 16px; /* Increased padding */
   color: var(--text-primary);
   font-size: var(--font-size-md);
   transition: var(--transition-fast);
-  height: 32px;
 }
 
 .header-search-input:focus {
   outline: none;
-  border-color: var(--hover-border-color);
-  background-color: #1a1a1a;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .header-search-input::placeholder {
   color: var(--text-tertiary);
 }
 
-/* Content wrapper - Full height scrollable area */
+/* Header actions */
+.header-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-left: var(--space-lg);
+}
+
+.header-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.header-action-btn img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+  filter: invert(1); /* Make icon light */
+  transition: opacity var(--transition-fast);
+}
+
+.header-action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.header-action-btn:hover img {
+  opacity: 1;
+}
+
+/* Notification dot indicator */
+.header-action-btn.has-notification::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff5757;
+  border-radius: 50%;
+  border: 2px solid var(--main-bg);
+}
+
+/* Content wrapper - Updated to handle scrolling and extend full height */
 .content-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: transparent;
-  overflow: auto;
+  background-color: var(--main-bg);
+  min-height: 0; /* Allow content to shrink */
+  overflow-y: auto; /* Handle scrolling here */
   padding: 0 var(--space-xl);
+  height: 100%; /* Take full height */
 }
 
 .content-wrapper-inner {
@@ -752,9 +767,7 @@ body.light-theme .quick-card:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  min-height: 100%; /* Take full available height */
 }
 
 @keyframes fadeIn {
@@ -762,37 +775,39 @@ body.light-theme .quick-card:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards - Updated for new color scheme */
+/* Cards - Updated with improved visuals and proper spacing */
 .card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
   border: 1px solid var(--border-color);
   overflow: hidden;
-  will-change: opacity;
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  will-change: opacity, transform;
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
 .card:hover {
   border-color: var(--hover-border-color);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-/* Card padding consistent with Linear */
 .card-content {
   padding: var(--space-xl);
 }
 
+/* Card title and text - Improved typography */
 .card-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-md);
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .card-text {
   font-size: var(--font-size-md);
-  line-height: var(--line-height-relaxed);
+  line-height: var(--line-height-normal);
   color: var(--text-secondary);
   margin: 0 0 var(--space-md);
 }
@@ -801,7 +816,7 @@ body.light-theme .quick-card:hover {
   margin-bottom: 0;
 }
 
-/* Sections */
+/* Sections - Improved spacing and typography */
 .section-title {
   font-size: var(--font-size-lg);
   font-weight: 600;
@@ -814,42 +829,49 @@ body.light-theme .quick-card:hover {
   margin-bottom: var(--space-xl);
 }
 
-/* Grid for quick access */
+/* First section title - no top padding needed */
+.content-wrapper-inner > div:first-child .section-title {
+  margin-top: 0;
+}
+
+/* Grid for quick access - improved layout */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--space-lg);
-  margin-bottom: 0;
   width: 100%;
+  overflow: visible;
 }
 
-/* Quick action card - Updated for new color scheme */
+/* Quick action card - Updated to match Linear style */
 .quick-card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
-  padding: var(--space-lg);
-  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  padding: var(--space-xl);
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   position: relative;
   border: 1px solid var(--border-color);
   z-index: 1;
-  will-change: transform;
+  will-change: transform, opacity;
   transform: translateZ(0);
-  height: 100%; /* Ensure consistent height */
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
 }
 
 .quick-card:hover {
   transform: translateY(-2px);
   border-color: var(--hover-border-color);
   background-color: var(--hover-card-bg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   z-index: 10;
 }
 
 .quick-card-icon {
-  width: 32px;
-  height: 32px;
-  margin-bottom: var(--space-lg);
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-md);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -857,10 +879,11 @@ body.light-theme .quick-card:hover {
 }
 
 .quick-card-icon img {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   opacity: 0.7;
-  filter: invert(1); /* Make icon light */
+  filter: invert(1);
+  transition: opacity var(--transition-normal);
 }
 
 .quick-card:hover .quick-card-icon img {
@@ -881,18 +904,17 @@ body.light-theme .quick-card:hover {
   line-height: var(--line-height-normal);
 }
 
-/* Quick click animation - fixed for better performance */
-.quick-card.clicked {
-  animation: card-click 0.2s ease;
+/* Activity card styling */
+.activity-card {
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
-@keyframes card-click {
-  0% { transform: translateY(-2px) scale(1); }
-  50% { transform: translateY(0px) scale(0.98); }
-  100% { transform: translateY(-2px) scale(1); }
+.activity-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-/* Activity list */
+/* Activity list - Updated with improved spacing */
 .activity-list {
   list-style: none;
   padding: 0;
@@ -904,7 +926,7 @@ body.light-theme .quick-card:hover {
   align-items: center;
   padding: var(--space-lg);
   border-bottom: 1px solid var(--border-color);
-  transition: var(--transition-fast);
+  transition: background-color var(--transition-normal);
 }
 
 .activity-item:last-child {
@@ -927,10 +949,10 @@ body.light-theme .quick-card:hover {
 }
 
 .activity-icon img {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   opacity: 0.7;
-  filter: invert(1); /* Make icon light */
+  filter: invert(1);
 }
 
 .activity-item:hover .activity-icon img {
@@ -946,6 +968,7 @@ body.light-theme .quick-card:hover {
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: var(--space-xs);
+  line-height: 1.3;
 }
 
 .activity-time {
@@ -953,7 +976,7 @@ body.light-theme .quick-card:hover {
   color: var(--text-tertiary);
 }
 
-/* Linear-style table/list */
+/* Linear-style table/list - Updated spacing and typography */
 .list-table {
   width: 100%;
   border-collapse: collapse;
@@ -966,11 +989,11 @@ body.light-theme .quick-card:hover {
 .list-table-header th {
   text-align: left;
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-tertiary);
   padding: var(--space-md) var(--space-lg);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
 }
 
 .list-table-row {
@@ -995,6 +1018,15 @@ body.light-theme .quick-card:hover {
 .list-table-row td:first-child {
   color: var(--text-primary);
   font-weight: 500;
+}
+
+/* Welcome card - More spacious, distinct styling */
+.welcome-card {
+  margin-bottom: var(--space-xl);
+}
+
+.welcome-card .card-content {
+  padding: var(--space-xl);
 }
 
 /* Search modal */
@@ -1083,12 +1115,12 @@ body.light-theme .quick-card:hover {
 
 .welcome-modal-container {
   width: 90%;
-  max-width: 500px;
+  max-width: 540px; /* Increased width */
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
-  padding: var(--space-lg);
+  padding: var(--space-xl);
   transform: scale(0.95);
   transition: transform var(--transition-bounce);
   position: relative;
@@ -1104,6 +1136,7 @@ body.light-theme .quick-card:hover {
   font-weight: 600;
   margin: 0 0 var(--space-md);
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .welcome-text {
@@ -1114,13 +1147,22 @@ body.light-theme .quick-card:hover {
 }
 
 .welcome-os-info {
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--border-color);
 }
 
 .welcome-os-info p {
-  font-size: 14px;
+  font-size: var(--font-size-md);
   color: var(--text-secondary);
   margin: 0;
+}
+
+#user-os-name {
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .shortcuts-container {
@@ -1128,16 +1170,42 @@ body.light-theme .quick-card:hover {
   flex-direction: column;
   gap: var(--space-md);
   margin-bottom: var(--space-xl);
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--space-md);
+  border-radius: var(--card-radius);
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+}
+
+.shortcuts-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.shortcuts-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shortcuts-container::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
 }
 
 .shortcut-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--card-radius);
+  transition: background-color var(--transition-fast);
+}
+
+.shortcut-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .shortcut-name {
-  font-size: 13px;
+  font-size: var(--font-size-md);
   color: var(--text-primary);
 }
 
@@ -1356,41 +1424,167 @@ body.light-theme .quick-card:hover {
   contain: layout style paint;
 }
 
-.nav-link, .quick-card, .activity-item, .header-action-btn, .search-input {
-  will-change: transform, opacity, background-color;
-  transform: translateZ(0);
-}
-
-/* Layer promotion for smooth animations */
-.sidebar, .main-content, .content-header {
+/* Optimize key interactive elements with hardware acceleration */
+.nav-link, 
+.quick-card, 
+.activity-item, 
+.header-action-btn, 
+.search-input,
+.card,
+.dropdown-item,
+.content-wrapper-inner,
+.search-result,
+.welcome-modal-container,
+.confirmation-modal-container {
+  will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
+/* Layer promotion for smooth animations */
+.sidebar, 
+.main-content, 
+.content-header,
+.card-grid {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint style;
+}
+
 /* Reduce repaints for scrolling */
-.sidebar, .main-content {
+.sidebar, 
+.main-content,
+.content-wrapper,
+.search-modal-results,
+.shortcuts-container {
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Minimize DOM reflow during animations */
+.content-wrapper-inner,
+.card-grid,
+.activity-list,
+.list-table {
+  contain: content;
+}
+
+/* Content visibility optimization for offscreen content */
+.activity-item,
+.list-table-row,
+tr.list-table-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 56px;
+}
+
+/* Prevent layout shifts */
+.card-title,
+.section-title,
+.quick-card-title,
+.activity-title,
+.list-table-header th,
+.card-grid,
+.list-table {
+  contain: layout style;
 }
 
 /* Reduce motion if user prefers */
-.reduce-motion * {
-  transition: none !important;
-  animation: none !important;
+@media (prefers-reduced-motion: reduce) {
+  .reduce-motion * {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
 }
 
-.search-category-header {
-  padding: var(--space-xs) var(--space-md);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
+/* Use passive event listeners for touch events */
+.sidebar, .content-wrapper {
+  touch-action: pan-y;
+}
+
+/* Optimize icon rendering */
+.nav-icon img,
+.activity-icon img,
+.quick-card-icon img,
+.dropdown-icon,
+.header-action-btn img {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize fonts for faster rendering */
+h1, h2, h3, h4, h5, h6,
+.card-title,
+.section-title,
+.quick-card-title,
+.activity-title,
+.page-title {
+  text-rendering: optimizeSpeed;
+}
+
+/* Search result styling */
+.search-result-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-result-icon img {
+  width: 16px;
+  height: 16px;
+  filter: invert(1); /* Make icon light */
+  opacity: 0.7;
+}
+
+.search-result:hover .search-result-icon, 
+.search-result.selected .search-result-icon {
+  opacity: 1;
+}
+
+.search-result:hover .search-result-icon img, 
+.search-result.selected .search-result-icon img {
+  opacity: 1;
+}
+
+.search-result-content {
+  flex: 1;
+}
+
+.search-result-title {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  margin-bottom: var(--space-xs);
+}
+
+.search-result-description {
+  font-size: var(--font-size-sm);
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: var(--space-md);
-  border-bottom: 1px solid var(--border-color);
 }
 
-.search-category-header:first-child {
+/* Improved hover states for various elements in light mode */
+body.light-theme .activity-item:hover,
+body.light-theme .notice-item:hover,
+body.light-theme .event-item:hover,
+body.light-theme .list-table-row:hover {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+/* First section title shouldn't have a top margin */
+.content-wrapper-inner > div:first-child .section-title {
   margin-top: 0;
+}
+
+/* More spacious welcome card */
+.welcome-card .card-content {
+  padding: var(--space-xl);
+}
+
+/* Ensure first section has no padding-top */
+.content-wrapper-inner > .card:first-child + .grid-section .section-title {
+  padding-top: 0;
 }
 
 /* Calendar specific styles */
@@ -1822,10 +2016,6 @@ body.light-theme .list-table-row:hover {
 }
 
 /* More spacious welcome card */
-.welcome-card {
-  margin-bottom: var(--space-xl);
-}
-
 .welcome-card .card-content {
   padding: var(--space-xl);
 }
@@ -1835,62 +2025,18 @@ body.light-theme .list-table-row:hover {
   padding-top: 0;
 }
 
-/* Fix page title to match design */
-.page-title {
-  font-size: var(--font-size-xl);
+/* Search result category headers */
+.search-category-header {
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.01em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* Comprehensive icon styling */
-.nav-icon img, 
-.activity-icon img, 
-.dropdown-icon, 
-.quick-card-icon img,
-.header-action-btn img,
-.search-result-icon img,
-.nav-collapse-icon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-  filter: invert(1); /* Make icons light */
-  transition: opacity var(--transition-fast);
-}
-
-.nav-item.active .nav-icon img,
-.nav-link:hover .nav-icon img,
-.activity-item:hover .activity-icon img,
-.dropdown-item:hover .dropdown-icon,
-.quick-card:hover .quick-card-icon img,
-.header-action-btn:hover img,
-.search-result:hover .search-result-icon img,
-.search-result.selected .search-result-icon img,
-.nav-heading-container:hover .nav-collapse-icon {
-  opacity: 1;
-}
-
-/* Light theme icon adjustments */
-body.light-theme .nav-icon img,
-body.light-theme .activity-icon img,
-body.light-theme .dropdown-icon,
-body.light-theme .quick-card-icon img,
-body.light-theme .header-action-btn img,
-body.light-theme .search-result-icon img,
-body.light-theme .nav-collapse-icon {
-  filter: invert(0.2);
-  opacity: 0.8;
-}
-
-body.light-theme .nav-item.active .nav-icon img,
-body.light-theme .nav-link:hover .nav-icon img,
-body.light-theme .activity-item:hover .activity-icon img,
-body.light-theme .dropdown-item:hover .dropdown-icon,
-body.light-theme .quick-card:hover .quick-card-icon img,
-body.light-theme .header-action-btn:hover img,
-body.light-theme .search-result:hover .search-result-icon img,
-body.light-theme .search-result.selected .search-result-icon img,
-body.light-theme .nav-heading-container:hover .nav-collapse-icon {
-  opacity: 1;
+.search-category-header:first-child {
+  margin-top: 0;
 } 
