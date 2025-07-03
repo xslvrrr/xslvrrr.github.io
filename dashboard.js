@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Show welcome screen for first-time users
   checkFirstTimeUser();
+  
+  // Setup header action buttons
+  setupHeaderActions();
 });
 
 /**
@@ -1974,5 +1977,64 @@ function updateShortcutKeyDisplay() {
     modifierKey.textContent = '⌘';
   } else {
     modifierKey.textContent = 'Ctrl';
+  }
+}
+
+/**
+ * Setup header action buttons functionality
+ */
+function setupHeaderActions() {
+  const refreshBtn = document.getElementById('refresh-btn');
+  const notificationsBtn = document.getElementById('notifications-btn');
+  const settingsBtn = document.getElementById('settings-btn');
+  
+  // Add notification indicator for demo
+  notificationsBtn.classList.add('has-notification');
+  
+  // Setup refresh button
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+      // Add spinning animation
+      const refreshIcon = this.querySelector('img');
+      refreshIcon.style.transition = 'transform 0.5s ease';
+      refreshIcon.style.transform = 'rotate(360deg)';
+      
+      // Simulate content refresh
+      const contentWrapper = document.querySelector('.content-wrapper');
+      if (contentWrapper) {
+        contentWrapper.classList.add('loading');
+        
+        // After a short delay, reset everything
+        setTimeout(() => {
+          contentWrapper.classList.remove('loading');
+          refreshIcon.style.transition = 'none';
+          refreshIcon.style.transform = 'rotate(0deg)';
+          
+          // After removing transition, restore it
+          setTimeout(() => {
+            refreshIcon.style.transition = 'transform 0.5s ease';
+          }, 50);
+        }, 800);
+      }
+    });
+  }
+  
+  // Setup notifications button
+  if (notificationsBtn) {
+    notificationsBtn.addEventListener('click', function() {
+      // For demo purposes, show a confirmation dialog
+      alert('You have 3 new notifications');
+      
+      // Remove notification indicator
+      this.classList.remove('has-notification');
+    });
+  }
+  
+  // Setup settings button
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', function() {
+      // Navigate to account/preferences page
+      navigateTo('account');
+    });
   }
 } 
