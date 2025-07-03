@@ -1589,24 +1589,15 @@ function createConfettiPiece(container, colors, isLeftCorner) {
 }
 
 /**
- * Setup header search functionality
+ * Setup header search shortcut display
  */
 function setupHeaderSearch() {
-  const headerSearch = document.querySelector('.header-search-input');
-  
-  if (!headerSearch) return;
-  
-  // Open search modal when header search is clicked
-  headerSearch.addEventListener('click', (e) => {
-    e.preventDefault();
-    toggleSearchModal();
-  });
-  
-  // Prevent typing in the header search (it just opens the modal)
-  headerSearch.addEventListener('keydown', (e) => {
-    e.preventDefault();
-    toggleSearchModal();
-  });
+  // Update the modifier key based on OS in the header
+  const headerModifierKey = document.getElementById('header-modifier-key');
+  if (headerModifierKey) {
+    const os = detectOS();
+    headerModifierKey.textContent = (os === 'macOS' || os === 'iOS') ? '⌘' : 'Ctrl';
+  }
 }
 
 /**
