@@ -127,150 +127,152 @@
 
     <!-- Main content area -->
     <main class="main-content">
-      <header class="content-header">
-        <h1 class="page-title">Home</h1>
-        
-        <!-- Search moved to center of header -->
-        <div class="header-search-container">
-          <input type="text" class="header-search-input" placeholder="Search..." aria-label="Search">
-        </div>
-        
-        <!-- Header actions -->
-        <div class="header-actions">
-          <button class="header-action-btn" id="refresh-btn" title="Refresh">
-            <img src="Assets/refresh-icon.svg" alt="Refresh">
-          </button>
-          <button class="header-action-btn" id="notifications-btn" title="Notifications">
-            <img src="Assets/notification-icon.svg" alt="Notifications">
-          </button>
-          <button class="header-action-btn" id="settings-btn" title="Settings">
-            <img src="Assets/settings-icon.svg" alt="Settings">
-          </button>
-        </div>
-      </header>
-
-      <div class="content-wrapper">
-        <div class="content-wrapper-inner">
-          <!-- Welcome card -->
-          <div class="card welcome-card">
-            <div class="card-content">
-              <h2 class="card-title">Welcome to Millennium</h2>
-              <p class="card-text">This is the new Millennium interface, designed for productivity and ease of use.</p>
-              <p class="card-text">You are currently using a test account with no special permissions.</p>
-            </div>
-          </div>
-
-          <!-- Quick access grid -->
-          <div class="grid-section">
-            <h2 class="section-title">Quick Access</h2>
-            <div class="card-grid">
-              <div class="quick-card">
-                <div class="quick-card-icon">
-                  <img src="Assets/today-icon.svg" alt="Today">
-                </div>
-                <h3 class="quick-card-title">Today's Classes</h3>
-                <p class="quick-card-text">View your schedule for today</p>
-              </div>
-              <div class="quick-card">
-                <div class="quick-card-icon">
-                  <img src="Assets/homework-icon.svg" alt="Homework">
-                </div>
-                <h3 class="quick-card-title">Assignments</h3>
-                <p class="quick-card-text">Check your pending assignments</p>
-              </div>
-              <div class="quick-card">
-                <div class="quick-card-icon">
-                  <img src="Assets/notification-icon.svg" alt="Notifications">
-                </div>
-                <h3 class="quick-card-title">Notifications</h3>
-                <p class="quick-card-text">View recent notifications</p>
-              </div>
-              <div class="quick-card">
-                <div class="quick-card-icon">
-                  <img src="Assets/resources-icon.svg" alt="Resources">
-                </div>
-                <h3 class="quick-card-title">Resources</h3>
-                <p class="quick-card-text">Access learning materials</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recent activity -->
-          <div class="list-section">
-            <h2 class="section-title">Recent Activity</h2>
-            <div class="card activity-card">
-              <ul class="activity-list">
-                <li class="activity-item">
-                  <div class="activity-icon">
-                    <img src="Assets/activity-icon.svg" alt="Activity">
-                  </div>
-                  <div class="activity-content">
-                    <div class="activity-title">English Assignment Submitted</div>
-                    <div class="activity-time">Yesterday</div>
-                  </div>
-                </li>
-                <li class="activity-item">
-                  <div class="activity-icon">
-                    <img src="Assets/activity-icon.svg" alt="Activity">
-                  </div>
-                  <div class="activity-content">
-                    <div class="activity-title">Math Test Graded</div>
-                    <div class="activity-time">2 days ago</div>
-                  </div>
-                </li>
-                <li class="activity-item">
-                  <div class="activity-icon">
-                    <img src="Assets/activity-icon.svg" alt="Activity">
-                  </div>
-                  <div class="activity-content">
-                    <div class="activity-title">Science Project Reminder</div>
-                    <div class="activity-time">3 days ago</div>
-                  </div>
-                </li>
-              </ul>
-            </div>
+      <div class="content-container">
+        <header class="content-header">
+          <h1 class="page-title">Home</h1>
+          
+          <!-- Search moved to center of header -->
+          <div class="header-search-container">
+            <input type="text" class="header-search-input" placeholder="Search..." aria-label="Search">
           </div>
           
-          <!-- Classes list (linear style) -->
-          <div class="list-section">
-            <h2 class="section-title">Your Classes</h2>
-            <div class="card">
-              <table class="list-table">
-                <thead class="list-table-header">
-                  <tr>
-                    <th>Subject</th>
-                    <th>Teacher</th>
-                    <th>Room</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="list-table-row">
-                    <td>English</td>
-                    <td>Ms. Johnson</td>
-                    <td>E301</td>
-                    <td>9:00 AM</td>
-                  </tr>
-                  <tr class="list-table-row">
-                    <td>Mathematics</td>
-                    <td>Mr. Williams</td>
-                    <td>M105</td>
-                    <td>10:30 AM</td>
-                  </tr>
-                  <tr class="list-table-row">
-                    <td>Science</td>
-                    <td>Dr. Brown</td>
-                    <td>S204</td>
-                    <td>1:15 PM</td>
-                  </tr>
-                  <tr class="list-table-row">
-                    <td>History</td>
-                    <td>Mrs. Davis</td>
-                    <td>H102</td>
-                    <td>2:45 PM</td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- Header actions -->
+          <div class="header-actions">
+            <button class="header-action-btn" id="refresh-btn" title="Refresh">
+              <img src="Assets/refresh-icon.svg" alt="Refresh">
+            </button>
+            <button class="header-action-btn" id="notifications-btn" title="Notifications">
+              <img src="Assets/notification-icon.svg" alt="Notifications">
+            </button>
+            <button class="header-action-btn" id="settings-btn" title="Settings">
+              <img src="Assets/settings-icon.svg" alt="Settings">
+            </button>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="content-wrapper-inner">
+            <!-- Welcome card -->
+            <div class="card welcome-card">
+              <div class="card-content">
+                <h2 class="card-title">Welcome to Millennium</h2>
+                <p class="card-text">This is the new Millennium interface, designed for productivity and ease of use.</p>
+                <p class="card-text">You are currently using a test account with no special permissions.</p>
+              </div>
+            </div>
+
+            <!-- Quick access grid -->
+            <div class="grid-section">
+              <h2 class="section-title">Quick Access</h2>
+              <div class="card-grid">
+                <div class="quick-card">
+                  <div class="quick-card-icon">
+                    <img src="Assets/today-icon.svg" alt="Today">
+                  </div>
+                  <h3 class="quick-card-title">Today's Classes</h3>
+                  <p class="quick-card-text">View your schedule for today</p>
+                </div>
+                <div class="quick-card">
+                  <div class="quick-card-icon">
+                    <img src="Assets/homework-icon.svg" alt="Homework">
+                  </div>
+                  <h3 class="quick-card-title">Assignments</h3>
+                  <p class="quick-card-text">Check your pending assignments</p>
+                </div>
+                <div class="quick-card">
+                  <div class="quick-card-icon">
+                    <img src="Assets/notification-icon.svg" alt="Notifications">
+                  </div>
+                  <h3 class="quick-card-title">Notifications</h3>
+                  <p class="quick-card-text">View recent notifications</p>
+                </div>
+                <div class="quick-card">
+                  <div class="quick-card-icon">
+                    <img src="Assets/resources-icon.svg" alt="Resources">
+                  </div>
+                  <h3 class="quick-card-title">Resources</h3>
+                  <p class="quick-card-text">Access learning materials</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent activity -->
+            <div class="list-section">
+              <h2 class="section-title">Recent Activity</h2>
+              <div class="card activity-card">
+                <ul class="activity-list">
+                  <li class="activity-item">
+                    <div class="activity-icon">
+                      <img src="Assets/activity-icon.svg" alt="Activity">
+                    </div>
+                    <div class="activity-content">
+                      <div class="activity-title">English Assignment Submitted</div>
+                      <div class="activity-time">Yesterday</div>
+                    </div>
+                  </li>
+                  <li class="activity-item">
+                    <div class="activity-icon">
+                      <img src="Assets/activity-icon.svg" alt="Activity">
+                    </div>
+                    <div class="activity-content">
+                      <div class="activity-title">Math Test Graded</div>
+                      <div class="activity-time">2 days ago</div>
+                    </div>
+                  </li>
+                  <li class="activity-item">
+                    <div class="activity-icon">
+                      <img src="Assets/activity-icon.svg" alt="Activity">
+                    </div>
+                    <div class="activity-content">
+                      <div class="activity-title">Science Project Reminder</div>
+                      <div class="activity-time">3 days ago</div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- Classes list (linear style) -->
+            <div class="list-section">
+              <h2 class="section-title">Your Classes</h2>
+              <div class="card">
+                <table class="list-table">
+                  <thead class="list-table-header">
+                    <tr>
+                      <th>Subject</th>
+                      <th>Teacher</th>
+                      <th>Room</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="list-table-row">
+                      <td>English</td>
+                      <td>Ms. Johnson</td>
+                      <td>E301</td>
+                      <td>9:00 AM</td>
+                    </tr>
+                    <tr class="list-table-row">
+                      <td>Mathematics</td>
+                      <td>Mr. Williams</td>
+                      <td>M105</td>
+                      <td>10:30 AM</td>
+                    </tr>
+                    <tr class="list-table-row">
+                      <td>Science</td>
+                      <td>Dr. Brown</td>
+                      <td>S204</td>
+                      <td>1:15 PM</td>
+                    </tr>
+                    <tr class="list-table-row">
+                      <td>History</td>
+                      <td>Mrs. Davis</td>
+                      <td>H102</td>
+                      <td>2:45 PM</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
