@@ -1,9 +1,9 @@
 /* Dashboard Styles - Inspired by Linear.app */
 :root {
   /* Core color palette - Updated for Linear-like aesthetics */
-  --sidebar-bg: #000000;
-  --main-bg: #0a0a0a; /* Darker background like Linear */
-  --card-bg: transparent; /* Transparent background for cards */
+  --sidebar-bg: #050505; /* Lightened to 5,5,5 as requested */
+  --main-bg: #050505; /* Lightened background */
+  --card-bg: #151515; /* Darkened card background to 15,15,15 */
   --hover-bg: rgba(255, 255, 255, 0.05);
   --active-bg: rgba(255, 255, 255, 0.1);
   --border-color: rgba(255, 255, 255, 0.06); /* Dimmed outline for balanced contrast */
@@ -72,7 +72,7 @@ body.light-theme {
   --text-tertiary: #6a6a75;
 }
 
-/* Core layout */
+/* Core layout - Updated to match Linear style with merged header */
 .dashboard-body {
   margin: 0;
   padding: 0;
@@ -94,7 +94,7 @@ body.light-theme {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Performance optimizations */
+/* Dashboard container - Full height layout */
 .dashboard-container {
   display: flex;
   height: 100vh;
@@ -325,10 +325,10 @@ body.light-theme .quick-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Sidebar styling */
+/* Sidebar styling - Full height */
 .sidebar {
   width: var(--sidebar-width);
-  height: 100%;
+  height: 100vh; /* Full height */
   background-color: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
@@ -341,6 +341,7 @@ body.light-theme .quick-card:hover {
   transform: translateZ(0);
   contain: layout style;
   padding: var(--space-md) 0;
+  border-right: 1px solid var(--border-color); /* Subtle separator */
 }
 
 .sidebar::-webkit-scrollbar {
@@ -363,7 +364,8 @@ body.light-theme .quick-card:hover {
 .sidebar-top {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-xl);
+  padding: var(--space-lg) var(--space-md) 0;
 }
 
 /* Search bar */
@@ -395,7 +397,7 @@ body.light-theme .quick-card:hover {
 
 /* Navigation sections */
 .nav-section {
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
 .nav-heading-container {
@@ -404,9 +406,9 @@ body.light-theme .quick-card:hover {
   justify-content: space-between;
   padding: 0 var(--space-md) 0 var(--space-md);
   cursor: pointer;
-  margin-bottom: 2px;
+  margin-bottom: var(--space-sm);
   border-radius: 4px;
-  margin: 0 var(--space-xs);
+  margin: 0 var(--space-xs) var(--space-sm);
   transition: var(--transition-fast);
 }
 
@@ -479,8 +481,8 @@ body.light-theme .quick-card:hover {
 }
 
 .nav-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   margin-right: var(--space-md);
   opacity: 0.8;
   display: flex;
@@ -489,8 +491,8 @@ body.light-theme .quick-card:hover {
 }
 
 .nav-icon img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   opacity: 0.7;
   filter: invert(1); /* Make icons light */
   transition: opacity var(--transition-fast);
@@ -501,14 +503,14 @@ body.light-theme .quick-card:hover {
   opacity: 1;
 }
 
-/* User profile section - moved to top of sidebar */
+/* User profile section - Improved spacing */
 .user-profile {
   display: flex;
   align-items: center;
   gap: var(--space-md);
   position: relative;
   cursor: pointer;
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-sm);
   margin-bottom: var(--space-md);
   border-radius: 4px;
   transition: var(--transition-fast);
@@ -521,14 +523,14 @@ body.light-theme .quick-card:hover {
 .user-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background-color: var(--text-secondary);
+  border-radius: 4px; /* Square with rounded corners like Linear */
+  background-color: #2e2e2e; /* Darker gray background */
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: var(--sidebar-bg);
+  color: var(--text-primary);
   flex-shrink: 0;
 }
 
@@ -613,16 +615,15 @@ body.light-theme .quick-card:hover {
   opacity: 1;
 }
 
-/* Main content area */
+/* Main content area - Full height with merged header */
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
   position: relative;
   background-color: var(--main-bg);
-  padding: 0 var(--space-md);
   will-change: transform;
   transform: translateZ(0);
   contain: content;
@@ -645,66 +646,41 @@ body.light-theme .quick-card:hover {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Content header with subtle backdrop blur and border */
+/* Content header merged with main content */
 .content-header {
   height: var(--header-height);
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
-  padding: 0 var(--space-md);
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
   position: sticky;
   top: 0;
-  background-color: var(--header-bg, rgba(10, 10, 10, 0.8));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background-color: var(--main-bg);
   z-index: 5;
-  margin-bottom: var(--space-md);
-  transition: background-color 0.3s ease;
   border-bottom: 1px solid var(--border-color);
 }
 
-.page-title {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.header-search-container {
-  grid-column: 2;
-  width: 300px;
-  max-width: 100%;
-}
-
-.header-search-input {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 6px 10px;
-  color: var(--text-primary);
-  font-size: 13px;
-  transition: var(--transition-fast);
-}
-
-.header-search-input:focus {
-  outline: none;
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.header-search-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.header-actions {
+.header-left {
   display: flex;
-  gap: var(--space-sm);
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
 }
 
 .header-action-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
   background-color: transparent;
   border: none;
@@ -716,42 +692,69 @@ body.light-theme .quick-card:hover {
   color: var(--text-secondary);
 }
 
-.header-action-btn img {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
-  filter: invert(1); /* Make icon light */
-  transition: opacity var(--transition-fast);
-}
-
 .header-action-btn:hover {
   background-color: var(--hover-bg);
   color: var(--text-primary);
+}
+
+.header-action-btn img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+  filter: invert(1);
+  transition: opacity var(--transition-fast);
 }
 
 .header-action-btn:hover img {
   opacity: 1;
 }
 
-/* Content wrapper - the floating content box */
+/* Improved header search */
+.header-search-container {
+  width: 300px;
+  position: relative;
+}
+
+.header-search-input {
+  width: 100%;
+  background-color: #151515; /* Match card background */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  transition: var(--transition-fast);
+  height: 32px;
+}
+
+.header-search-input:focus {
+  outline: none;
+  border-color: var(--hover-border-color);
+  background-color: #1a1a1a;
+}
+
+.header-search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Content wrapper - Full height scrollable area */
 .content-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--card-bg);
-  border-radius: var(--card-radius);
-  border: 1px solid var(--border-color);
-  margin-bottom: var(--space-md);
-  min-height: 0;
+  background-color: transparent;
   overflow: auto;
-  animation: fadeIn 0.3s ease;
+  padding: 0 var(--space-xl);
 }
 
 .content-wrapper-inner {
-  padding: var(--space-xl);
+  padding: var(--space-xl) 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 @keyframes fadeIn {
@@ -759,7 +762,7 @@ body.light-theme .quick-card:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards */
+/* Cards - Updated for new color scheme */
 .card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
@@ -774,20 +777,22 @@ body.light-theme .quick-card:hover {
   box-shadow: var(--shadow-sm);
 }
 
+/* Card padding consistent with Linear */
 .card-content {
-  padding: var(--space-lg);
+  padding: var(--space-xl);
 }
 
 .card-title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
   font-weight: 600;
-  margin: 0 0 var(--space-md);
+  margin: 0 0 var(--space-lg);
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .card-text {
   font-size: var(--font-size-md);
-  line-height: var(--line-height-normal);
+  line-height: var(--line-height-relaxed);
   color: var(--text-secondary);
   margin: 0 0 var(--space-md);
 }
@@ -800,9 +805,9 @@ body.light-theme .quick-card:hover {
 .section-title {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  margin: 0 0 var(--space-md);
+  margin: 0 0 var(--space-lg);
   color: var(--text-primary);
-  padding-top: var(--space-md);
+  letter-spacing: -0.01em;
 }
 
 .grid-section, .list-section {
@@ -812,16 +817,13 @@ body.light-theme .quick-card:hover {
 /* Grid for quick access */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: 0;
   width: 100%;
-  overflow: visible; /* Prevent cutoff of hover effects */
-  padding-top: 3px; /* Extra space to prevent hover cutoff */
-  padding-bottom: 3px; /* Extra space for hover shadow */
 }
 
-/* Quick action card */
+/* Quick action card - Updated for new color scheme */
 .quick-card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
@@ -830,9 +832,10 @@ body.light-theme .quick-card:hover {
   cursor: pointer;
   position: relative;
   border: 1px solid var(--border-color);
-  z-index: 1; /* Base z-index */
+  z-index: 1;
   will-change: transform;
   transform: translateZ(0);
+  height: 100%; /* Ensure consistent height */
 }
 
 .quick-card:hover {
@@ -846,7 +849,7 @@ body.light-theme .quick-card:hover {
 .quick-card-icon {
   width: 32px;
   height: 32px;
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -854,8 +857,8 @@ body.light-theme .quick-card:hover {
 }
 
 .quick-card-icon img {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   opacity: 0.7;
   filter: invert(1); /* Make icon light */
 }
@@ -875,6 +878,7 @@ body.light-theme .quick-card:hover {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   margin: 0;
+  line-height: var(--line-height-normal);
 }
 
 /* Quick click animation - fixed for better performance */
@@ -898,7 +902,7 @@ body.light-theme .quick-card:hover {
 .activity-item {
   display: flex;
   align-items: center;
-  padding: var(--space-md);
+  padding: var(--space-lg);
   border-bottom: 1px solid var(--border-color);
   transition: var(--transition-fast);
 }
@@ -923,8 +927,8 @@ body.light-theme .quick-card:hover {
 }
 
 .activity-icon img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   opacity: 0.7;
   filter: invert(1); /* Make icon light */
 }
@@ -964,8 +968,9 @@ body.light-theme .quick-card:hover {
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-tertiary);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .list-table-row {
@@ -982,7 +987,7 @@ body.light-theme .quick-card:hover {
 }
 
 .list-table-row td {
-  padding: var(--space-md);
+  padding: var(--space-lg);
   font-size: var(--font-size-md);
   color: var(--text-secondary);
 }
@@ -1817,6 +1822,10 @@ body.light-theme .list-table-row:hover {
 }
 
 /* More spacious welcome card */
+.welcome-card {
+  margin-bottom: var(--space-xl);
+}
+
 .welcome-card .card-content {
   padding: var(--space-xl);
 }
@@ -1824,4 +1833,64 @@ body.light-theme .list-table-row:hover {
 /* Ensure first section has no padding-top */
 .content-wrapper-inner > .card:first-child + .grid-section .section-title {
   padding-top: 0;
+}
+
+/* Fix page title to match design */
+.page-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Comprehensive icon styling */
+.nav-icon img, 
+.activity-icon img, 
+.dropdown-icon, 
+.quick-card-icon img,
+.header-action-btn img,
+.search-result-icon img,
+.nav-collapse-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+  filter: invert(1); /* Make icons light */
+  transition: opacity var(--transition-fast);
+}
+
+.nav-item.active .nav-icon img,
+.nav-link:hover .nav-icon img,
+.activity-item:hover .activity-icon img,
+.dropdown-item:hover .dropdown-icon,
+.quick-card:hover .quick-card-icon img,
+.header-action-btn:hover img,
+.search-result:hover .search-result-icon img,
+.search-result.selected .search-result-icon img,
+.nav-heading-container:hover .nav-collapse-icon {
+  opacity: 1;
+}
+
+/* Light theme icon adjustments */
+body.light-theme .nav-icon img,
+body.light-theme .activity-icon img,
+body.light-theme .dropdown-icon,
+body.light-theme .quick-card-icon img,
+body.light-theme .header-action-btn img,
+body.light-theme .search-result-icon img,
+body.light-theme .nav-collapse-icon {
+  filter: invert(0.2);
+  opacity: 0.8;
+}
+
+body.light-theme .nav-item.active .nav-icon img,
+body.light-theme .nav-link:hover .nav-icon img,
+body.light-theme .activity-item:hover .activity-icon img,
+body.light-theme .dropdown-item:hover .dropdown-icon,
+body.light-theme .quick-card:hover .quick-card-icon img,
+body.light-theme .header-action-btn:hover img,
+body.light-theme .search-result:hover .search-result-icon img,
+body.light-theme .search-result.selected .search-result-icon img,
+body.light-theme .nav-heading-container:hover .nav-collapse-icon {
+  opacity: 1;
 } 
