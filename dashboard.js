@@ -745,6 +745,46 @@ function initPerformanceOptimizations() {
   
   // Add event delegation for improved event handling
   setupEventDelegation();
+  
+  // Fix quick card click issues
+  fixQuickCardClicks();
+}
+
+/**
+ * Fix click issues on quick cards
+ */
+function fixQuickCardClicks() {
+  // Direct click handlers for quick cards
+  document.querySelectorAll('.quick-card').forEach(card => {
+    // Remove any existing click handler issues
+    card.style.pointerEvents = 'auto';
+    
+    // Add a clean click handler
+    card.addEventListener('click', function(e) {
+      // Visual feedback
+      this.classList.add('clicked');
+      setTimeout(() => {
+        this.classList.remove('clicked');
+      }, 300);
+      
+      // Get card title for action
+      const cardTitle = this.querySelector('.quick-card-title')?.textContent;
+      console.log(`Quick access: ${cardTitle}`);
+      
+      // Simple demo action based on card title
+      if (cardTitle) {
+        if (cardTitle.includes('Today')) {
+          alert('Today\'s classes would be displayed here');
+        } else if (cardTitle.includes('Assignment')) {
+          alert('Assignments would be displayed here');
+        } else if (cardTitle.includes('Notification')) {
+          alert('Notifications would be displayed here');
+        } else if (cardTitle.includes('Resources')) {
+          alert('Resources would be displayed here');
+        }
+      }
+    });
+  });
 }
 
 /**
@@ -1613,6 +1653,9 @@ function applyTheme(theme) {
     useDarkMode = false;
   }
   
+  // Update icons filter based on theme - this ensures icons change with theme
+  updateIconsForTheme(useDarkMode);
+  
   // Apply appropriate theme
   if (useDarkMode) {
     applyDarkTheme();
@@ -1637,6 +1680,11 @@ function applyDarkTheme() {
   root.style.setProperty('--hover-bg', 'rgba(255, 255, 255, 0.08)');
   root.style.setProperty('--active-bg', 'rgba(255, 255, 255, 0.15)');
   root.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.08)');
+  root.style.setProperty('--header-bg', 'rgba(0, 0, 0, 0.7)');
+  
+  // Add hover card background for dark theme
+  root.style.setProperty('--hover-card-bg', '#1c1e1f');
+  root.style.setProperty('--hover-border-color', 'rgba(255, 255, 255, 0.15)');
   
   root.style.setProperty('--text-primary', '#F7F8F8');
   root.style.setProperty('--text-secondary', '#B5B6B6');
@@ -1652,20 +1700,65 @@ function applyDarkTheme() {
 function applyLightTheme() {
   const root = document.documentElement;
   
-  // Light theme variables
-  root.style.setProperty('--sidebar-bg', '#f5f5f7');
-  root.style.setProperty('--main-bg', '#ffffff');
+  // Light theme variables - softer colors
+  root.style.setProperty('--sidebar-bg', '#f0f0f5');
+  root.style.setProperty('--main-bg', '#f5f5f7');
   root.style.setProperty('--card-bg', '#ffffff');
-  root.style.setProperty('--hover-bg', 'rgba(0, 0, 0, 0.05)');
-  root.style.setProperty('--active-bg', 'rgba(0, 0, 0, 0.08)');
+  root.style.setProperty('--hover-bg', 'rgba(0, 0, 0, 0.04)');
+  root.style.setProperty('--active-bg', 'rgba(0, 0, 0, 0.07)');
   root.style.setProperty('--border-color', 'rgba(0, 0, 0, 0.1)');
+  root.style.setProperty('--header-bg', 'rgba(245, 245, 247, 0.8)');
   
-  root.style.setProperty('--text-primary', '#1d1d1f');
-  root.style.setProperty('--text-secondary', '#484848');
-  root.style.setProperty('--text-tertiary', '#86868b');
+  // Add hover card background for light theme
+  root.style.setProperty('--hover-card-bg', '#f7f7fa');
+  root.style.setProperty('--hover-border-color', 'rgba(0, 0, 0, 0.15)');
+  
+  // Text with better contrast
+  root.style.setProperty('--text-primary', '#1a1a1f');
+  root.style.setProperty('--text-secondary', '#3a3a3f');
+  root.style.setProperty('--text-tertiary', '#6a6a75');
   
   document.body.classList.remove('dark-theme');
   document.body.classList.add('light-theme');
+}
+
+/**
+ * Update icons filter based on theme
+ * @param {boolean} isDarkMode - Whether dark mode is active
+ */
+function updateIconsForTheme(isDarkMode) {
+  // Get all SVG icons
+  const icons = document.querySelectorAll('img[src$=".svg"]');
+  
+  // Update filter based on theme
+  icons.forEach(icon => {
+    if (isDarkMode) {
+      // For dark mode: full invert (white icons)
+      icon.style.filter = 'invert(1)';
+      icon.style.opacity = '0.7';
+    } else {
+      // For light mode: partial invert (dark icons)
+      icon.style.filter = 'invert(0.2)';
+      icon.style.opacity = '0.8';
+    }
+    
+    // Ensure proper hover opacity for icons
+    const iconParent = icon.closest('.nav-link') || 
+                      icon.closest('.quick-card') || 
+                      icon.closest('.activity-item') ||
+                      icon.closest('.dropdown-item') ||
+                      icon.closest('.search-result');
+                      
+    if (iconParent) {
+      iconParent.addEventListener('mouseenter', () => {
+        icon.style.opacity = '1';
+      });
+      
+      iconParent.addEventListener('mouseleave', () => {
+        icon.style.opacity = isDarkMode ? '0.7' : '0.8';
+      });
+    }
+  });
 }
 
 /**
