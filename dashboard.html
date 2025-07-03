@@ -127,15 +127,34 @@
 
     <!-- Main content area -->
     <main class="main-content">
+      <!-- Merged header with main content -->
       <header class="content-header">
-        <h1 class="page-title">Home</h1>
+        <div class="header-left">
+          <h1 class="page-title">Home</h1>
+        </div>
         
-        <!-- Search moved to center of header -->
-        <div class="header-search-container">
-          <input type="text" class="header-search-input" placeholder="Search..." aria-label="Search">
+        <div class="header-center">
+          <!-- Search moved to center of header -->
+          <div class="header-search-container">
+            <input type="text" class="header-search-input" placeholder="Search..." aria-label="Search">
+          </div>
+        </div>
+        
+        <div class="header-right">
+          <!-- Action buttons -->
+          <button class="header-action-btn" aria-label="Refresh">
+            <img src="Assets/refresh-icon.svg" alt="Refresh">
+          </button>
+          <button class="header-action-btn" aria-label="Notifications">
+            <img src="Assets/notification-icon.svg" alt="Notifications">
+          </button>
+          <button class="header-action-btn" aria-label="Settings">
+            <img src="Assets/settings-icon.svg" alt="Settings">
+          </button>
         </div>
       </header>
 
+      <!-- Content area -->
       <div class="content-wrapper">
         <div class="content-wrapper-inner">
           <!-- Welcome card -->
@@ -279,6 +298,10 @@
           <span class="shortcut-key" id="modifier-key">⌘</span>
           <span class="shortcut-key">K</span>
           <span class="shortcut-label">to search</span>
+        </div>
+        <div class="autofill-hint">
+          <span class="shortcut-key">Tab</span>
+          <span class="shortcut-label">to autofill</span>
         </div>
       </div>
     </div>
