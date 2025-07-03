@@ -1,14 +1,14 @@
 /* Dashboard Styles - Inspired by Linear.app */
 :root {
   /* Core color palette - Updated with precise colors */
-  --sidebar-bg: #050505; /* Brightened background */
-  --main-bg: #050505; /* Brightened background */
-  --content-bg: #0f0f0f; /* Content container background */
-  --card-bg: transparent; /* Transparent card background to match Linear */
-  --hover-bg: rgba(255, 255, 255, 0.05);
-  --active-bg: rgba(255, 255, 255, 0.1);
+  --sidebar-bg: #050505;
+  --main-bg: #050505;
+  --content-bg: #0f0f0f;
+  --card-bg: transparent;
+  --hover-bg: rgba(255, 255, 255, 0.03);
+  --active-bg: rgba(255, 255, 255, 0.06);
   --border-color: rgba(255, 255, 255, 0.08);
-  --hover-card-bg: rgba(255, 255, 255, 0.03); /* Subtle hover effect */
+  --hover-card-bg: rgba(255, 255, 255, 0.02);
   --hover-border-color: rgba(255, 255, 255, 0.12);
   
   /* Text colors - Improved contrast */
@@ -55,15 +55,15 @@
 
 /* Light theme variables - updated for consistent transparent cards */
 body.light-theme {
-  --sidebar-bg: #f0f0f5;
-  --main-bg: #f0f0f3;
-  --content-bg: #f8f8fa; /* Light mode content background */
+  --sidebar-bg: #f9f9f9;
+  --main-bg: #f9f9f9;
+  --content-bg: #ffffff;
   --card-bg: transparent;
-  --hover-bg: rgba(0, 0, 0, 0.04);
-  --active-bg: rgba(0, 0, 0, 0.07);
-  --border-color: rgba(0, 0, 0, 0.1); /* Slightly darker for better visibility */
-  --hover-card-bg: rgba(0, 0, 0, 0.02);
-  --hover-border-color: rgba(0, 0, 0, 0.14);
+  --hover-bg: rgba(0, 0, 0, 0.03);
+  --active-bg: rgba(0, 0, 0, 0.05);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --hover-card-bg: rgba(0, 0, 0, 0.01);
+  --hover-border-color: rgba(0, 0, 0, 0.12);
   
   /* Text colors with better contrast */
   --text-primary: #1a1a1f;
@@ -286,9 +286,9 @@ body.light-theme .content-header {
 body.light-theme .nav-icon img,
 body.light-theme .activity-icon img,
 body.light-theme .quick-card-icon img,
-body.light-theme .dropdown-icon,
-body.light-theme .search-result-icon img {
-  filter: invert(0.2); /* Less invert for light theme */
+body.light-theme .header-action-btn img,
+body.light-theme .dropdown-icon {
+  filter: invert(0.2);
   opacity: 0.8;
 }
 
@@ -340,7 +340,7 @@ body.light-theme .quick-card:hover {
   transform: translateZ(0);
   contain: layout style;
   padding: var(--space-md) 0;
-  border-right: 1px solid var(--border-color);
+  border-right: none; /* Removed border */
 }
 
 .sidebar::-webkit-scrollbar {
@@ -625,6 +625,7 @@ body.light-theme .quick-card:hover {
   will-change: transform;
   transform: translateZ(0);
   contain: content;
+  padding: var(--space-md); /* Adjusted padding */
 }
 
 .main-content::-webkit-scrollbar {
@@ -649,18 +650,19 @@ body.light-theme .quick-card:hover {
   height: var(--header-height);
   display: flex;
   align-items: center;
-  padding: 0 var(--space-xl);
+  padding: 0 var(--space-lg);
   position: sticky;
   top: 0;
-  background-color: var(--main-bg);
+  background-color: transparent;
   z-index: 5;
-  flex-shrink: 0; /* Prevent header from shrinking */
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Updated page title styling */
 .page-title {
   font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-weight: 500; /* Match Linear's weight */
   color: var(--text-primary);
   margin: 0;
   flex: 1;
@@ -697,12 +699,11 @@ body.light-theme .quick-card:hover {
 .content-container {
   flex: 1;
   background-color: var(--content-bg);
-  border-radius: 12px 12px 0 0;
-  margin-top: var(--space-md);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 0 var(--space-md);
 }
 
 /* Content wrapper - Updated to handle scrolling and extend full height */
@@ -710,17 +711,17 @@ body.light-theme .quick-card:hover {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Allow content to shrink */
-  overflow-y: auto; /* Handle scrolling here */
+  min-height: 0;
+  overflow-y: auto;
   padding: 0 var(--space-lg);
 }
 
 .content-wrapper-inner {
-  padding: var(--space-xl) 0;
+  padding: var(--space-lg) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  min-height: 100%; /* Take full available height */
+  gap: var(--space-lg);
+  min-height: 100%;
 }
 
 @keyframes fadeIn {
@@ -734,23 +735,21 @@ body.light-theme .quick-card:hover {
   border-radius: var(--card-radius);
   border: 1px solid var(--border-color);
   overflow: hidden;
-  will-change: opacity, transform;
   transition: border-color var(--transition-normal), transform var(--transition-normal);
 }
 
 .card:hover {
   border-color: var(--hover-border-color);
-  transform: translateY(-1px);
 }
 
 .card-content {
-  padding: var(--space-lg) var(--space-lg);
+  padding: var(--space-md);
 }
 
 /* Card title and text - Improved typography */
 .card-title {
   font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-weight: 500; /* Match Linear's weight */
   margin: 0 0 var(--space-md);
   color: var(--text-primary);
   letter-spacing: -0.01em;
@@ -770,14 +769,16 @@ body.light-theme .quick-card:hover {
 /* Sections - Improved spacing and typography */
 .section-title {
   font-size: var(--font-size-md);
-  font-weight: 600;
+  font-weight: 500;
   margin: 0 0 var(--space-md);
   color: var(--text-primary);
   letter-spacing: 0;
+  padding: 0;
 }
 
 .grid-section, .list-section {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  position: relative;
 }
 
 /* First section title - no top padding needed */
@@ -788,17 +789,16 @@ body.light-theme .quick-card:hover {
 /* Grid for quick access - improved layout */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-md);
   width: 100%;
-  overflow: visible;
 }
 
 /* Quick action card - Updated to match Linear style */
 .quick-card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
-  padding: var(--space-lg);
+  padding: var(--space-md); /* Reduced from lg */
   transition: transform 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
   position: relative;
@@ -807,6 +807,7 @@ body.light-theme .quick-card:hover {
   will-change: transform;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .quick-card:hover {
@@ -861,7 +862,7 @@ body.light-theme .quick-card:hover {
   box-shadow: var(--shadow-md);
 }
 
-/* Activity list - Updated with improved spacing */
+/* Activity list */
 .activity-list {
   list-style: none;
   padding: 0;
@@ -871,9 +872,10 @@ body.light-theme .quick-card:hover {
 .activity-item {
   display: flex;
   align-items: center;
-  padding: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   border-bottom: 1px solid var(--border-color);
-  transition: background-color var(--transition-normal);
+  transition: background-color var(--transition-fast);
+  min-height: 40px;
 }
 
 .activity-item:last-child {
@@ -885,8 +887,8 @@ body.light-theme .quick-card:hover {
 }
 
 .activity-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   margin-right: var(--space-md);
   color: var(--text-secondary);
   display: flex;
@@ -896,34 +898,32 @@ body.light-theme .quick-card:hover {
 }
 
 .activity-icon img {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   opacity: 0.7;
   filter: invert(1);
 }
 
-.activity-item:hover .activity-icon img {
-  opacity: 1;
-}
-
 .activity-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .activity-title {
   font-size: var(--font-size-md);
-  font-weight: 500;
+  font-weight: 400; /* Reduced from 500 */
   color: var(--text-primary);
-  margin-bottom: var(--space-xs);
-  line-height: 1.3;
+  margin-bottom: 0;
 }
 
 .activity-time {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
+  margin-top: var(--space-xs);
 }
 
-/* Linear-style table/list - Updated spacing and typography */
+/* Linear-style table/list */
 .list-table {
   width: 100%;
   border-collapse: collapse;
@@ -936,9 +936,9 @@ body.light-theme .quick-card:hover {
 .list-table-header th {
   text-align: left;
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-tertiary);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-xs) var(--space-md);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -957,14 +957,14 @@ body.light-theme .quick-card:hover {
 }
 
 .list-table-row td {
-  padding: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   font-size: var(--font-size-md);
   color: var(--text-secondary);
 }
 
 .list-table-row td:first-child {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400; /* Match Linear's weight */
 }
 
 /* Welcome card - More spacious, distinct styling */
@@ -973,7 +973,7 @@ body.light-theme .quick-card:hover {
 }
 
 .welcome-card .card-content {
-  padding: var(--space-lg);
+  padding: var(--space-md);
 }
 
 /* Search modal */
@@ -1526,7 +1526,7 @@ body.light-theme .list-table-row:hover {
 
 /* More spacious welcome card */
 .welcome-card .card-content {
-  padding: var(--space-xl);
+  padding: var(--space-md);
 }
 
 /* Ensure first section has no padding-top */
@@ -1964,7 +1964,7 @@ body.light-theme .list-table-row:hover {
 
 /* More spacious welcome card */
 .welcome-card .card-content {
-  padding: var(--space-xl);
+  padding: var(--space-md);
 }
 
 /* Ensure first section has no padding-top */
@@ -1996,10 +1996,10 @@ body.light-theme .list-table-row:hover {
 }
 
 .header-action-btn {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: transparent;
   border: 1px solid var(--border-color);
   cursor: pointer;
   display: flex;
@@ -2011,34 +2011,58 @@ body.light-theme .list-table-row:hover {
 }
 
 .header-action-btn img {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   opacity: 0.7;
-  filter: invert(1); /* Make icon light */
+  filter: invert(1);
   transition: opacity var(--transition-fast);
 }
 
 .header-action-btn:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
+  background-color: var(--hover-bg);
+  border-color: var(--hover-border-color);
 }
 
 .header-action-btn:hover img {
-  opacity: 1;
+  opacity: 0.9;
 }
 
-/* Notification dot indicator */
+/* Notification dot indicator - smaller and cleaner */
 .header-action-btn.has-notification::after {
   content: '';
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background-color: #ff5757;
   border-radius: 50%;
-  border: 1px solid var(--main-bg);
+}
+
+/* Icon displays across themes */
+.nav-icon img,
+.activity-icon img,
+.quick-card-icon img,
+.dropdown-icon {
+  opacity: 0.7;
+  filter: invert(1);
+  transition: opacity var(--transition-fast);
+}
+
+/* Fix for light theme icon filters */
+body.light-theme .nav-icon img,
+body.light-theme .activity-icon img,
+body.light-theme .quick-card-icon img,
+body.light-theme .header-action-btn img,
+body.light-theme .dropdown-icon {
+  filter: invert(0.2);
+  opacity: 0.8;
+}
+
+/* Dark theme specific optimizations */
+body:not(.light-theme) .card:hover,
+body:not(.light-theme) .quick-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Light mode adjustments for transparent cards and content container */
@@ -2052,28 +2076,27 @@ body.light-theme .quick-card {
 
 body.light-theme .content-container {
   background-color: var(--content-bg);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 body.light-theme .content-header {
-  background-color: var(--main-bg);
+  background-color: transparent;
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 body.light-theme .header-action-btn {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: transparent;
   border-color: rgba(0, 0, 0, 0.08);
 }
 
-body.light-theme .header-action-btn img {
-  filter: invert(0.2);
+body.light-theme .activity-item {
+  border-color: rgba(0, 0, 0, 0.06);
 }
 
-body.light-theme .header-action-btn.has-notification::after {
-  border-color: var(--main-bg);
+body.light-theme .list-table-header {
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
-body.light-theme .activity-icon img,
-body.light-theme .quick-card-icon img,
-body.light-theme .nav-icon img {
-  filter: invert(0.2);
+body.light-theme .list-table-row {
+  border-color: rgba(0, 0, 0, 0.06);
 } 
