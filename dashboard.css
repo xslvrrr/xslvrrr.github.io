@@ -7,6 +7,8 @@
   --hover-bg: rgba(255, 255, 255, 0.05);
   --active-bg: rgba(255, 255, 255, 0.1);
   --border-color: rgba(255, 255, 255, 0.08);
+  --hover-card-bg: #1c1e1f;
+  --hover-border-color: rgba(255, 255, 255, 0.15);
   
   /* Text colors */
   --text-primary: #F7F8F8;
@@ -204,6 +206,31 @@ body.light-theme .toggle input:checked + .toggle-slider:before {
 
 body.light-theme .autofill-hint span {
   background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Fixed header styling for light theme */
+body.light-theme .content-header {
+  background-color: rgba(245, 245, 247, 0.8);
+}
+
+/* Fix icon colors in light theme */
+body.light-theme .nav-icon img,
+body.light-theme .activity-icon img,
+body.light-theme .quick-card-icon img,
+body.light-theme .dropdown-icon,
+body.light-theme .search-result-icon img {
+  filter: invert(0.2); /* Less invert for light theme */
+  opacity: 0.8;
+}
+
+/* Fix button highlighting in light theme */
+body.light-theme .nav-item.active .nav-link {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+/* Card hover styles for light theme */
+body.light-theme .quick-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Sidebar styling */
@@ -535,11 +562,12 @@ body.light-theme .autofill-hint span {
   padding: 0 var(--space-md);
   position: sticky;
   top: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--header-bg, rgba(0, 0, 0, 0.7));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 5;
   margin-bottom: var(--space-md);
+  transition: background-color 0.3s ease;
 }
 
 .page-title {
@@ -686,6 +714,8 @@ body.light-theme .autofill-hint span {
   margin-bottom: var(--space-xl);
   width: 100%;
   overflow: visible; /* Prevent cutoff of hover effects */
+  padding-top: 3px; /* Extra space to prevent hover cutoff */
+  padding-bottom: 3px; /* Extra space for hover shadow */
 }
 
 /* Quick action card */
@@ -693,22 +723,21 @@ body.light-theme .autofill-hint span {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
   padding: var(--space-lg);
-  transition: transform 0.2s var(--transition-bounce), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
   position: relative;
   border: 1px solid var(--border-color);
   z-index: 1; /* Base z-index */
   will-change: transform;
-  overflow: visible; /* Important: Allow content to overflow for hover effect */
   transform: translateZ(0);
 }
 
 .quick-card:hover {
-  transform: translateY(-4px); /* More pronounced lift */
+  transform: translateY(-2px); /* Less pronounced lift to avoid cutoff */
   box-shadow: var(--shadow-md);
   z-index: 10; /* Higher z-index when hovered to appear above other elements */
-  background-color: #191a1b; /* Slightly lighter background on hover */
-  border-color: rgba(255, 255, 255, 0.15); /* More visible border on hover */
+  background-color: var(--hover-card-bg); /* Use theme variable instead of hardcoded color */
+  border-color: var(--hover-border-color); /* Use theme variable for border */
 }
 
 .quick-card-icon {
@@ -745,15 +774,15 @@ body.light-theme .autofill-hint span {
   margin: 0;
 }
 
-/* Quick click animation */
+/* Quick click animation - fixed for better performance */
 .quick-card.clicked {
-  animation: card-click 0.3s var(--transition-bounce);
+  animation: card-click 0.2s ease;
 }
 
 @keyframes card-click {
-  0% { transform: translateY(-4px) scale(1); }
-  50% { transform: translateY(-2px) scale(0.98); }
-  100% { transform: translateY(-4px) scale(1); }
+  0% { transform: translateY(-2px) scale(1); }
+  50% { transform: translateY(0px) scale(0.98); }
+  100% { transform: translateY(-2px) scale(1); }
 }
 
 /* Activity list */
