@@ -318,9 +318,13 @@ body.light-theme .preference-btn.active {
 }
 
 /* Card hover styles for light theme */
+body.light-theme .quick-card {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
 body.light-theme .quick-card:hover {
-  background-color: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.12);
+  background-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -645,9 +649,9 @@ body.light-theme .quick-card:hover {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Content header merged with main content - reduced height */
+/* Content header merged with main content - further reduced height */
 .content-header {
-  height: 48px; /* Reduced from var(--header-height) */
+  height: 42px; /* Further reduced from 48px */
   display: flex;
   align-items: center;
   padding: 0 var(--space-lg);
@@ -695,13 +699,14 @@ body.light-theme .quick-card:hover {
   color: var(--text-tertiary);
 }
 
-/* Add header search shortcut style */
+/* Add header search shortcut style - vertically centered */
 .header-search-shortcut {
   margin-left: auto;
   color: var(--text-tertiary);
   font-size: var(--font-size-sm);
   display: flex;
   align-items: center;
+  height: 100%;
 }
 
 .header-search-shortcut .shortcut-key {
@@ -711,7 +716,7 @@ body.light-theme .quick-card:hover {
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  margin: 0 2px;
+  margin: 0 1px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   font-size: var(--font-size-xs);
@@ -744,7 +749,7 @@ body.light-theme .quick-card:hover {
   padding: var(--space-lg) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-xl); /* Increased gap between sections */
   min-height: 100%;
 }
 
@@ -805,25 +810,30 @@ body.light-theme .quick-card:hover {
   position: relative;
 }
 
+/* Updated: Add better spacing between section title and grid */
+.grid-section .section-title {
+  margin-bottom: var(--space-lg);
+}
+
 /* First section title - no top padding needed */
 .content-wrapper-inner > div:first-child .section-title {
   margin-top: 0;
 }
 
-/* Grid for quick access - improved layout */
+/* Grid for quick access - layout similar to Warp terminal */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-lg);
   width: 100%;
 }
 
-/* Quick action card - Fully transparent with Linear style */
+/* Quick action card - Styled to match Warp terminal design */
 .quick-card {
-  background-color: transparent;
-  border-radius: var(--card-radius);
-  padding: var(--space-md); /* Reduced from lg */
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: var(--space-md) var(--space-lg);
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   cursor: pointer;
   position: relative;
   border: 1px solid var(--border-color);
@@ -837,24 +847,24 @@ body.light-theme .quick-card:hover {
 .quick-card:hover {
   transform: translateY(-1px);
   border-color: var(--hover-border-color);
-  background-color: var(--hover-bg);
+  background-color: rgba(255, 255, 255, 0.05);
   z-index: 10;
 }
 
 .quick-card-icon {
-  width: 32px;
-  height: 32px;
-  margin-bottom: var(--space-md);
+  width: 28px;
+  height: 28px;
+  margin-bottom: var(--space-lg);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .quick-card-icon img {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
   filter: invert(1);
 }
 
@@ -1491,8 +1501,7 @@ tr.list-table-row {
 .nav-icon img,
 .activity-icon img,
 .quick-card-icon img,
-.dropdown-icon,
-.header-action-btn img {
+.dropdown-icon {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
@@ -2034,8 +2043,8 @@ body.light-theme .list-table-row:hover {
 }
 
 .header-action-btn {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 4px;
   background-color: transparent;
   border: 1px solid var(--border-color);
@@ -2054,6 +2063,8 @@ body.light-theme .list-table-row:hover {
   opacity: 0.7;
   filter: invert(1);
   transition: opacity var(--transition-fast);
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .header-action-btn:hover {
