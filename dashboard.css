@@ -319,7 +319,7 @@ body.light-theme .preference-btn.active {
 
 /* Card hover styles for light theme */
 body.light-theme .quick-card {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: transparent;
 }
 
 body.light-theme .quick-card:hover {
@@ -707,6 +707,7 @@ body.light-theme .quick-card:hover {
   display: flex;
   align-items: center;
   height: 100%;
+  gap: var(--space-xs);
 }
 
 .header-search-shortcut .shortcut-key {
@@ -716,12 +717,12 @@ body.light-theme .quick-card:hover {
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  margin: 0 1px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-secondary);
+  vertical-align: middle;
 }
 
 /* Content container - The main area with different background */
@@ -830,9 +831,9 @@ body.light-theme .quick-card:hover {
 
 /* Quick action card - Styled to match Warp terminal design */
 .quick-card {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: transparent;
   border-radius: 8px;
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-lg) var(--space-lg);
   transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   cursor: pointer;
   position: relative;
@@ -842,19 +843,21 @@ body.light-theme .quick-card:hover {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 150px;
 }
 
 .quick-card:hover {
   transform: translateY(-1px);
   border-color: var(--hover-border-color);
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.02);
   z-index: 10;
+  box-shadow: var(--shadow-sm);
 }
 
 .quick-card-icon {
   width: 28px;
   height: 28px;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
