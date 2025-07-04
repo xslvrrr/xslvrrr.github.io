@@ -842,6 +842,7 @@ body.light-theme .quick-card:hover {
   will-change: transform;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   height: 100%;
   min-height: 150px;
 }
@@ -857,7 +858,7 @@ body.light-theme .quick-card:hover {
 .quick-card-icon {
   width: 28px;
   height: 28px;
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-sm);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -865,8 +866,8 @@ body.light-theme .quick-card:hover {
 }
 
 .quick-card-icon img {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   opacity: 0.8;
   filter: invert(1);
 }
@@ -887,6 +888,12 @@ body.light-theme .quick-card:hover {
   color: var(--text-secondary);
   margin: 0;
   line-height: var(--line-height-normal);
+}
+
+/* Create a content wrapper for the icon, title, and text to keep them grouped together */
+.quick-card-content {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Activity card styling */
