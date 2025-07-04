@@ -345,6 +345,7 @@ body.light-theme .quick-card:hover {
   contain: layout style;
   padding: var(--space-md) 0;
   border-right: none; /* Removed border */
+  position: relative;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -367,51 +368,26 @@ body.light-theme .quick-card:hover {
 .sidebar-top {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-}
-
-/* Search bar */
-.search-container {
-  padding: 0 var(--space-md);
-  margin-bottom: var(--space-md);
-}
-
-.search-input {
+  gap: var(--space-sm); /* Reduced from md to sm */
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 6px 10px;
-  color: var(--text-primary);
-  font-size: 13px;
-  transition: var(--transition-fast);
-}
-
-.search-input:focus {
-  outline: none;
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.search-input::placeholder {
-  color: var(--text-tertiary);
+  align-items: center; /* Center items horizontally */
 }
 
 /* Navigation sections */
 .nav-section {
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-sm); /* Reduced from md to sm */
+  width: 90%; /* Slightly narrower than full width for centering effect */
 }
 
 .nav-heading-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-md) 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   cursor: pointer;
   margin-bottom: 2px;
-  border-radius: 4px;
-  margin: 0 var(--space-xs);
   transition: var(--transition-fast);
+  width: 100%;
+  justify-content: flex-start; /* Align items to the start */
 }
 
 .nav-heading-container:hover {
@@ -425,19 +401,31 @@ body.light-theme .quick-card:hover {
   color: var(--text-tertiary);
   letter-spacing: 0.05em;
   user-select: none;
+  margin-right: 0;
+  display: flex;
+  align-items: center;
 }
 
 .nav-collapse-icon {
-  width: 14px;
-  height: 14px;
+  width: 10px; /* Smaller icon */
+  height: 10px; /* Smaller icon */
   opacity: 0.7;
   transition: transform var(--transition-fast);
   filter: invert(0.7);
+  /* Position next to heading */
+  margin-left: 4px;
 }
 
-.nav-heading-container:hover .nav-collapse-icon {
+.nav-heading-container:hover .nav-collapse-icon,
+.nav-heading-container:hover .nav-heading {
   opacity: 0.9;
   filter: invert(0.9);
+}
+
+/* Make the heading and collapse icon color match */
+.nav-heading, .nav-collapse-icon {
+  color: var(--text-tertiary);
+  opacity: 0.7;
 }
 
 .nav-section.collapsed .nav-collapse-icon {
@@ -451,50 +439,66 @@ body.light-theme .quick-card:hover {
 .nav-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 4px 0; /* Add slight vertical margin */
+  width: 100%;
 }
 
 .nav-item {
   margin-bottom: 1px;
+  width: 100%;
+  padding: 0;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 6px var(--space-md);
-  color: var(--text-secondary);
+  padding: 3px var(--space-md); /* Even smaller vertical padding */
+  color: var(--text-primary); /* Changed to primary (white) */
   text-decoration: none;
   font-size: var(--font-size-md);
   font-weight: 500;
   border-radius: 4px;
   transition: var(--transition-fast);
-  margin: 2px var(--space-xs);
+  margin: 1px 0; /* Remove horizontal margins */
+  width: 100%; /* Full width of the nav section */
 }
 
 .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary);
+}
+
+/* Only change icon opacity on hover, not text */
+.nav-link:hover .nav-icon img {
+  opacity: 1;
 }
 
 .nav-item.active .nav-link {
   background-color: rgba(255, 255, 255, 0.15);
-  color: var(--text-primary);
   font-weight: 500;
+  padding: 3px var(--space-md);
+}
+
+/* Fix for light theme - ensure headings match color */
+body.light-theme .nav-heading,
+body.light-theme .nav-collapse-icon {
+  color: var(--text-tertiary);
+  opacity: 0.7;
 }
 
 .nav-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px; /* Smaller icon width */
+  height: 14px; /* Smaller icon height */
   margin-right: var(--space-md);
   opacity: 0.8;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0; /* Prevent icon from shrinking */
 }
 
 .nav-icon img {
-  width: 16px;
-  height: 16px;
+  width: 14px; /* Smaller icon */
+  height: 14px; /* Smaller icon */
   opacity: 0.7;
   filter: invert(1); /* Make icons light */
   transition: opacity var(--transition-fast);
@@ -512,10 +516,11 @@ body.light-theme .quick-card:hover {
   gap: var(--space-md);
   position: relative;
   cursor: pointer;
-  padding: var(--space-md) var(--space-lg);
-  margin-bottom: var(--space-md);
+  padding: var(--space-md) var(--space-md);
+  margin-bottom: var(--space-sm); /* Reduced from md to sm */
   border-radius: 4px;
   transition: var(--transition-fast);
+  width: 90%; /* Match nav section width */
 }
 
 .user-profile:hover {
@@ -617,7 +622,7 @@ body.light-theme .quick-card:hover {
   opacity: 1;
 }
 
-/* Main content area - Fixed to extend full height */
+/* Main content area - adjusted to meet sidebar */
 .main-content {
   flex: 1;
   display: flex;
@@ -629,7 +634,7 @@ body.light-theme .quick-card:hover {
   will-change: transform;
   transform: translateZ(0);
   contain: content;
-  padding: var(--space-md); /* Adjusted padding */
+  padding: 0 var(--space-md) var(--space-md) 0; /* Removed left padding */
 }
 
 .main-content::-webkit-scrollbar {
@@ -734,6 +739,7 @@ body.light-theme .quick-card:hover {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin-left: 0; /* Ensure no margin between sidebar and content */
 }
 
 /* Content wrapper - Updated to handle scrolling and extend full height */
@@ -2158,4 +2164,9 @@ body.light-theme .list-table-header {
 
 body.light-theme .list-table-row {
   border-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Update to the Light theme sidebar nav items */
+body.light-theme .nav-link {
+  color: var(--text-primary);
 } 
