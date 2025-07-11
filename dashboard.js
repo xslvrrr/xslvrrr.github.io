@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Setup notifications modal
   setupNotificationsModal();
+  
+  // Setup custom tooltips
+  setupCustomTooltips();
 });
 
 /**
@@ -983,6 +986,32 @@ function setupKeyboardShortcuts() {
       toggleSearchModal();
     }
     
+    // Toggle sidebar with CMD/Ctrl+B
+    if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+      e.preventDefault();
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+      }
+    }
+    
+    // Navigate home with CMD/Ctrl+H
+    if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
+      e.preventDefault();
+      navigateTo('home');
+    }
+    
+    // Refresh with CMD/Ctrl+R (if not in an input field)
+    if ((e.metaKey || e.ctrlKey) && e.key === 'r' && 
+        !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      const refreshBtn = document.getElementById('refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.click();
+      }
+    }
+    
     // Escape key to close modals
     if (e.key === 'Escape') {
       closeAllModals();
@@ -995,143 +1024,643 @@ function setupKeyboardShortcuts() {
  */
 function setupNotificationsModal() {
   const notificationsModal = document.getElementById('notifications-modal');
-  const notificationsContent = document.getElementById('notifications-content');
-  const markAllReadBtn = document.getElementById('mark-all-read');
-  const clearAllBtn = document.getElementById('clear-all');
-  const notificationsSettingsBtn = document.getElementById('notifications-settings');
+  const notificationsBtn = document.getElementById('notifications-btn');
+  const closeBtn = document.querySelector('.notifications-sidebar-footer .sidebar-action-btn:last-child');
   
-  if (!notificationsModal || !notificationsContent) return;
+  // Exit if elements don't exist
+  if (!notificationsModal || !notificationsBtn) return;
   
-  // Close notifications modal when clicking outside
+  // Setup notification button click
+  notificationsBtn.addEventListener('click', function() {
+    // Close other modals
+    closeAllModals();
+    
+    // Show the notifications modal
+    notificationsModal.classList.add('active');
+    
+    // Focus the search input if it exists
+    const searchInput = document.querySelector('.notifications-list-header .list-search input');
+    if (searchInput) {
+      setTimeout(() => {
+        searchInput.focus();
+      }, 100);
+    }
+    
+    // Update selection state on first open
+    updateNotificationSelection();
+    
+    // Setup notification sidebar 
+    setupNotificationsSidebar();
+  });
+  
+  // Close button
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      closeNotificationsModal();
+    });
+  }
+  
+  // Close modal when clicking outside
   notificationsModal.addEventListener('click', (e) => {
     if (e.target === notificationsModal) {
       closeNotificationsModal();
     }
   });
   
-  // Mark all as read functionality
+  // Setup category selection
+  const categoryItems = document.querySelectorAll('.category-item');
+  categoryItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // Update active state
+      categoryItems.forEach(cat => cat.classList.remove('active'));
+      item.classList.add('active');
+      
+      // Here we would filter notifications based on the category
+      // For demo purposes, we're just logging
+      console.log(`Selected category: ${item.dataset.category}`);
+      
+      // Show empty state or filter notifications (in a real app)
+      // For demo we'll just leave as is
+      filterNotificationsByCategory(item.dataset.category);
+    });
+  });
+  
+  // Setup notification item selection
+  setupNotificationItemSelection();
+  
+  // Setup notification actions
+  setupNotificationActions();
+}
+
+/**
+ * Setup notification item selection
+ */
+function setupNotificationItemSelection() {
+  const notificationItems = document.querySelectorAll('.notification-item');
+  
+  notificationItems.forEach(item => {
+    // Add priority indicators if they don't exist
+    const statusContainer = item.querySelector('.notification-status');
+    if (statusContainer && !item.querySelector('.priority-indicator')) {
+      // Determine priority - For demo, assign randomly
+      const priorities = ['high', 'medium', 'low'];
+      const randomPriority = priorities[Math.floor(Math.random() * priorities.length)];
+      
+      const priorityIndicator = document.createElement('div');
+      priorityIndicator.className = `priority-indicator ${randomPriority}`;
+      statusContainer.appendChild(priorityIndicator);
+    }
+    
+    item.addEventListener('click', (e) => {
+      // Ignore if clicking on an action button
+      if (e.target.closest('.notification-actions')) {
+        return;
+      }
+      
+      // Update selected state
+      notificationItems.forEach(notif => notif.classList.remove('selected'));
+      item.classList.add('selected');
+      
+      // In a real app, we would fetch and display the notification details
+      // For demo, we'll just update the notification detail panel with the selected notification info
+      updateNotificationDetails(item);
+      
+      // For mobile view, show the detail panel
+      const detailPanel = document.querySelector('.notifications-detail-panel');
+      if (detailPanel && window.innerWidth <= 992) {
+        detailPanel.classList.add('active');
+      }
+    });
+  });
+}
+
+/**
+ * Update notification selection on page load
+ */
+function updateNotificationSelection() {
+  const firstNotification = document.querySelector('.notification-item');
+  if (firstNotification) {
+    firstNotification.classList.add('selected');
+    updateNotificationDetails(firstNotification);
+  } else {
+    // Show empty state
+    const noNotificationSelected = document.querySelector('.no-notification-selected');
+    if (noNotificationSelected) {
+      noNotificationSelected.style.display = 'flex';
+    }
+    
+    // Hide notification detail
+    const notificationDetail = document.querySelector('.notification-detail');
+    if (notificationDetail) {
+      notificationDetail.style.display = 'none';
+    }
+  }
+}
+
+/**
+ * Update notification details panel based on selected notification
+ * @param {HTMLElement} notification - The selected notification element
+ */
+function updateNotificationDetails(notification) {
+  // This is for demo purposes - in a real app we'd fetch the full notification content
+  const detailTitle = document.querySelector('.detail-title');
+  const detailTime = document.querySelector('.detail-time');
+  const detailPriority = document.querySelector('.detail-priority');
+  
+  if (!detailTitle || !detailTime || !detailPriority) return;
+  
+  // Get notification data
+  const title = notification.querySelector('.notification-title').textContent;
+  const time = notification.querySelector('.notification-time').textContent;
+  
+  // Update detail view
+  detailTitle.textContent = title;
+  
+  // Format the time based on the time text
+  if (time.includes('AM') || time.includes('PM')) {
+    detailTime.textContent = `Today, ${time}`;
+  } else {
+    detailTime.textContent = time;
+  }
+  
+  // Update priority class based on the notification's priority indicator
+  const priorityIndicator = notification.querySelector('.priority-indicator');
+  if (priorityIndicator) {
+    detailPriority.className = 'detail-priority';
+    
+    if (priorityIndicator.classList.contains('high')) {
+      detailPriority.classList.add('high');
+      detailPriority.textContent = 'High Priority';
+    } else if (priorityIndicator.classList.contains('medium')) {
+      detailPriority.classList.add('medium');
+      detailPriority.textContent = 'Medium Priority';
+    } else {
+      detailPriority.classList.add('low');
+      detailPriority.textContent = 'Low Priority';
+    }
+  } else {
+    // Default to low priority if not specified
+    detailPriority.className = 'detail-priority low';
+    detailPriority.textContent = 'Low Priority';
+  }
+  
+  // Show the notification detail and hide empty state
+  const noNotificationSelected = document.querySelector('.no-notification-selected');
+  const notificationDetail = document.querySelector('.notification-detail');
+  
+  if (noNotificationSelected) {
+    noNotificationSelected.style.display = 'none';
+  }
+  
+  if (notificationDetail) {
+    notificationDetail.style.display = 'flex';
+  }
+}
+
+/**
+ * Setup notification action buttons
+ */
+function setupNotificationActions() {
+  // Mark all as read button
+  const markAllReadBtn = document.querySelector('#mark-all-read');
   if (markAllReadBtn) {
     markAllReadBtn.addEventListener('click', () => {
-      const unreadItems = notificationsContent.querySelectorAll('.notification-item.unread');
+      const unreadItems = document.querySelectorAll('.notification-item.unread');
       unreadItems.forEach(item => {
         item.classList.remove('unread');
         
-        // Update button text
-        const markReadBtn = item.querySelector('.notification-btn:last-child');
-        if (markReadBtn && markReadBtn.textContent === 'Mark as read') {
-          markReadBtn.textContent = 'Mark as unread';
+        // Remove unread indicators
+        const unreadIndicator = item.querySelector('.unread-indicator');
+        if (unreadIndicator) {
+          unreadIndicator.remove();
         }
+        
+        // Update buttons
+        updateNotificationItemButtons(item, false);
       });
       
-      // Remove notification indicator from header button
+      // Remove notification indicator
       const notificationsBtn = document.getElementById('notifications-btn');
       if (notificationsBtn) {
         notificationsBtn.classList.remove('has-notification');
       }
+    });
+  }
+  
+  // Individual notification action buttons
+  document.addEventListener('click', (e) => {
+    // Mark as read/unread button
+    if (e.target.closest('.notif-action-btn[data-tooltip="Mark as read"]')) {
+      const button = e.target.closest('.notif-action-btn');
+      const notificationItem = button.closest('.notification-item');
       
-      updateNotificationCounter();
-    });
-  }
-  
-  // Clear all notifications functionality
-  if (clearAllBtn) {
-    clearAllBtn.addEventListener('click', () => {
-      // Ask for confirmation
-      if (confirm('Are you sure you want to clear all notifications?')) {
-        // Get all notification items
-        const notificationItems = notificationsContent.querySelectorAll('.notification-item');
-        
-        if (notificationItems.length === 0) return;
-        
-        // Remove all items
-        notificationItems.forEach(item => {
-          item.style.opacity = '0';
-          item.style.height = '0';
-          item.style.padding = '0';
-          item.style.overflow = 'hidden';
-          item.style.transition = 'all 0.3s ease';
-          
-          // Remove after animation
-          setTimeout(() => {
-            if (item.parentNode) {
-              item.parentNode.removeChild(item);
-            }
-          }, 300);
-        });
-        
-        // After a delay, show the empty message
-        setTimeout(() => {
-          const emptyMessage = notificationsContent.querySelector('.notification-empty');
-          if (emptyMessage) {
-            emptyMessage.style.display = 'flex';
-          }
-          updateNotificationCounter();
-          
-          // Remove notification indicator from header button
-          const notificationsBtn = document.getElementById('notifications-btn');
-          if (notificationsBtn) {
-            notificationsBtn.classList.remove('has-notification');
-          }
-        }, 300);
+      // Mark as read
+      notificationItem.classList.remove('unread');
+      
+      // Remove unread indicator
+      const unreadIndicator = notificationItem.querySelector('.unread-indicator');
+      if (unreadIndicator) {
+        unreadIndicator.remove();
       }
-    });
-  }
-  
-  // Individual notification item actions
-  notificationsContent.addEventListener('click', (e) => {
-    const target = e.target;
+      
+      // Update button
+      updateNotificationItemButtons(notificationItem, false);
+      
+      // Check if we still have unread notifications
+      updateNotificationIndicator();
+      
+      // Stop event propagation
+      e.stopPropagation();
+    }
     
-    // Check if clicked on a notification button
-    if (target.classList.contains('notification-btn')) {
-      const notificationItem = target.closest('.notification-item');
+    // Mark as unread button
+    if (e.target.closest('.notif-action-btn[data-tooltip="Mark as unread"]')) {
+      const button = e.target.closest('.notif-action-btn');
+      const notificationItem = button.closest('.notification-item');
       
-      // Handle view action
-      if (target.textContent === 'View') {
-        // In a real app, this would navigate to the relevant content
-        // For demo, just mark as read and show alert
-        if (notificationItem) {
-          notificationItem.classList.remove('unread');
-          alert(`Viewing: ${notificationItem.querySelector('.notification-title').textContent}`);
-          
-          // Update button text if needed
-          const markReadBtn = notificationItem.querySelector('.notification-btn:last-child');
-          if (markReadBtn && markReadBtn.textContent === 'Mark as read') {
-            markReadBtn.textContent = 'Mark as unread';
-          }
-          
-          updateNotificationCounter();
+      // Mark as unread
+      notificationItem.classList.add('unread');
+      
+      // Add unread indicator if not exists
+      const statusContainer = notificationItem.querySelector('.notification-status');
+      if (statusContainer && !notificationItem.querySelector('.unread-indicator')) {
+        const unreadIndicator = document.createElement('div');
+        unreadIndicator.className = 'unread-indicator';
+        statusContainer.prepend(unreadIndicator);
+      }
+      
+      // Update button
+      updateNotificationItemButtons(notificationItem, true);
+      
+      // Show notification indicator
+      const notificationsBtn = document.getElementById('notifications-btn');
+      if (notificationsBtn) {
+        notificationsBtn.classList.add('has-notification');
+      }
+      
+      // Stop event propagation
+      e.stopPropagation();
+    }
+    
+    // Pin/unpin button
+    if (e.target.closest('.notif-action-btn[data-tooltip="Pin notification"]') || 
+        e.target.closest('.notif-action-btn[data-tooltip="Unpin notification"]')) {
+      const button = e.target.closest('.notif-action-btn');
+      const notificationItem = button.closest('.notification-item');
+      
+      // Toggle starred class
+      notificationItem.classList.toggle('starred');
+      
+      // Add or remove starred indicator
+      const statusContainer = notificationItem.querySelector('.notification-status');
+      const starredIndicator = notificationItem.querySelector('.starred-indicator');
+      
+      if (notificationItem.classList.contains('starred')) {
+        // Add starred indicator if not exists
+        if (!starredIndicator && statusContainer) {
+          const newStarredIndicator = document.createElement('div');
+          newStarredIndicator.className = 'starred-indicator';
+          statusContainer.appendChild(newStarredIndicator);
+        }
+        
+        // Update tooltip
+        button.setAttribute('data-tooltip', 'Unpin notification');
+        
+        // Update image
+        const img = button.querySelector('img');
+        if (img) {
+          img.src = 'Assets/unpin.svg';
+          img.alt = 'Unpin';
+        }
+      } else {
+        // Remove starred indicator
+        if (starredIndicator) {
+          starredIndicator.remove();
+        }
+        
+        // Update tooltip
+        button.setAttribute('data-tooltip', 'Pin notification');
+        
+        // Update image
+        const img = button.querySelector('img');
+        if (img) {
+          img.src = 'Assets/pin.svg';
+          img.alt = 'Pin';
         }
       }
       
-      // Handle mark as read/unread
-      if (target.textContent === 'Mark as read' || target.textContent === 'Mark as unread') {
-        if (notificationItem) {
-          // Toggle read/unread state
-          notificationItem.classList.toggle('unread');
-          
-          // Update button text
-          target.textContent = notificationItem.classList.contains('unread') ? 
-            'Mark as read' : 'Mark as unread';
-          
-          updateNotificationCounter();
-          
-          // Check if we still have unread items for the notification indicator
-          checkUnreadNotifications();
-        }
+      // Stop event propagation
+      e.stopPropagation();
+    }
+    
+    // Detail action buttons
+    if (e.target.closest('.detail-action-btn[data-tooltip="Archive"]')) {
+      // Archive the selected notification
+      const selectedNotification = document.querySelector('.notification-item.selected');
+      if (selectedNotification) {
+        // In a real app, we would move the notification to archive
+        // For demo, just remove it from the list
+        fadeOutAndRemove(selectedNotification);
       }
+      e.stopPropagation();
+    }
+    
+    if (e.target.closest('.detail-action-btn[data-tooltip="Delete"]')) {
+      // Delete the selected notification
+      const selectedNotification = document.querySelector('.notification-item.selected');
+      if (selectedNotification) {
+        // In a real app, we would move the notification to trash
+        // For demo, just remove it from the list
+        fadeOutAndRemove(selectedNotification);
+      }
+      e.stopPropagation();
+    }
+    
+    if (e.target.closest('.detail-footer-btn.primary')) {
+      // Mark as read from the detail panel
+      const selectedNotification = document.querySelector('.notification-item.selected');
+      if (selectedNotification) {
+        // Mark as read
+        selectedNotification.classList.remove('unread');
+        
+        // Remove unread indicator
+        const unreadIndicator = selectedNotification.querySelector('.unread-indicator');
+        if (unreadIndicator) {
+          unreadIndicator.remove();
+        }
+        
+        // Update button
+        updateNotificationItemButtons(selectedNotification, false);
+        
+        // Check if we still have unread notifications
+        updateNotificationIndicator();
+      }
+      e.stopPropagation();
     }
   });
+}
+
+/**
+ * Update notification item buttons based on read/unread state
+ * @param {HTMLElement} item - The notification item
+ * @param {boolean} isUnread - Whether the notification is unread
+ */
+function updateNotificationItemButtons(item, isUnread) {
+  const actionButton = item.querySelector('.notif-action-btn[data-tooltip="Mark as read"], .notif-action-btn[data-tooltip="Mark as unread"]');
   
-  // Settings button
-  if (notificationsSettingsBtn) {
-    notificationsSettingsBtn.addEventListener('click', () => {
-      closeNotificationsModal();
-      navigateTo('account'); // Redirect to account page where notification settings would be
-    });
+  if (actionButton) {
+    if (isUnread) {
+      actionButton.setAttribute('data-tooltip', 'Mark as read');
+      const img = actionButton.querySelector('img');
+      if (img) {
+        img.src = 'Assets/mark-read.svg';
+        img.alt = 'Mark as read';
+      }
+    } else {
+      actionButton.setAttribute('data-tooltip', 'Mark as unread');
+      const img = actionButton.querySelector('img');
+      if (img) {
+        img.src = 'Assets/mark-unread.svg';
+        img.alt = 'Mark as unread';
+      }
+    }
+  }
+}
+
+/**
+ * Update the notification indicator based on unread notifications
+ */
+function updateNotificationIndicator() {
+  const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+  const notificationsBtn = document.getElementById('notifications-btn');
+  
+  if (notificationsBtn) {
+    if (unreadNotifications.length > 0) {
+      notificationsBtn.classList.add('has-notification');
+    } else {
+      notificationsBtn.classList.remove('has-notification');
+    }
+  }
+}
+
+/**
+ * Fade out and remove a notification item
+ * @param {HTMLElement} element - The element to fade out and remove
+ */
+function fadeOutAndRemove(element) {
+  // Animate fade out
+  element.style.transition = 'opacity 0.3s ease, height 0.3s ease, padding 0.3s ease';
+  element.style.opacity = '0';
+  element.style.height = '0';
+  element.style.padding = '0';
+  element.style.overflow = 'hidden';
+  
+  // After animation completes, remove the element
+  setTimeout(() => {
+    if (element.parentNode) {
+      element.parentNode.removeChild(element);
+    }
+    
+    // Select another notification if available
+    const firstNotification = document.querySelector('.notification-item');
+    if (firstNotification) {
+      firstNotification.classList.add('selected');
+      updateNotificationDetails(firstNotification);
+    } else {
+      // Show empty state
+      const noNotificationSelected = document.querySelector('.no-notification-selected');
+      if (noNotificationSelected) {
+        noNotificationSelected.style.display = 'flex';
+      }
+      
+      // Hide notification detail
+      const notificationDetail = document.querySelector('.notification-detail');
+      if (notificationDetail) {
+        notificationDetail.style.display = 'none';
+      }
+    }
+  }, 300);
+}
+
+/**
+ * Setup custom tooltips for better UX
+ */
+function setupCustomTooltips() {
+  const tooltipTriggers = document.querySelectorAll('.tooltip-trigger');
+  const tooltipContainer = document.getElementById('custom-tooltip');
+  
+  if (!tooltipContainer) {
+    // Create tooltip container if it doesn't exist
+    const newTooltip = document.createElement('div');
+    newTooltip.id = 'custom-tooltip';
+    newTooltip.className = 'custom-tooltip';
+    newTooltip.innerHTML = `
+      <div class="tooltip-content"></div>
+      <div class="tooltip-arrow"></div>
+    `;
+    document.body.appendChild(newTooltip);
   }
   
-  // Initialize notification counter
-  updateNotificationCounter();
+  let tooltipTimeout = null;
+  let activeTooltipTrigger = null;
+  
+  // Setup tooltip event listeners
+  tooltipTriggers.forEach(trigger => {
+    trigger.addEventListener('mouseenter', () => {
+      clearTimeout(tooltipTimeout);
+      activeTooltipTrigger = trigger;
+      
+      // Show tooltip after delay
+      tooltipTimeout = setTimeout(() => {
+        showTooltip(trigger);
+      }, 1000); // 1 second delay
+    });
+    
+    trigger.addEventListener('mouseleave', (e) => {
+      // Check if moving to the tooltip
+      const tooltip = document.getElementById('custom-tooltip');
+      if (tooltip && !isMouseMovingToTooltip(e, tooltip)) {
+        clearTimeout(tooltipTimeout);
+        hideTooltip();
+      }
+    });
+  });
+  
+  // Make tooltip interactive
+  document.addEventListener('mousemove', (e) => {
+    const tooltip = document.getElementById('custom-tooltip');
+    if (!tooltip || !tooltip.classList.contains('active')) return;
+    
+    // Check if mouse is over tooltip or trigger
+    const isOverTooltip = e.target.closest('#custom-tooltip');
+    const isOverTrigger = e.target.closest('.tooltip-trigger') === activeTooltipTrigger;
+    
+    if (!isOverTooltip && !isOverTrigger) {
+      hideTooltip();
+    }
+  });
+}
+
+/**
+ * Show a tooltip at the specified element
+ * @param {HTMLElement} trigger - The element triggering the tooltip
+ */
+function showTooltip(trigger) {
+  const tooltipText = trigger.getAttribute('data-tooltip');
+  if (!tooltipText) return;
+  
+  const tooltip = document.getElementById('custom-tooltip');
+  if (!tooltip) return;
+  
+  // Set tooltip content
+  const tooltipContent = tooltip.querySelector('.tooltip-content');
+  if (tooltipContent) {
+    tooltipContent.textContent = tooltipText;
+  }
+  
+  // Position the tooltip
+  positionTooltip(tooltip, trigger);
+  
+  // Make tooltip interactive
+  tooltip.classList.add('interactive');
+  
+  // Show tooltip with animation
+  tooltip.classList.add('active');
+}
+
+/**
+ * Hide the active tooltip
+ */
+function hideTooltip() {
+  const tooltip = document.getElementById('custom-tooltip');
+  if (tooltip) {
+    tooltip.classList.remove('active');
+    tooltip.classList.remove('interactive');
+  }
+}
+
+/**
+ * Position the tooltip relative to its trigger
+ * @param {HTMLElement} tooltip - The tooltip element
+ * @param {HTMLElement} trigger - The triggering element
+ */
+function positionTooltip(tooltip, trigger) {
+  // Get positions
+  const triggerRect = trigger.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  
+  // Calculate available space
+  const spaceAbove = triggerRect.top;
+  const spaceBelow = window.innerHeight - triggerRect.bottom;
+  const spaceLeft = triggerRect.left;
+  const spaceRight = window.innerWidth - triggerRect.right;
+  
+  // Default position (bottom)
+  let top, left;
+  let position = 'bottom';
+  
+  // Determine best position
+  if (spaceBelow >= tooltipRect.height + 10 || spaceBelow > spaceAbove) {
+    // Position below
+    top = triggerRect.bottom + 10;
+    left = triggerRect.left + (triggerRect.width / 2) - (tooltipRect.width / 2);
+    position = 'bottom';
+  } else if (spaceAbove >= tooltipRect.height + 10) {
+    // Position above
+    top = triggerRect.top - tooltipRect.height - 10;
+    left = triggerRect.left + (triggerRect.width / 2) - (tooltipRect.width / 2);
+    position = 'top';
+  } else if (spaceRight >= tooltipRect.width + 10) {
+    // Position right
+    top = triggerRect.top + (triggerRect.height / 2) - (tooltipRect.height / 2);
+    left = triggerRect.right + 10;
+    position = 'right';
+  } else {
+    // Position left
+    top = triggerRect.top + (triggerRect.height / 2) - (tooltipRect.height / 2);
+    left = triggerRect.left - tooltipRect.width - 10;
+    position = 'left';
+  }
+  
+  // Ensure tooltip stays within viewport
+  top = Math.max(10, Math.min(top, window.innerHeight - tooltipRect.height - 10));
+  left = Math.max(10, Math.min(left, window.innerWidth - tooltipRect.width - 10));
+  
+  // Set position
+  tooltip.style.top = `${top}px`;
+  tooltip.style.left = `${left}px`;
+  
+  // Set position attribute for arrow
+  tooltip.setAttribute('data-position', position);
+}
+
+/**
+ * Check if the mouse is moving from the trigger to the tooltip
+ * @param {MouseEvent} e - The mouse event
+ * @param {HTMLElement} tooltip - The tooltip element
+ * @returns {boolean} - Whether the mouse is moving to the tooltip
+ */
+function isMouseMovingToTooltip(e, tooltip) {
+  if (!tooltip || !tooltip.classList.contains('active')) return false;
+  
+  const tooltipRect = tooltip.getBoundingClientRect();
+  
+  // Define an area around the tooltip to consider "moving toward"
+  const bufferSize = 10;
+  const extendedRect = {
+    left: tooltipRect.left - bufferSize,
+    right: tooltipRect.right + bufferSize,
+    top: tooltipRect.top - bufferSize,
+    bottom: tooltipRect.bottom + bufferSize
+  };
+  
+  // Check if mouse coordinates are within the extended tooltip area
+  return (
+    e.clientX >= extendedRect.left &&
+    e.clientX <= extendedRect.right &&
+    e.clientY >= extendedRect.top &&
+    e.clientY <= extendedRect.bottom
+  );
 }
 
 /**
@@ -1151,35 +1680,14 @@ function closeNotificationsModal() {
   const notificationsModal = document.getElementById('notifications-modal');
   if (notificationsModal) {
     notificationsModal.classList.remove('active');
-  }
-}
-
-/**
- * Check if there are any unread notifications and update the notification indicator
- */
-function checkUnreadNotifications() {
-  const unreadItems = document.querySelectorAll('.notification-item.unread');
-  const notificationsBtn = document.getElementById('notifications-btn');
-  
-  if (notificationsBtn) {
-    notificationsBtn.classList.toggle('has-notification', unreadItems.length > 0);
-  }
-}
-
-/**
- * Update the notification counter in the footer
- */
-function updateNotificationCounter() {
-  const notificationItems = document.querySelectorAll('.notification-item');
-  const notificationCounter = document.querySelector('.notifications-modal-footer span');
-  const emptyMessage = document.querySelector('.notification-empty');
-  
-  if (notificationCounter) {
-    notificationCounter.textContent = `Showing ${notificationItems.length} notification(s)`;
-  }
-  
-  if (emptyMessage) {
-    emptyMessage.style.display = notificationItems.length === 0 ? 'flex' : 'none';
+    
+    // On mobile, also hide the detail panel if it's active
+    if (window.innerWidth <= 992) {
+      const detailPanel = document.querySelector('.notifications-detail-panel.active');
+      if (detailPanel) {
+        detailPanel.classList.remove('active');
+      }
+    }
   }
 }
 
@@ -1194,10 +1702,7 @@ function closeAllModals() {
   }
   
   // Close notifications modal
-  const notificationsModal = document.getElementById('notifications-modal');
-  if (notificationsModal && notificationsModal.classList.contains('active')) {
-    notificationsModal.classList.remove('active');
-  }
+  closeNotificationsModal();
   
   // Close logout confirmation modal
   const logoutModal = document.getElementById('logout-modal');
@@ -2223,7 +2728,7 @@ function setupHeaderActions() {
   // Setup notifications button
   if (notificationsBtn) {
     notificationsBtn.addEventListener('click', function() {
-      // Toggle notifications modal instead of showing alert
+      // Toggle notifications modal
       const notificationsModal = document.getElementById('notifications-modal');
       if (notificationsModal) {
         // Close other modals if open
@@ -2241,4 +2746,290 @@ function setupHeaderActions() {
       navigateTo('account');
     });
   }
-} 
+  
+  // Setup sidebar toggle button
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', function() {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+        // Store preference
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+      }
+    });
+    
+    // Check if sidebar should be collapsed on load
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar && localStorage.getItem('sidebarCollapsed') === 'true') {
+      sidebar.classList.add('collapsed');
+    }
+  }
+}
+
+/**
+ * Create a forwards icon by rotating the back icon
+ * @returns {HTMLElement} The forwards icon element
+ */
+function createForwardIcon() {
+  const forwardIcon = document.createElement('img');
+  forwardIcon.src = 'Assets/back.svg';
+  forwardIcon.alt = 'Forward';
+  forwardIcon.classList.add('forward-icon');
+  forwardIcon.style.transform = 'rotate(180deg)';
+  return forwardIcon;
+}
+
+/**
+ * Add status dot indicators based on priority
+ * @param {string} priority - Priority level ('high', 'medium', 'low')
+ * @param {HTMLElement} container - Container to add the dot to
+ */
+function addStatusDot(priority, container) {
+  const statusDot = document.createElement('span');
+  statusDot.className = `status-dot ${priority}`;
+  container.appendChild(statusDot);
+  
+  // Add pulsating effect for high priority
+  if (priority === 'high') {
+    statusDot.classList.add('pulsate');
+  }
+}
+
+/**
+ * Setup category selection
+ */
+function setupCategorySelection() {
+  const categoryItems = document.querySelectorAll('.category-item');
+  categoryItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // Update active state
+      categoryItems.forEach(cat => cat.classList.remove('active'));
+      item.classList.add('active');
+      
+      // Get the selected category
+      const category = item.dataset.category;
+      console.log(`Selected category: ${category}`);
+      
+      // Filter notifications based on category
+      filterNotificationsByCategory(category);
+    });
+  });
+}
+
+/**
+ * Filter notifications based on selected category
+ * @param {string} category - The selected notification category
+ */
+function filterNotificationsByCategory(category) {
+  const notificationItems = document.querySelectorAll('.notification-item');
+  const emptyStateTemplate = document.getElementById('empty-state-template');
+  let visibleCount = 0;
+  
+  // Remove any existing empty state
+  const existingEmptyState = document.querySelector('.notifications-list-content .empty-state');
+  if (existingEmptyState) {
+    existingEmptyState.remove();
+  }
+  
+  // Show all sections by default
+  document.querySelectorAll('.notifications-date-section').forEach(section => {
+    section.style.display = 'block';
+  });
+  
+  // Handle different categories
+  switch (category) {
+    case 'inbox':
+      // Show all notifications
+      notificationItems.forEach(item => {
+        item.style.display = 'flex';
+        visibleCount++;
+      });
+      break;
+      
+    case 'starred':
+      // Show only starred notifications
+      notificationItems.forEach(item => {
+        if (item.classList.contains('starred')) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      break;
+      
+    case 'alerts':
+      // Show only high priority notifications
+      notificationItems.forEach(item => {
+        const priorityIndicator = item.querySelector('.priority-indicator');
+        if (priorityIndicator && priorityIndicator.classList.contains('high')) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      break;
+      
+    case 'unread':
+      // Show only unread notifications
+      notificationItems.forEach(item => {
+        if (item.classList.contains('unread')) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      break;
+      
+    default:
+      // For other categories, show a subset based on the category
+      // For demo purposes, we'll just show a few random notifications
+      notificationItems.forEach(item => {
+        // Show items matching the category icon or hide with 70% probability for demo
+        const icon = item.querySelector('.notification-icon img');
+        if (icon && icon.getAttribute('alt').toLowerCase() === category) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else if (Math.random() > 0.7) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      break;
+  }
+  
+  // Hide empty date sections
+  document.querySelectorAll('.notifications-date-section').forEach(section => {
+    const visibleItems = section.querySelectorAll('.notification-item[style="display: flex;"]');
+    if (visibleItems.length === 0) {
+      section.style.display = 'none';
+    }
+  });
+  
+  // Show empty state if no notifications visible
+  if (visibleCount === 0 && emptyStateTemplate) {
+    const emptyState = document.importNode(emptyStateTemplate.content, true);
+    const listContent = document.querySelector('.notifications-list-content');
+    
+    // Update empty state text based on category
+    const title = emptyState.querySelector('.empty-state-title');
+    const text = emptyState.querySelector('.empty-state-text');
+    const icon = emptyState.querySelector('.empty-state-icon');
+    
+    if (title && text && icon) {
+      // Use appropriate icon based on category
+      switch (category) {
+        case 'starred':
+          icon.src = 'Assets/starred.svg';
+          title.textContent = 'No pinned notifications';
+          text.textContent = 'Pin important notifications to find them quickly.';
+          break;
+        case 'alerts':
+          icon.src = 'Assets/alert.svg';
+          title.textContent = 'No alerts';
+          text.textContent = 'You don\'t have any high priority notifications.';
+          break;
+        case 'archive':
+          icon.src = 'Assets/archive.svg';
+          title.textContent = 'Archive is empty';
+          text.textContent = 'Archived notifications will appear here.';
+          break;
+        case 'trash':
+          icon.src = 'Assets/trash.svg';
+          title.textContent = 'Trash is empty';
+          text.textContent = 'Deleted notifications will appear here.';
+          break;
+        default:
+          // Use category-specific icon if available
+          const categoryItem = document.querySelector(`.category-item[data-category="${category}"]`);
+          if (categoryItem) {
+            const categoryIcon = categoryItem.querySelector('.category-icon img');
+            if (categoryIcon) {
+              icon.src = categoryIcon.src;
+            }
+          }
+          
+          title.textContent = `No ${category} notifications`;
+          text.textContent = `You don't have any ${category} notifications yet.`;
+      }
+    }
+    
+    if (listContent) {
+      listContent.appendChild(emptyState);
+    }
+  }
+  
+  // Update selected notification if the currently selected one is hidden
+  const selectedNotification = document.querySelector('.notification-item.selected');
+  if (selectedNotification && selectedNotification.style.display === 'none') {
+    // Select the first visible notification instead
+    const firstVisible = document.querySelector('.notification-item[style="display: flex;"]');
+    if (firstVisible) {
+      firstVisible.classList.add('selected');
+      updateNotificationDetails(firstVisible);
+    } else {
+      // No visible notifications, show empty detail panel
+      const noNotificationSelected = document.querySelector('.no-notification-selected');
+      const notificationDetail = document.querySelector('.notification-detail');
+      
+      if (noNotificationSelected) {
+        noNotificationSelected.style.display = 'flex';
+      }
+      
+      if (notificationDetail) {
+        notificationDetail.style.display = 'none';
+      }
+    }
+  }
+}
+
+/**
+ * Setup notification sidebar functionality
+ */
+function setupNotificationsSidebar() {
+  // Initialize category selection
+  setupCategorySelection();
+  
+  // Add mobile category toggle button if it doesn't exist
+  const listHeader = document.querySelector('.notifications-list-header');
+  if (listHeader && window.innerWidth <= 768 && !document.getElementById('mobile-category-btn')) {
+    const categoryBtn = document.createElement('button');
+    categoryBtn.id = 'mobile-category-btn';
+    categoryBtn.className = 'header-action-btn tooltip-trigger';
+    categoryBtn.setAttribute('data-tooltip', 'Categories');
+    categoryBtn.innerHTML = '<img src="Assets/category.svg" alt="Categories">';
+    
+    categoryBtn.addEventListener('click', () => {
+      const sidebar = document.querySelector('.notifications-sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('active');
+      }
+    });
+    
+    listHeader.querySelector('.list-header-actions').prepend(categoryBtn);
+  }
+  
+  // Add back button to detail panel for mobile
+  const detailHeader = document.querySelector('.detail-header');
+  if (detailHeader && window.innerWidth <= 992 && !document.getElementById('mobile-back-btn')) {
+    const backBtn = document.createElement('button');
+    backBtn.id = 'mobile-back-btn';
+    backBtn.className = 'header-action-btn tooltip-trigger';
+    backBtn.setAttribute('data-tooltip', 'Back to list');
+    backBtn.innerHTML = '<img src="Assets/back.svg" alt="Back">';
+    
+    backBtn.addEventListener('click', () => {
+      const detailPanel = document.querySelector('.notifications-detail-panel');
+      if (detailPanel) {
+        detailPanel.classList.remove('active');
+      }
+    });
+    
+    detailHeader.prepend(backBtn);
+  }
+}
