@@ -57,7 +57,116 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Setup custom tooltips
   setupCustomTooltips();
+  
+  // Setup responsive sidebar
+  setupResponsiveSidebar();
 });
+
+/**
+ * Setup responsive sidebar functionality
+ */
+function setupResponsiveSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  
+  // Check window width and set narrow state if needed
+  checkSidebarWidth();
+  
+  // Add sidebar resizer
+  const resizer = document.createElement('div');
+  resizer.className = 'sidebar-resizer';
+  sidebar.appendChild(resizer);
+  
+  // Add event listeners for resizing
+  let isResizing = false;
+  let lastX = 0;
+  
+  // Start resize when mouse down on resizer
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    lastX = e.clientX;
+    document.body.style.userSelect = 'none'; // Prevent text selection during resize
+    
+    // Add a class to the body to change the cursor
+    document.body.classList.add('resizing');
+  });
+  
+  // Update width on mouse move when resizing
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    
+    const delta = e.clientX - lastX;
+    lastX = e.clientX;
+    
+    // Get current sidebar width and update it
+    const currentWidth = parseInt(getComputedStyle(sidebar).width, 10);
+    let newWidth = currentWidth + delta;
+    
+    // Set min and max width
+    newWidth = Math.max(60, Math.min(300, newWidth));
+    
+    sidebar.style.width = `${newWidth}px`;
+    localStorage.setItem('sidebarWidth', newWidth);
+    
+    // Update sidebar class based on width
+    if (newWidth <= 80) {
+      sidebar.classList.add('narrow');
+    } else {
+      sidebar.classList.remove('narrow');
+    }
+  });
+  
+  // Stop resizing on mouse up
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.userSelect = '';
+      document.body.classList.remove('resizing');
+    }
+  });
+  
+  // Handle window resize
+  window.addEventListener('resize', checkSidebarWidth);
+  
+  // Initial check for stored width
+  const storedWidth = localStorage.getItem('sidebarWidth');
+  if (storedWidth) {
+    sidebar.style.width = `${storedWidth}px`;
+    if (parseInt(storedWidth) <= 80) {
+      sidebar.classList.add('narrow');
+    }
+  }
+}
+
+/**
+ * Check window width and update sidebar state
+ */
+function checkSidebarWidth() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  
+  // Add narrow class for small screens
+  if (window.innerWidth < 768) {
+    sidebar.classList.add('narrow');
+  } else {
+    // On larger screens, use stored preference if exists
+    const storedWidth = localStorage.getItem('sidebarWidth');
+    if (storedWidth && parseInt(storedWidth) <= 80) {
+      sidebar.classList.add('narrow');
+    } else if (!storedWidth && window.innerWidth < 1024) {
+      sidebar.classList.add('narrow');
+    } else {
+      sidebar.classList.remove('narrow');
+    }
+  }
+  
+  // Add class for all navigation sections with headings
+  document.querySelectorAll('.nav-section').forEach(section => {
+    if (section.querySelector('.nav-heading')) {
+      section.classList.add('with-heading');
+    }
+  });
+}
 
 /**
  * Updates the user profile section with session data
@@ -986,16 +1095,6 @@ function setupKeyboardShortcuts() {
       toggleSearchModal();
     }
     
-    // Toggle sidebar with CMD/Ctrl+B
-    if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-      e.preventDefault();
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-      }
-    }
-    
     // Navigate home with CMD/Ctrl+H
     if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
       e.preventDefault();
@@ -1326,10 +1425,10 @@ function setupNotificationActions() {
         // Update tooltip
         button.setAttribute('data-tooltip', 'Unpin notification');
         
-        // Update image
+        // Update image to use pinned.svg
         const img = button.querySelector('img');
         if (img) {
-          img.src = 'Assets/unpin.svg';
+          img.src = 'Assets/pinned.svg';
           img.alt = 'Unpin';
         }
       } else {
@@ -1341,7 +1440,7 @@ function setupNotificationActions() {
         // Update tooltip
         button.setAttribute('data-tooltip', 'Pin notification');
         
-        // Update image
+        // Update image back to pin.svg
         const img = button.querySelector('img');
         if (img) {
           img.src = 'Assets/pin.svg';
@@ -1513,7 +1612,7 @@ function setupCustomTooltips() {
       // Show tooltip after delay
       tooltipTimeout = setTimeout(() => {
         showTooltip(trigger);
-      }, 1000); // 1 second delay
+      }, 500); // 0.5 second delay
     });
     
     trigger.addEventListener('mouseleave', (e) => {
@@ -1558,14 +1657,16 @@ function showTooltip(trigger) {
     tooltipContent.textContent = tooltipText;
   }
   
-  // Position the tooltip
+  // Position the tooltip before showing for smoother animation
   positionTooltip(tooltip, trigger);
   
   // Make tooltip interactive
   tooltip.classList.add('interactive');
   
-  // Show tooltip with animation
-  tooltip.classList.add('active');
+  // Show tooltip with animation - requestAnimationFrame for smoother animation
+  requestAnimationFrame(() => {
+    tooltip.classList.add('active');
+  });
 }
 
 /**
@@ -2746,25 +2847,6 @@ function setupHeaderActions() {
       navigateTo('account');
     });
   }
-  
-  // Setup sidebar toggle button
-  const sidebarToggle = document.getElementById('sidebar-toggle');
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', function() {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-        // Store preference
-        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-      }
-    });
-    
-    // Check if sidebar should be collapsed on load
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar && localStorage.getItem('sidebarCollapsed') === 'true') {
-      sidebar.classList.add('collapsed');
-    }
-  }
 }
 
 /**
@@ -2837,7 +2919,7 @@ function filterNotificationsByCategory(category) {
     section.style.display = 'block';
   });
   
-  // Handle different categories
+  // Handle different categories with specific filtering
   switch (category) {
     case 'inbox':
       // Show all notifications
@@ -2885,15 +2967,10 @@ function filterNotificationsByCategory(category) {
       break;
       
     default:
-      // For other categories, show a subset based on the category
-      // For demo purposes, we'll just show a few random notifications
+      // Filter by category icon type
       notificationItems.forEach(item => {
-        // Show items matching the category icon or hide with 70% probability for demo
         const icon = item.querySelector('.notification-icon img');
         if (icon && icon.getAttribute('alt').toLowerCase() === category) {
-          item.style.display = 'flex';
-          visibleCount++;
-        } else if (Math.random() > 0.7) {
           item.style.display = 'flex';
           visibleCount++;
         } else {
@@ -2905,7 +2982,9 @@ function filterNotificationsByCategory(category) {
   
   // Hide empty date sections
   document.querySelectorAll('.notifications-date-section').forEach(section => {
-    const visibleItems = section.querySelectorAll('.notification-item[style="display: flex;"]');
+    const visibleItems = Array.from(section.querySelectorAll('.notification-item')).filter(
+      item => item.style.display === 'flex'
+    );
     if (visibleItems.length === 0) {
       section.style.display = 'none';
     }
@@ -2944,6 +3023,16 @@ function filterNotificationsByCategory(category) {
           title.textContent = 'Trash is empty';
           text.textContent = 'Deleted notifications will appear here.';
           break;
+        case 'calendar':
+          icon.src = 'Assets/calendar-icon.svg';
+          title.textContent = 'No calendar notifications';
+          text.textContent = 'Event notifications will appear here.';
+          break;
+        case 'homework':
+          icon.src = 'Assets/homework-icon.svg';
+          title.textContent = 'No assignment notifications';
+          text.textContent = 'Assignment notifications will appear here.';
+          break;
         default:
           // Use category-specific icon if available
           const categoryItem = document.querySelector(`.category-item[data-category="${category}"]`);
@@ -2969,6 +3058,12 @@ function filterNotificationsByCategory(category) {
   if (selectedNotification && selectedNotification.style.display === 'none') {
     // Select the first visible notification instead
     const firstVisible = document.querySelector('.notification-item[style="display: flex;"]');
+    
+    // Clear existing selection
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+    
     if (firstVisible) {
       firstVisible.classList.add('selected');
       updateNotificationDetails(firstVisible);
