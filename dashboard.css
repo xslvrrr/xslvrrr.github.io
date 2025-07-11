@@ -14,7 +14,7 @@
   /* Text colors - Improved contrast */
   --text-primary: #F7F8F8;
   --text-secondary: #A0A0A0; /* Slightly brighter for better readability */
-  --text-tertiary: #909090; /* Increased from #707070 for better contrast */
+  --text-tertiary: #8A8A8A; /* Adjusted to match the image exactly */
   
   /* Sizing - Updated with golden ratio */
   --sidebar-width: 220px;
@@ -375,19 +375,19 @@ body.light-theme .quick-card:hover {
 
 /* Navigation sections */
 .nav-section {
-  margin-bottom: var(--space-sm); /* Reduced from md to sm */
-  width: 90%; /* Slightly narrower than full width for centering effect */
+  margin-bottom: var(--space-sm);
+  width: 90%;
 }
 
 .nav-heading-container {
   display: flex;
   align-items: center;
-  padding: var(--space-xs) var(--space-md); /* Reduced vertical padding */
+  padding: var(--space-xs) var(--space-md);
   cursor: pointer;
   margin-bottom: 2px;
   transition: var(--transition-fast);
   width: 100%;
-  justify-content: flex-start; /* Align items to the start */
+  justify-content: flex-start;
 }
 
 .nav-heading-container:hover {
@@ -398,7 +398,7 @@ body.light-theme .quick-card:hover {
   font-size: var(--font-size-xs);
   font-weight: 500;
   text-transform: uppercase;
-  color: var(--text-tertiary);
+  color: #8A8A8A; /* Exact match to the color in the image */
   letter-spacing: 0.05em;
   user-select: none;
   margin-right: 0;
@@ -407,21 +407,31 @@ body.light-theme .quick-card:hover {
 }
 
 .nav-collapse-icon {
-  width: 10px; /* Smaller icon */
-  height: 10px; /* Smaller icon */
-  opacity: 0.7;
+  width: 10px;
+  height: 10px;
   transition: transform var(--transition-fast);
-  filter: invert(0.7);
-  /* Position next to heading */
   margin-left: 4px;
-  /* Ensure color matches the heading */
-  color: var(--text-tertiary);
 }
 
-.nav-heading-container:hover .nav-collapse-icon,
+/* Fix for icon using img element to ensure color matching */
+.nav-heading-container img.nav-collapse-icon {
+  filter: brightness(0) saturate(100%) invert(55%) sepia(9%) saturate(23%) hue-rotate(314deg) brightness(90%) contrast(87%); /* Exact match for #8A8A8A */
+  opacity: 1; /* Full opacity since the filter handles the color */
+}
+
+/* Hover state for navigation headers */
 .nav-heading-container:hover .nav-heading {
-  opacity: 0.9;
-  filter: invert(0.9);
+  color: #AAA; /* Lighter on hover */
+}
+
+.nav-heading-container:hover img.nav-collapse-icon {
+  filter: brightness(0) saturate(100%) invert(70%) sepia(9%) saturate(23%) hue-rotate(314deg) brightness(95%) contrast(87%); /* Lighter on hover */
+}
+
+/* Make the heading and collapse icon color match exactly */
+.nav-heading, .nav-collapse-icon {
+  color: var(--text-tertiary);
+  opacity: 0.7;
 }
 
 /* Make the heading and collapse icon color match */
@@ -624,7 +634,7 @@ body.light-theme .nav-collapse-icon {
   opacity: 1;
 }
 
-/* Main content area - adjusted to meet sidebar */
+/* Main content area - adjusted for equal spacing on all sides */
 .main-content {
   flex: 1;
   display: flex;
@@ -636,7 +646,7 @@ body.light-theme .nav-collapse-icon {
   will-change: transform;
   transform: translateZ(0);
   contain: content;
-  padding: var(--space-md); /* Added padding at the top */
+  padding: var(--space-md); /* Equal padding on all sides */
 }
 
 .main-content::-webkit-scrollbar {
@@ -668,6 +678,7 @@ body.light-theme .nav-collapse-icon {
   z-index: 5;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-md); /* Add margin at the bottom for better spacing */
 }
 
 /* Updated page title styling */
@@ -741,8 +752,7 @@ body.light-theme .nav-collapse-icon {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin: 0; /* Reset margin */
-  margin-top: var(--space-xs); /* Add small margin at top */
+  margin: 0; /* No additional margin */
 }
 
 /* Content wrapper - Updated to handle scrolling and extend full height */
@@ -753,10 +763,11 @@ body.light-theme .nav-collapse-icon {
   min-height: 0;
   overflow-y: auto;
   padding: 0 var(--space-lg);
+  padding-top: var(--space-md); /* Add padding at top to ensure content isn't too close to header */
 }
 
 .content-wrapper-inner {
-  padding: var(--space-lg) 0;
+  padding-bottom: var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-xl); /* Increased gap between sections */
