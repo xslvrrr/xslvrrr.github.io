@@ -1111,6 +1111,20 @@ function setupKeyboardShortcuts() {
       }
     }
     
+    // Toggle notifications with CMD/Ctrl+N
+    if ((e.metaKey || e.ctrlKey) && e.key === 'n' && 
+        !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      const notificationsModal = document.getElementById('notifications-modal');
+      const notificationsBtn = document.getElementById('notifications-btn');
+      
+      if (notificationsModal.classList.contains('active')) {
+        closeNotificationsModal();
+      } else if (notificationsBtn) {
+        notificationsBtn.click();
+      }
+    }
+    
     // Escape key to close modals
     if (e.key === 'Escape') {
       closeAllModals();
@@ -1150,6 +1164,12 @@ function setupNotificationsModal() {
     
     // Setup notification sidebar 
     setupNotificationsSidebar();
+    
+    // Initial update of unread counts
+    updateUnreadCounts();
+    
+    // Setup notification search
+    setupNotificationSearch();
   });
   
   // Close button
@@ -1189,6 +1209,188 @@ function setupNotificationsModal() {
   
   // Setup notification actions
   setupNotificationActions();
+}
+
+/**
+ * Setup notification search functionality
+ */
+function setupNotificationSearch() {
+  const searchInput = document.querySelector('.notifications-list-header .list-search input');
+  if (!searchInput) return;
+  
+  // Clear any previous search
+  searchInput.value = '';
+  
+  // Add input event listener
+  searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    searchNotifications(searchTerm);
+  });
+  
+  // Fix alignment issues
+  searchInput.style.paddingTop = '8px';
+  searchInput.style.paddingBottom = '8px';
+}
+
+/**
+ * Search through notifications by title and content
+ * @param {string} searchTerm - The search term
+ */
+function searchNotifications(searchTerm) {
+  const notificationItems = document.querySelectorAll('.notification-item');
+  const emptyStateTemplate = document.getElementById('empty-state-template');
+  let visibleCount = 0;
+  
+  // Remove any existing empty state
+  const existingEmptyState = document.querySelector('.notifications-list-content .empty-state');
+  if (existingEmptyState) {
+    existingEmptyState.remove();
+  }
+  
+  // Show all date sections by default
+  document.querySelectorAll('.notifications-date-section').forEach(section => {
+    section.style.display = 'block';
+  });
+  
+  if (!searchTerm) {
+    // If search is empty, show all notifications and restore category filter
+    const activeCategory = document.querySelector('.category-item.active');
+    if (activeCategory) {
+      filterNotificationsByCategory(activeCategory.dataset.category);
+    } else {
+      notificationItems.forEach(item => {
+        item.style.display = 'flex';
+        visibleCount++;
+      });
+    }
+    return;
+  }
+  
+  // Search through notifications
+  notificationItems.forEach(item => {
+    const title = item.querySelector('.notification-title').textContent.toLowerCase();
+    const preview = item.querySelector('.notification-preview').textContent.toLowerCase();
+    
+    // Also search in detailed content from our notificationId-content mapping
+    const notificationId = item.getAttribute('data-id');
+    let detailContent = '';
+    
+    // Get the associated content for this notification
+    switch (notificationId) {
+      case 'notif-1':
+        detailContent = 'scheduled maintenance system unavailable save work complete assignments';
+        break;
+      case 'notif-2':
+        detailContent = 'math algebra quadratic equations due homework assignment problems chapter textbook';
+        break;
+      case 'notif-3':
+        detailContent = 'school assembly rescheduled thursday friday main hall mandatory student council';
+        break;
+      case 'notif-4':
+        detailContent = 'english essay graded great gatsby symbolism literary techniques';
+        break;
+      case 'notif-5':
+        detailContent = 'password change reminder expire security account settings';
+        break;
+      case 'notif-6':
+        detailContent = 'final exam schedule december mathematics english science history foreign language';
+        break;
+      case 'notif-7':
+        detailContent = 'chemistry lab report titration experiment deadline submission requirements';
+        break;
+      case 'notif-8':
+        detailContent = 'library book due kill mockingbird harper lee return renew';
+        break;
+      case 'notif-10':
+        detailContent = 'science project deadline extended fair submission november';
+        break;
+      case 'notif-11':
+        detailContent = 'parent teacher conference november meeting appointment schedule book';
+        break;
+      default:
+        detailContent = '';
+    }
+    
+    if (title.includes(searchTerm) || 
+        preview.includes(searchTerm) || 
+        detailContent.includes(searchTerm)) {
+      item.style.display = 'flex';
+      visibleCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+  
+  // Hide empty date sections
+  document.querySelectorAll('.notifications-date-section').forEach(section => {
+    const visibleItems = Array.from(section.querySelectorAll('.notification-item')).filter(
+      item => item.style.display === 'flex'
+    );
+    if (visibleItems.length === 0) {
+      section.style.display = 'none';
+    }
+  });
+  
+  // Show empty state if no notifications visible
+  if (visibleCount === 0) {
+    showEmptySearchState(searchTerm);
+  }
+  
+  // Update selected notification if the currently selected one is hidden
+  const selectedNotification = document.querySelector('.notification-item.selected');
+  if (selectedNotification && selectedNotification.style.display === 'none') {
+    // Select the first visible notification instead
+    const firstVisible = document.querySelector('.notification-item[style="display: flex;"]');
+    
+    // Clear existing selection
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+    
+    if (firstVisible) {
+      firstVisible.classList.add('selected');
+      updateNotificationDetails(firstVisible);
+    } else {
+      // No visible notifications, show empty detail panel
+      const noNotificationSelected = document.querySelector('.no-notification-selected');
+      const notificationDetail = document.querySelector('.notification-detail');
+      
+      if (noNotificationSelected) {
+        noNotificationSelected.style.display = 'flex';
+      }
+      
+      if (notificationDetail) {
+        notificationDetail.style.display = 'none';
+      }
+    }
+  }
+}
+
+/**
+ * Show empty search state
+ * @param {string} searchTerm - The search term that yielded no results
+ */
+function showEmptySearchState(searchTerm) {
+  const emptyStateTemplate = document.getElementById('empty-state-template');
+  if (!emptyStateTemplate) return;
+  
+  const emptyState = document.importNode(emptyStateTemplate.content, true);
+  const listContent = document.querySelector('.notifications-list-content');
+  
+  // Update empty state text
+  const title = emptyState.querySelector('.empty-state-title');
+  const text = emptyState.querySelector('.empty-state-text');
+  const icon = emptyState.querySelector('.empty-state-icon');
+  
+  if (title && text && icon) {
+    icon.src = 'Assets/search.svg';
+    title.textContent = 'No matching notifications';
+    text.textContent = `No notifications found matching "${searchTerm}"`;
+  }
+  
+  if (listContent) {
+    listContent.appendChild(emptyState);
+  }
 }
 
 /**
@@ -1261,16 +1463,17 @@ function updateNotificationSelection() {
  * @param {HTMLElement} notification - The selected notification element
  */
 function updateNotificationDetails(notification) {
-  // This is for demo purposes - in a real app we'd fetch the full notification content
   const detailTitle = document.querySelector('.detail-title');
   const detailTime = document.querySelector('.detail-time');
   const detailPriority = document.querySelector('.detail-priority');
+  const detailContent = document.querySelector('.detail-content');
   
-  if (!detailTitle || !detailTime || !detailPriority) return;
+  if (!detailTitle || !detailTime || !detailPriority || !detailContent) return;
   
   // Get notification data
   const title = notification.querySelector('.notification-title').textContent;
   const time = notification.querySelector('.notification-time').textContent;
+  const notificationId = notification.getAttribute('data-id');
   
   // Update detail view
   detailTitle.textContent = title;
@@ -1303,6 +1506,252 @@ function updateNotificationDetails(notification) {
     detailPriority.textContent = 'Low Priority';
   }
   
+  // Load specific content based on notification ID
+  let content = '';
+  switch (notificationId) {
+    case 'notif-1': // System Maintenance Alert
+      content = `
+        <p>Dear Student,</p>
+        <p>The Millennium portal will be undergoing <strong>scheduled maintenance</strong> this weekend from:</p>
+        <p><strong>Friday, October 27th at 8:00 PM</strong> until <strong>Saturday, October 28th at 6:00 AM</strong></p>
+        <p>During this time, the system will be unavailable. Please ensure you save any work and complete any pending assignments before the maintenance begins.</p>
+        <p>Key points to note:</p>
+        <ul>
+          <li>All deadlines that fall during the maintenance window have been automatically extended by 24 hours</li>
+          <li>Any assignments submitted in the 2 hours before maintenance will be backed up automatically</li>
+          <li>Your account data and work will not be affected by this maintenance</li>
+        </ul>
+        <p>We apologize for any inconvenience this may cause and appreciate your understanding as we work to improve system performance.</p>
+        <p>If you have any urgent matters during this time, please contact your teacher directly.</p>
+        <p>Thank you,<br>Millennium IT Support Team</p>
+      `;
+      break;
+      
+    case 'notif-2': // New Math Assignment
+      content = `
+        <p>Your Mathematics teacher has posted a new assignment.</p>
+        <p><strong>Assignment Details:</strong></p>
+        <ul>
+          <li><strong>Subject:</strong> Algebra II</li>
+          <li><strong>Topic:</strong> Quadratic Equations</li>
+          <li><strong>Due Date:</strong> Monday, October 30th</li>
+          <li><strong>Submission Format:</strong> Online submission through the Assignments portal</li>
+        </ul>
+        <p><strong>Requirements:</strong></p>
+        <p>Complete problems 15-30 in Chapter 4 of your textbook. Show all work and steps clearly.</p>
+        <p><strong>Additional Resources:</strong></p>
+        <ul>
+          <li>Video tutorial on solving quadratics by factoring</li>
+          <li>Practice worksheet (optional but recommended)</li>
+          <li>Virtual office hours: Friday 3-4 PM</li>
+        </ul>
+        <p>Remember to check the rubric for grading criteria before submitting your work.</p>
+      `;
+      break;
+      
+    case 'notif-3': // School Assembly Rescheduled
+      content = `
+        <p>Important Notice to All Students:</p>
+        <p>The school assembly originally scheduled for Friday has been <strong>rescheduled</strong> to <strong>Thursday at 10:00 AM</strong> in the main hall due to facility scheduling conflicts.</p>
+        <p><strong>Assembly Details:</strong></p>
+        <ul>
+          <li><strong>Date:</strong> Thursday, October 26th</li>
+          <li><strong>Time:</strong> 10:00 AM - 11:15 AM</li>
+          <li><strong>Location:</strong> Main Hall</li>
+          <li><strong>Attendance:</strong> Mandatory for all students</li>
+        </ul>
+        <p><strong>Agenda:</strong></p>
+        <ul>
+          <li>Principal's Address</li>
+          <li>Student Council Announcements</li>
+          <li>Sports Team Recognition</li>
+          <li>Upcoming Events Overview</li>
+        </ul>
+        <p>Classes that would normally occur during this time will be rescheduled. Your teachers will provide updated information about any affected class periods.</p>
+        <p>Please arrive promptly and in proper school uniform.</p>
+      `;
+      break;
+      
+    case 'notif-4': // English Essay Graded
+      content = `
+        <p>Your English Literature essay has been graded.</p>
+        <p><strong>Assignment Details:</strong></p>
+        <ul>
+          <li><strong>Assignment:</strong> Critical Analysis Essay</li>
+          <li><strong>Topic:</strong> Symbolism in "The Great Gatsby"</li>
+          <li><strong>Grade:</strong> A- (91/100)</li>
+        </ul>
+        <p><strong>Teacher Comments:</strong></p>
+        <p>"Excellent analysis of the symbolic elements in the novel. Your interpretation of the green light and its connection to Gatsby's character development was particularly insightful. Your writing demonstrates strong critical thinking and a solid grasp of literary techniques."</p>
+        <p><strong>Areas of Strength:</strong></p>
+        <ul>
+          <li>Insightful thesis statement</li>
+          <li>Well-structured paragraphs</li>
+          <li>Effective use of textual evidence</li>
+          <li>Clear and engaging writing style</li>
+        </ul>
+        <p><strong>Areas for Improvement:</strong></p>
+        <ul>
+          <li>Some minor grammatical errors in the conclusion</li>
+          <li>Consider exploring counter-arguments to strengthen your position</li>
+        </ul>
+        <p>You can view the full grading rubric and detailed feedback in your assignments portal.</p>
+      `;
+      break;
+      
+    case 'notif-5': // Password Change Reminder
+      content = `
+        <p>Dear Student,</p>
+        <p>This is a reminder that your Millennium portal password will expire in <strong>15 days</strong>.</p>
+        <p>For security reasons, all users are required to update their passwords every 180 days. Please take a moment to set a new password before it expires to avoid any disruption to your account access.</p>
+        <p><strong>To update your password:</strong></p>
+        <ol>
+          <li>Go to Account Settings in the sidebar</li>
+          <li>Select the "Security" tab</li>
+          <li>Click "Change Password"</li>
+          <li>Follow the prompts to create and confirm your new password</li>
+        </ol>
+        <p><strong>Password Requirements:</strong></p>
+        <ul>
+          <li>At least 8 characters long</li>
+          <li>Include at least one uppercase letter</li>
+          <li>Include at least one number</li>
+          <li>Include at least one special character (e.g., !, @, #, $)</li>
+          <li>Must not be the same as your previous 3 passwords</li>
+        </ul>
+        <p>If you need assistance, please contact the IT Support Desk.</p>
+      `;
+      break;
+      
+    // Add more cases for other notifications
+    case 'notif-6': // Final Exam Schedule Posted
+      content = `
+        <p>The Fall semester final exam schedule is now available.</p>
+        <p><strong>Exam Schedule:</strong></p>
+        <ul>
+          <li><strong>Mathematics:</strong> Tuesday, December 12th, 9:00 AM - 11:00 AM, Room M105</li>
+          <li><strong>English:</strong> Thursday, December 14th, 9:00 AM - 11:00 AM, Room E301</li>
+          <li><strong>Science:</strong> Friday, December 15th, 1:00 PM - 3:00 PM, Room S204</li>
+          <li><strong>History:</strong> Monday, December 18th, 9:00 AM - 11:00 AM, Room H102</li>
+          <li><strong>Foreign Language:</strong> Tuesday, December 19th, 1:00 PM - 3:00 PM, Room F203</li>
+        </ul>
+        <p><strong>Important Reminders:</strong></p>
+        <ul>
+          <li>Arrive at least 15 minutes before your exam time</li>
+          <li>Bring your student ID</li>
+          <li>Only approved calculators are permitted for math and science exams</li>
+          <li>No electronic devices allowed during exams</li>
+          <li>Review the full exam policy in the student handbook</li>
+        </ul>
+        <p>Study guides will be available from your teachers by November 15th.</p>
+        <p>If you have any schedule conflicts, please contact the academic office immediately to discuss potential accommodations.</p>
+      `;
+      break;
+      
+    case 'notif-7': // Chemistry Lab Report Due
+      content = `
+        <p>This is a reminder about your upcoming Chemistry lab report deadline.</p>
+        <p><strong>Assignment Details:</strong></p>
+        <ul>
+          <li><strong>Subject:</strong> Chemistry</li>
+          <li><strong>Assignment:</strong> Lab Report - Acid-Base Titration</li>
+          <li><strong>Due Date:</strong> Friday, October 27th at 11:59 PM</li>
+          <li><strong>Submission:</strong> Online via the Chemistry class portal</li>
+        </ul>
+        <p><strong>Report Requirements:</strong></p>
+        <ol>
+          <li>Title page</li>
+          <li>Abstract (150-200 words)</li>
+          <li>Introduction with hypothesis</li>
+          <li>Materials and methods</li>
+          <li>Results with data tables and graphs</li>
+          <li>Discussion and error analysis</li>
+          <li>Conclusion</li>
+          <li>References (APA format)</li>
+        </ol>
+        <p>Your lab report should follow the scientific format discussed in class and include all calculations, properly labeled graphs, and error analysis.</p>
+        <p>The lab manual and example reports can be found in the Resources section of your Chemistry class page.</p>
+      `;
+      break;
+      
+    case 'notif-8': // Library Book Due Soon
+      content = `
+        <p>Library Notice:</p>
+        <p>The following item is due soon:</p>
+        <p><strong>Title:</strong> To Kill a Mockingbird<br>
+        <strong>Author:</strong> Harper Lee<br>
+        <strong>Call Number:</strong> F LEE<br>
+        <strong>Due Date:</strong> Sunday, October 29th</p>
+        <p>Please return this item to the library by the due date to avoid late fees. Current late fees are $0.25 per day for regular circulation items.</p>
+        <p><strong>Renewal Options:</strong></p>
+        <ul>
+          <li>Renew online through your library account</li>
+          <li>Call the library at extension 4321</li>
+          <li>Visit the library circulation desk</li>
+        </ul>
+        <p>Items can be renewed up to 2 times if there are no holds. This item currently has no holds and is eligible for renewal.</p>
+        <p>Library Hours:<br>
+        Monday-Thursday: 7:30 AM - 5:00 PM<br>
+        Friday: 7:30 AM - 4:00 PM<br>
+        Sunday: 2:00 PM - 5:00 PM (Study Hall only)</p>
+      `;
+      break;
+      
+    case 'notif-10': // Science Project Deadline Extended
+      content = `
+        <p>Good news for Science Fair participants!</p>
+        <p>The Science Department has extended the submission deadline for science fair projects.</p>
+        <p><strong>Updated Information:</strong></p>
+        <ul>
+          <li><strong>New Deadline:</strong> Wednesday, November 15th by 4:00 PM</li>
+          <li><strong>Original Deadline:</strong> Friday, November 3rd</li>
+          <li><strong>Submission Location:</strong> Science Department Office (Room S101) or online through the Science Fair portal</li>
+        </ul>
+        <p><strong>Reason for Extension:</strong></p>
+        <p>This extension is being provided due to the delayed arrival of specialized equipment needed for several project categories and to accommodate the recent field trip schedule conflicts.</p>
+        <p><strong>Additional Support:</strong></p>
+        <ul>
+          <li>Science Lab will have extended hours (3:00-5:00 PM) on Tuesdays and Thursdays until the deadline</li>
+          <li>Teacher mentors will be available for additional consultation during these extended hours</li>
+          <li>A supplementary workshop on "Data Visualization for Science Projects" will be held on November 7th at lunch in Room S204</li>
+        </ul>
+        <p>All other science fair requirements and judging criteria remain unchanged. Please see the Science Fair Guidelines document for complete details.</p>
+      `;
+      break;
+      
+    case 'notif-11': // Parent-Teacher Conference
+      content = `
+        <p><strong>Parent-Teacher Conference Information</strong></p>
+        <p>Our fall Parent-Teacher Conferences are scheduled for Friday, November 3rd from 3:00 PM to 7:00 PM.</p>
+        <p>These conferences provide an important opportunity for parents and teachers to discuss student progress, strengths, areas for growth, and strategies for academic success.</p>
+        <p><strong>Conference Details:</strong></p>
+        <ul>
+          <li><strong>Date:</strong> Friday, November 3rd</li>
+          <li><strong>Time:</strong> 3:00 PM - 7:00 PM</li>
+          <li><strong>Location:</strong> Individual teacher classrooms</li>
+          <li><strong>Format:</strong> 10-minute individual conferences</li>
+        </ul>
+        <p><strong>Scheduling:</strong></p>
+        <p>Parents can book conference slots online through the Parent Portal. The scheduling system will open on October 25th at 8:00 AM and close on November 2nd at 12:00 PM.</p>
+        <p>Please note that time slots are limited and fill up quickly. We recommend booking as soon as the system opens.</p>
+        <p><strong>Preparation:</strong></p>
+        <p>To make the most of the brief conference time:</p>
+        <ul>
+          <li>Review your current grades and assignments before the conference</li>
+          <li>Prepare specific questions for your teachers</li>
+          <li>Consider attending with your parents if possible</li>
+        </ul>
+        <p>If your parents cannot attend in person, virtual conference options are available upon request.</p>
+      `;
+      break;
+      
+    default:
+      content = `<p>Select a notification to view its details.</p>`;
+  }
+  
+  // Update the detail content
+  detailContent.innerHTML = content;
+  
   // Show the notification detail and hide empty state
   const noNotificationSelected = document.querySelector('.no-notification-selected');
   const notificationDetail = document.querySelector('.notification-detail');
@@ -1313,6 +1762,79 @@ function updateNotificationDetails(notification) {
   
   if (notificationDetail) {
     notificationDetail.style.display = 'flex';
+  }
+  
+  // Mark notification as read if it was unread
+  if (notification.classList.contains('unread')) {
+    markNotificationAsRead(notification);
+  }
+}
+
+/**
+ * Mark a notification as read and update unread counts
+ * @param {HTMLElement} notification - The notification element to mark as read
+ */
+function markNotificationAsRead(notification) {
+  if (!notification.classList.contains('unread')) return;
+  
+  // Remove unread class
+  notification.classList.remove('unread');
+  
+  // Remove unread indicator
+  const unreadIndicator = notification.querySelector('.unread-indicator');
+  if (unreadIndicator) {
+    unreadIndicator.remove();
+  }
+  
+  // Update action button
+  updateNotificationItemButtons(notification, false);
+  
+  // Update unread counts in the sidebar
+  updateUnreadCounts();
+}
+
+/**
+ * Update unread notification counts in the sidebar
+ */
+function updateUnreadCounts() {
+  // Count unread notifications
+  const allUnread = document.querySelectorAll('.notification-item.unread');
+  
+  // Update inbox count
+  const inboxCount = document.querySelector('.category-item[data-category="inbox"] .unread-count');
+  if (inboxCount) {
+    inboxCount.textContent = allUnread.length;
+  }
+  
+  // Update pinned count
+  const pinnedUnread = document.querySelectorAll('.notification-item.unread.pinned');
+  const pinnedCount = document.querySelector('.category-item[data-category="pinned"] .unread-count');
+  if (pinnedCount) {
+    pinnedCount.textContent = pinnedUnread.length;
+  }
+  
+  // Update alerts count (high priority)
+  let alertsUnread = 0;
+  allUnread.forEach(item => {
+    const priorityIndicator = item.querySelector('.priority-indicator.high');
+    if (priorityIndicator) {
+      alertsUnread++;
+    }
+  });
+  
+  const alertsCount = document.querySelector('.category-item[data-category="alerts"] .unread-count');
+  if (alertsCount) {
+    alertsCount.textContent = alertsUnread;
+  }
+  
+  // Update notification indicator in header
+  const notificationsBtn = document.getElementById('notifications-btn');
+  if (notificationsBtn) {
+    if (allUnread.length > 0) {
+      notificationsBtn.classList.add('has-notification');
+    } else {
+      notificationsBtn.classList.remove('has-notification');
+    }
   }
 }
 
@@ -1326,23 +1848,11 @@ function setupNotificationActions() {
     markAllReadBtn.addEventListener('click', () => {
       const unreadItems = document.querySelectorAll('.notification-item.unread');
       unreadItems.forEach(item => {
-        item.classList.remove('unread');
-        
-        // Remove unread indicators
-        const unreadIndicator = item.querySelector('.unread-indicator');
-        if (unreadIndicator) {
-          unreadIndicator.remove();
-        }
-        
-        // Update buttons
-        updateNotificationItemButtons(item, false);
+        markNotificationAsRead(item);
       });
       
-      // Remove notification indicator
-      const notificationsBtn = document.getElementById('notifications-btn');
-      if (notificationsBtn) {
-        notificationsBtn.classList.remove('has-notification');
-      }
+      // Update notification indicator
+      updateUnreadCounts();
     });
   }
   
@@ -1354,19 +1864,7 @@ function setupNotificationActions() {
       const notificationItem = button.closest('.notification-item');
       
       // Mark as read
-      notificationItem.classList.remove('unread');
-      
-      // Remove unread indicator
-      const unreadIndicator = notificationItem.querySelector('.unread-indicator');
-      if (unreadIndicator) {
-        unreadIndicator.remove();
-      }
-      
-      // Update button
-      updateNotificationItemButtons(notificationItem, false);
-      
-      // Check if we still have unread notifications
-      updateNotificationIndicator();
+      markNotificationAsRead(notificationItem);
       
       // Stop event propagation
       e.stopPropagation();
@@ -1391,11 +1889,8 @@ function setupNotificationActions() {
       // Update button
       updateNotificationItemButtons(notificationItem, true);
       
-      // Show notification indicator
-      const notificationsBtn = document.getElementById('notifications-btn');
-      if (notificationsBtn) {
-        notificationsBtn.classList.add('has-notification');
-      }
+      // Update unread counts
+      updateUnreadCounts();
       
       // Stop event propagation
       e.stopPropagation();
@@ -1407,19 +1902,19 @@ function setupNotificationActions() {
       const button = e.target.closest('.notif-action-btn');
       const notificationItem = button.closest('.notification-item');
       
-      // Toggle starred class
-      notificationItem.classList.toggle('starred');
+      // Toggle pinned class
+      notificationItem.classList.toggle('pinned');
       
-      // Add or remove starred indicator
+      // Add or remove pinned indicator
       const statusContainer = notificationItem.querySelector('.notification-status');
-      const starredIndicator = notificationItem.querySelector('.starred-indicator');
+      const pinnedIndicator = notificationItem.querySelector('.pinned-indicator');
       
-      if (notificationItem.classList.contains('starred')) {
-        // Add starred indicator if not exists
-        if (!starredIndicator && statusContainer) {
-          const newStarredIndicator = document.createElement('div');
-          newStarredIndicator.className = 'starred-indicator';
-          statusContainer.appendChild(newStarredIndicator);
+      if (notificationItem.classList.contains('pinned')) {
+        // Add pinned indicator if not exists
+        if (!pinnedIndicator && statusContainer) {
+          const newPinnedIndicator = document.createElement('div');
+          newPinnedIndicator.className = 'pinned-indicator';
+          statusContainer.appendChild(newPinnedIndicator);
         }
         
         // Update tooltip
@@ -1432,9 +1927,9 @@ function setupNotificationActions() {
           img.alt = 'Unpin';
         }
       } else {
-        // Remove starred indicator
-        if (starredIndicator) {
-          starredIndicator.remove();
+        // Remove pinned indicator
+        if (pinnedIndicator) {
+          pinnedIndicator.remove();
         }
         
         // Update tooltip
@@ -1480,19 +1975,7 @@ function setupNotificationActions() {
       const selectedNotification = document.querySelector('.notification-item.selected');
       if (selectedNotification) {
         // Mark as read
-        selectedNotification.classList.remove('unread');
-        
-        // Remove unread indicator
-        const unreadIndicator = selectedNotification.querySelector('.unread-indicator');
-        if (unreadIndicator) {
-          unreadIndicator.remove();
-        }
-        
-        // Update button
-        updateNotificationItemButtons(selectedNotification, false);
-        
-        // Check if we still have unread notifications
-        updateNotificationIndicator();
+        markNotificationAsRead(selectedNotification);
       }
       e.stopPropagation();
     }
@@ -2231,8 +2714,8 @@ function populateShortcuts(container, os) {
   const shortcuts = [
     { name: 'Search', keys: [`${modKey}`, 'K'] },
     { name: 'Navigate home', keys: [`${modKey}`, 'H'] },
+    { name: 'Open/close notifications', keys: [`${modKey}`, 'N'] },
     { name: 'Close modals', keys: ['Esc'] },
-    { name: 'Toggle sidebar collapse', keys: [`${modKey}`, 'B'] },
     { name: 'Refresh content', keys: [`${modKey}`, 'R'] }
   ];
   
@@ -2929,10 +3412,10 @@ function filterNotificationsByCategory(category) {
       });
       break;
       
-    case 'starred':
-      // Show only starred notifications
+    case 'pinned':
+      // Show only pinned notifications
       notificationItems.forEach(item => {
-        if (item.classList.contains('starred')) {
+        if (item.classList.contains('pinned')) {
           item.style.display = 'flex';
           visibleCount++;
         } else {
@@ -3084,11 +3567,17 @@ function filterNotificationsByCategory(category) {
 }
 
 /**
- * Setup notification sidebar functionality
+ * Setup notifications sidebar functionality
  */
 function setupNotificationsSidebar() {
   // Initialize category selection
   setupCategorySelection();
+  
+  // Set up filter and sort functionality
+  setupFilterAndSort();
+  
+  // Apply performance optimizations for notifications
+  optimizeNotificationsPerformance();
   
   // Add mobile category toggle button if it doesn't exist
   const listHeader = document.querySelector('.notifications-list-header');
@@ -3126,5 +3615,353 @@ function setupNotificationsSidebar() {
     });
     
     detailHeader.prepend(backBtn);
+  }
+}
+
+/**
+ * Setup filter and sort functionality for notifications
+ */
+function setupFilterAndSort() {
+  const filterBtn = document.getElementById('notification-filter-btn');
+  const filterDropdown = filterBtn?.closest('.filter-dropdown');
+  const sortBtn = document.getElementById('notification-sort-btn');
+  const applyFiltersBtn = document.getElementById('apply-filters');
+  const resetFiltersBtn = document.getElementById('reset-filters');
+  
+  // Sort state
+  let sortAscending = true;
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (filterDropdown && filterDropdown.classList.contains('active') && 
+        !filterDropdown.contains(e.target)) {
+      filterDropdown.classList.remove('active');
+    }
+  });
+  
+  // Toggle filter dropdown
+  if (filterBtn && filterDropdown) {
+    filterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      filterDropdown.classList.toggle('active');
+    });
+  }
+  
+  // Apply filters
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', () => {
+      applyNotificationFilters();
+      if (filterDropdown) {
+        filterDropdown.classList.remove('active');
+      }
+    });
+  }
+  
+  // Reset filters
+  if (resetFiltersBtn) {
+    resetFiltersBtn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      
+      // Select unread by default
+      const unreadCheckbox = document.querySelector('.filter-option input[value="unread"]');
+      if (unreadCheckbox) {
+        unreadCheckbox.checked = true;
+      }
+    });
+  }
+  
+  // Toggle sort order
+  if (sortBtn) {
+    sortBtn.addEventListener('click', () => {
+      sortAscending = !sortAscending;
+      
+      // Update sort button icon
+      const sortImg = sortBtn.querySelector('img');
+      if (sortImg) {
+        sortImg.src = sortAscending ? 'Assets/sort.svg' : 'Assets/sort-reverse.svg';
+        sortBtn.setAttribute('data-tooltip', sortAscending ? 'Sort by date' : 'Sort by date (reverse)');
+      }
+      
+      // Apply sort
+      sortNotifications(sortAscending);
+    });
+  }
+}
+
+/**
+ * Apply filters to notifications based on selected checkboxes
+ */
+function applyNotificationFilters() {
+  // Get selected filters
+  const filters = [];
+  document.querySelectorAll('.filter-option input[type="checkbox"]:checked').forEach(checkbox => {
+    filters.push(checkbox.value);
+  });
+  
+  // If no filters are selected, show all notifications
+  if (filters.length === 0) {
+    filterNotificationsByCategory('inbox');
+    return;
+  }
+  
+  const notificationItems = document.querySelectorAll('.notification-item');
+  let visibleCount = 0;
+  
+  // Remove any existing empty state
+  const existingEmptyState = document.querySelector('.notifications-list-content .empty-state');
+  if (existingEmptyState) {
+    existingEmptyState.remove();
+  }
+  
+  // Show all date sections by default
+  document.querySelectorAll('.notifications-date-section').forEach(section => {
+    section.style.display = 'block';
+  });
+  
+  // Apply filters to notifications
+  notificationItems.forEach(item => {
+    let shouldShow = false;
+    
+    // Check each filter
+    for (const filter of filters) {
+      switch (filter) {
+        case 'unread':
+          if (item.classList.contains('unread')) {
+            shouldShow = true;
+          }
+          break;
+          
+        case 'pinned':
+          if (item.classList.contains('pinned')) {
+            shouldShow = true;
+          }
+          break;
+          
+        case 'high':
+          if (item.querySelector('.priority-indicator.high')) {
+            shouldShow = true;
+          }
+          break;
+          
+        case 'medium':
+          if (item.querySelector('.priority-indicator.medium')) {
+            shouldShow = true;
+          }
+          break;
+          
+        case 'low':
+          if (item.querySelector('.priority-indicator.low')) {
+            shouldShow = true;
+          }
+          break;
+      }
+      
+      // If any filter matches, we show the item
+      if (shouldShow) break;
+    }
+    
+    if (shouldShow) {
+      item.style.display = 'flex';
+      visibleCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+  
+  // Hide empty date sections
+  document.querySelectorAll('.notifications-date-section').forEach(section => {
+    const visibleItems = Array.from(section.querySelectorAll('.notification-item')).filter(
+      item => item.style.display === 'flex'
+    );
+    if (visibleItems.length === 0) {
+      section.style.display = 'none';
+    }
+  });
+  
+  // Show empty state if no notifications visible
+  if (visibleCount === 0) {
+    const emptyStateTemplate = document.getElementById('empty-state-template');
+    if (emptyStateTemplate) {
+      const emptyState = document.importNode(emptyStateTemplate.content, true);
+      const listContent = document.querySelector('.notifications-list-content');
+      
+      // Update empty state text
+      const title = emptyState.querySelector('.empty-state-title');
+      const text = emptyState.querySelector('.empty-state-text');
+      const icon = emptyState.querySelector('.empty-state-icon');
+      
+      if (title && text && icon) {
+        icon.src = 'Assets/filter.svg';
+        title.textContent = 'No matching notifications';
+        text.textContent = 'No notifications match your selected filters';
+      }
+      
+      if (listContent) {
+        listContent.appendChild(emptyState);
+      }
+    }
+  }
+  
+  // Update selected notification if the currently selected one is hidden
+  const selectedNotification = document.querySelector('.notification-item.selected');
+  if (selectedNotification && selectedNotification.style.display === 'none') {
+    // Select the first visible notification instead
+    const firstVisible = document.querySelector('.notification-item[style="display: flex;"]');
+    
+    // Clear existing selection
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+    
+    if (firstVisible) {
+      firstVisible.classList.add('selected');
+      updateNotificationDetails(firstVisible);
+    } else {
+      // No visible notifications, show empty detail panel
+      const noNotificationSelected = document.querySelector('.no-notification-selected');
+      const notificationDetail = document.querySelector('.notification-detail');
+      
+      if (noNotificationSelected) {
+        noNotificationSelected.style.display = 'flex';
+      }
+      
+      if (notificationDetail) {
+        notificationDetail.style.display = 'none';
+      }
+    }
+  }
+}
+
+/**
+ * Sort notifications by date
+ * @param {boolean} ascending - Whether to sort in ascending order (oldest first)
+ */
+function sortNotifications(ascending) {
+  // Get date sections
+  const dateSections = document.querySelectorAll('.notifications-date-section');
+  
+  // Sort date sections
+  const sortedSections = Array.from(dateSections).sort((a, b) => {
+    // Map date section headers to numerical values for comparison
+    const dateOrder = {
+      'Today': 1,
+      'Yesterday': 2,
+      'This Week': 3,
+      'Last Week': 4,
+      'This Month': 5,
+      'Older': 6
+    };
+    
+    const headerA = a.querySelector('.date-header').textContent.trim();
+    const headerB = b.querySelector('.date-header').textContent.trim();
+    
+    const orderA = dateOrder[headerA] || 999;
+    const orderB = dateOrder[headerB] || 999;
+    
+    return ascending ? orderA - orderB : orderB - orderA;
+  });
+  
+  // Rearrange sections in the DOM
+  const listContent = document.querySelector('.notifications-list-content');
+  if (listContent) {
+    sortedSections.forEach(section => {
+      listContent.appendChild(section);
+      
+      // Also sort notifications within each section
+      const notifications = Array.from(section.querySelectorAll('.notification-item'));
+      
+      // For demo, we'll sort within sections based on data-id
+      const sortedNotifications = notifications.sort((a, b) => {
+        const idA = parseInt(a.getAttribute('data-id').replace('notif-', ''));
+        const idB = parseInt(b.getAttribute('data-id').replace('notif-', ''));
+        
+        return ascending ? idA - idB : idB - idA;
+      });
+      
+      const notificationContainer = section.querySelector('.notification-items');
+      if (notificationContainer) {
+        sortedNotifications.forEach(notification => {
+          notificationContainer.appendChild(notification);
+        });
+      }
+    });
+  }
+}
+
+/**
+ * Apply performance optimizations for the notifications panel
+ */
+function optimizeNotificationsPerformance() {
+  // Use content-visibility for off-screen notification items
+  const notificationItems = document.querySelectorAll('.notification-item');
+  notificationItems.forEach(item => {
+    item.style.contentVisibility = 'auto';
+    item.style.containIntrinsicSize = '0 80px'; // Approximate height of notification items
+  });
+  
+  // Lazy load notification details to avoid rendering everything at once
+  const detailContent = document.querySelector('.detail-content');
+  if (detailContent) {
+    detailContent.style.contentVisibility = 'auto';
+  }
+  
+  // Use hardware acceleration for animations
+  const notificationsModal = document.getElementById('notifications-modal');
+  if (notificationsModal) {
+    notificationsModal.style.transform = 'translateZ(0)';
+    notificationsModal.style.backfaceVisibility = 'hidden';
+  }
+  
+  // Optimize touch events for mobile
+  const touchSurfaces = [
+    '.notifications-sidebar-content',
+    '.notifications-list-content',
+    '.detail-content'
+  ];
+  
+  touchSurfaces.forEach(selector => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.style.touchAction = 'pan-y';
+      element.style.webkitOverflowScrolling = 'touch';
+    }
+  });
+  
+  // Reduce paint complexity
+  const notificationContainer = document.querySelector('.notifications-modal-container');
+  if (notificationContainer) {
+    notificationContainer.style.willChange = 'transform';
+  }
+  
+  // Add passive event listeners for better scroll performance
+  document.querySelectorAll('.notifications-list-content, .notifications-sidebar-content, .detail-content')
+    .forEach(element => {
+      element.addEventListener('scroll', () => {}, { passive: true });
+      element.addEventListener('touchstart', () => {}, { passive: true });
+      element.addEventListener('touchmove', () => {}, { passive: true });
+    });
+  
+  // Optimize filter dropdown menu
+  const filterDropdown = document.querySelector('.filter-dropdown-menu');
+  if (filterDropdown) {
+    filterDropdown.style.willChange = 'opacity, transform';
+    filterDropdown.style.transform = 'translateZ(0)';
+  }
+  
+  // Throttle search input to improve performance
+  const searchInput = document.querySelector('.notifications-list-header .list-search input');
+  if (searchInput) {
+    let searchTimeout = null;
+    const originalInputHandler = searchInput.oninput;
+    
+    searchInput.addEventListener('input', (e) => {
+      if (searchTimeout) clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        searchNotifications(searchTerm);
+      }, 150); // 150ms delay
+    });
   }
 }
