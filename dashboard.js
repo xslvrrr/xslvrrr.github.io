@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Setup header action buttons
   setupHeaderActions();
+  
+  // Setup notifications modal
+  setupNotificationsModal();
 });
 
 /**
@@ -988,6 +991,199 @@ function setupKeyboardShortcuts() {
 }
 
 /**
+ * Setup notifications modal functionality
+ */
+function setupNotificationsModal() {
+  const notificationsModal = document.getElementById('notifications-modal');
+  const notificationsContent = document.getElementById('notifications-content');
+  const markAllReadBtn = document.getElementById('mark-all-read');
+  const clearAllBtn = document.getElementById('clear-all');
+  const notificationsSettingsBtn = document.getElementById('notifications-settings');
+  
+  if (!notificationsModal || !notificationsContent) return;
+  
+  // Close notifications modal when clicking outside
+  notificationsModal.addEventListener('click', (e) => {
+    if (e.target === notificationsModal) {
+      closeNotificationsModal();
+    }
+  });
+  
+  // Mark all as read functionality
+  if (markAllReadBtn) {
+    markAllReadBtn.addEventListener('click', () => {
+      const unreadItems = notificationsContent.querySelectorAll('.notification-item.unread');
+      unreadItems.forEach(item => {
+        item.classList.remove('unread');
+        
+        // Update button text
+        const markReadBtn = item.querySelector('.notification-btn:last-child');
+        if (markReadBtn && markReadBtn.textContent === 'Mark as read') {
+          markReadBtn.textContent = 'Mark as unread';
+        }
+      });
+      
+      // Remove notification indicator from header button
+      const notificationsBtn = document.getElementById('notifications-btn');
+      if (notificationsBtn) {
+        notificationsBtn.classList.remove('has-notification');
+      }
+      
+      updateNotificationCounter();
+    });
+  }
+  
+  // Clear all notifications functionality
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', () => {
+      // Ask for confirmation
+      if (confirm('Are you sure you want to clear all notifications?')) {
+        // Get all notification items
+        const notificationItems = notificationsContent.querySelectorAll('.notification-item');
+        
+        if (notificationItems.length === 0) return;
+        
+        // Remove all items
+        notificationItems.forEach(item => {
+          item.style.opacity = '0';
+          item.style.height = '0';
+          item.style.padding = '0';
+          item.style.overflow = 'hidden';
+          item.style.transition = 'all 0.3s ease';
+          
+          // Remove after animation
+          setTimeout(() => {
+            if (item.parentNode) {
+              item.parentNode.removeChild(item);
+            }
+          }, 300);
+        });
+        
+        // After a delay, show the empty message
+        setTimeout(() => {
+          const emptyMessage = notificationsContent.querySelector('.notification-empty');
+          if (emptyMessage) {
+            emptyMessage.style.display = 'flex';
+          }
+          updateNotificationCounter();
+          
+          // Remove notification indicator from header button
+          const notificationsBtn = document.getElementById('notifications-btn');
+          if (notificationsBtn) {
+            notificationsBtn.classList.remove('has-notification');
+          }
+        }, 300);
+      }
+    });
+  }
+  
+  // Individual notification item actions
+  notificationsContent.addEventListener('click', (e) => {
+    const target = e.target;
+    
+    // Check if clicked on a notification button
+    if (target.classList.contains('notification-btn')) {
+      const notificationItem = target.closest('.notification-item');
+      
+      // Handle view action
+      if (target.textContent === 'View') {
+        // In a real app, this would navigate to the relevant content
+        // For demo, just mark as read and show alert
+        if (notificationItem) {
+          notificationItem.classList.remove('unread');
+          alert(`Viewing: ${notificationItem.querySelector('.notification-title').textContent}`);
+          
+          // Update button text if needed
+          const markReadBtn = notificationItem.querySelector('.notification-btn:last-child');
+          if (markReadBtn && markReadBtn.textContent === 'Mark as read') {
+            markReadBtn.textContent = 'Mark as unread';
+          }
+          
+          updateNotificationCounter();
+        }
+      }
+      
+      // Handle mark as read/unread
+      if (target.textContent === 'Mark as read' || target.textContent === 'Mark as unread') {
+        if (notificationItem) {
+          // Toggle read/unread state
+          notificationItem.classList.toggle('unread');
+          
+          // Update button text
+          target.textContent = notificationItem.classList.contains('unread') ? 
+            'Mark as read' : 'Mark as unread';
+          
+          updateNotificationCounter();
+          
+          // Check if we still have unread items for the notification indicator
+          checkUnreadNotifications();
+        }
+      }
+    }
+  });
+  
+  // Settings button
+  if (notificationsSettingsBtn) {
+    notificationsSettingsBtn.addEventListener('click', () => {
+      closeNotificationsModal();
+      navigateTo('account'); // Redirect to account page where notification settings would be
+    });
+  }
+  
+  // Initialize notification counter
+  updateNotificationCounter();
+}
+
+/**
+ * Show the notifications modal
+ */
+function showNotificationsModal() {
+  const notificationsModal = document.getElementById('notifications-modal');
+  if (notificationsModal) {
+    notificationsModal.classList.add('active');
+  }
+}
+
+/**
+ * Close the notifications modal
+ */
+function closeNotificationsModal() {
+  const notificationsModal = document.getElementById('notifications-modal');
+  if (notificationsModal) {
+    notificationsModal.classList.remove('active');
+  }
+}
+
+/**
+ * Check if there are any unread notifications and update the notification indicator
+ */
+function checkUnreadNotifications() {
+  const unreadItems = document.querySelectorAll('.notification-item.unread');
+  const notificationsBtn = document.getElementById('notifications-btn');
+  
+  if (notificationsBtn) {
+    notificationsBtn.classList.toggle('has-notification', unreadItems.length > 0);
+  }
+}
+
+/**
+ * Update the notification counter in the footer
+ */
+function updateNotificationCounter() {
+  const notificationItems = document.querySelectorAll('.notification-item');
+  const notificationCounter = document.querySelector('.notifications-modal-footer span');
+  const emptyMessage = document.querySelector('.notification-empty');
+  
+  if (notificationCounter) {
+    notificationCounter.textContent = `Showing ${notificationItems.length} notification(s)`;
+  }
+  
+  if (emptyMessage) {
+    emptyMessage.style.display = notificationItems.length === 0 ? 'flex' : 'none';
+  }
+}
+
+/**
  * Close all modals
  */
 function closeAllModals() {
@@ -995,6 +1191,12 @@ function closeAllModals() {
   const searchModal = document.getElementById('search-modal');
   if (searchModal && searchModal.classList.contains('active')) {
     searchModal.classList.remove('active');
+  }
+  
+  // Close notifications modal
+  const notificationsModal = document.getElementById('notifications-modal');
+  if (notificationsModal && notificationsModal.classList.contains('active')) {
+    notificationsModal.classList.remove('active');
   }
   
   // Close logout confirmation modal
@@ -2021,11 +2223,14 @@ function setupHeaderActions() {
   // Setup notifications button
   if (notificationsBtn) {
     notificationsBtn.addEventListener('click', function() {
-      // For demo purposes, show a confirmation dialog
-      alert('You have 3 new notifications');
-      
-      // Remove notification indicator
-      this.classList.remove('has-notification');
+      // Toggle notifications modal instead of showing alert
+      const notificationsModal = document.getElementById('notifications-modal');
+      if (notificationsModal) {
+        // Close other modals if open
+        closeAllModals();
+        // Open notifications modal
+        showNotificationsModal();
+      }
     });
   }
   
