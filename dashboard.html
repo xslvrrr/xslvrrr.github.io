@@ -324,11 +324,11 @@
               <span>Inbox</span>
               <span class="unread-count">12</span>
             </li>
-            <li class="category-item" data-category="starred">
+            <li class="category-item" data-category="pinned">
               <div class="category-icon">
-                <img src="Assets/starred.svg" alt="Starred" class="tooltip-trigger" data-tooltip="Pinned notifications">
+                <img src="Assets/pinned.svg" alt="Pinned" class="tooltip-trigger" data-tooltip="Pinned notifications">
               </div>
-              <span>Starred</span>
+              <span>Pinned</span>
               <span class="unread-count">3</span>
             </li>
             <li class="category-item" data-category="alerts">
@@ -387,14 +387,49 @@
             <img src="Assets/search.svg" alt="Search" class="search-icon">
           </div>
           <div class="list-header-actions">
-            <button class="header-action-btn" id="mark-all-read" title="Mark all as read">
-              <img src="Assets/mark-read.svg" alt="Mark all as read" class="tooltip-trigger" data-tooltip="Mark all as read">
+            <div class="list-search">
+              <span class="search-icon">
+                <img src="Assets/search.svg" alt="Search">
+              </span>
+              <input type="text" placeholder="Search notifications...">
+            </div>
+            
+            <button class="header-action-btn tooltip-trigger" id="mark-all-read" data-tooltip="Mark all as read">
+              <img src="Assets/mark-read.svg" alt="Mark all as read">
             </button>
-            <button class="header-action-btn" title="Filter">
-              <img src="Assets/filter.svg" alt="Filter" class="tooltip-trigger" data-tooltip="Filter notifications">
-            </button>
-            <button class="header-action-btn" title="Sort">
-              <img src="Assets/sort.svg" alt="Sort" class="tooltip-trigger" data-tooltip="Sort notifications">
+            
+            <div class="filter-dropdown tooltip-trigger" data-tooltip="Filter">
+              <button class="header-action-btn" id="notification-filter-btn">
+                <img src="Assets/filter.svg" alt="Filter">
+              </button>
+              <div class="filter-dropdown-menu">
+                <div class="filter-dropdown-header">Filter By</div>
+                <div class="filter-options">
+                  <label class="filter-option">
+                    <input type="checkbox" value="unread" checked> Unread
+                  </label>
+                  <label class="filter-option">
+                    <input type="checkbox" value="pinned"> Pinned
+                  </label>
+                  <label class="filter-option">
+                    <input type="checkbox" value="high"> High Priority
+                  </label>
+                  <label class="filter-option">
+                    <input type="checkbox" value="medium"> Medium Priority
+                  </label>
+                  <label class="filter-option">
+                    <input type="checkbox" value="low"> Low Priority
+                  </label>
+                </div>
+                <div class="filter-actions">
+                  <button class="filter-btn" id="reset-filters">Reset</button>
+                  <button class="filter-btn primary" id="apply-filters">Apply</button>
+                </div>
+              </div>
+            </div>
+            
+            <button class="header-action-btn tooltip-trigger" id="notification-sort-btn" data-tooltip="Sort by date">
+              <img src="Assets/sort.svg" alt="Sort">
             </button>
           </div>
         </div>
@@ -407,7 +442,6 @@
               <div class="notification-item unread selected" data-id="notif-1">
                 <div class="notification-status">
                   <div class="unread-indicator"></div>
-                  <div class="priority-indicator high"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/alert.svg" alt="Alert">
@@ -415,6 +449,7 @@
                 <div class="notification-content">
                   <div class="notification-title">System Maintenance Alert</div>
                   <div class="notification-preview">The portal will be undergoing scheduled maintenance this weekend. Please save all your work before Friday 8 PM.</div>
+                  <div class="priority-indicator high"></div>
                 </div>
                 <div class="notification-time">10:45 AM</div>
                 <div class="notification-actions">
@@ -430,7 +465,6 @@
               <div class="notification-item unread" data-id="notif-2">
                 <div class="notification-status">
                   <div class="unread-indicator"></div>
-                  <div class="priority-indicator medium"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/homework-icon.svg" alt="Homework">
@@ -438,6 +472,7 @@
                 <div class="notification-content">
                   <div class="notification-title">New Math Assignment</div>
                   <div class="notification-preview">Algebra II assignment on Quadratic Equations posted. Due date: Monday, October 30th.</div>
+                  <div class="priority-indicator medium"></div>
                 </div>
                 <div class="notification-time">9:30 AM</div>
                 <div class="notification-actions">
@@ -453,7 +488,6 @@
               <div class="notification-item unread" data-id="notif-3">
                 <div class="notification-status">
                   <div class="unread-indicator"></div>
-                  <div class="priority-indicator medium"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/calendar-icon.svg" alt="Calendar">
@@ -461,6 +495,7 @@
                 <div class="notification-content">
                   <div class="notification-title">School Assembly Rescheduled</div>
                   <div class="notification-preview">School assembly has been moved to Thursday at 10 AM in the main hall due to facility scheduling.</div>
+                  <div class="priority-indicator medium"></div>
                 </div>
                 <div class="notification-time">8:15 AM</div>
                 <div class="notification-actions">
@@ -481,7 +516,6 @@
               <!-- Yesterday's notifications -->
               <div class="notification-item" data-id="notif-4">
                 <div class="notification-status">
-                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/grade.svg" alt="Grade">
@@ -489,6 +523,7 @@
                 <div class="notification-content">
                   <div class="notification-title">English Essay Graded</div>
                   <div class="notification-preview">Your essay on "The Great Gatsby" has been graded. Grade: A-. View teacher comments in your assignments.</div>
+                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-time">Yesterday</div>
                 <div class="notification-actions">
@@ -503,7 +538,6 @@
               
               <div class="notification-item" data-id="notif-5">
                 <div class="notification-status">
-                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/system.svg" alt="System">
@@ -511,6 +545,7 @@
                 <div class="notification-content">
                   <div class="notification-title">Password Change Reminder</div>
                   <div class="notification-preview">Your password will expire in 15 days. Please update your password in the account settings.</div>
+                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-time">Yesterday</div>
                 <div class="notification-actions">
@@ -529,10 +564,9 @@
             <h4 class="date-header">This Week</h4>
             <div class="notification-items">
               <!-- This week's notifications -->
-              <div class="notification-item starred" data-id="notif-6">
+              <div class="notification-item pinned" data-id="notif-6">
                 <div class="notification-status">
-                  <div class="starred-indicator"></div>
-                  <div class="priority-indicator high"></div>
+                  <div class="pinned-indicator"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/calendar-icon.svg" alt="Calendar">
@@ -540,6 +574,7 @@
                 <div class="notification-content">
                   <div class="notification-title">Final Exam Schedule Posted</div>
                   <div class="notification-preview">Fall semester final exam schedule is now available. Mathematics: Dec 12, English: Dec 14, Science: Dec 15.</div>
+                  <div class="priority-indicator high"></div>
                 </div>
                 <div class="notification-time">Monday</div>
                 <div class="notification-actions">
@@ -554,7 +589,6 @@
               
               <div class="notification-item" data-id="notif-7">
                 <div class="notification-status">
-                  <div class="priority-indicator medium"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/homework-icon.svg" alt="Homework">
@@ -562,6 +596,7 @@
                 <div class="notification-content">
                   <div class="notification-title">Chemistry Lab Report Due</div>
                   <div class="notification-preview">Reminder: Your lab report on the titration experiment is due this Friday at 11:59 PM.</div>
+                  <div class="priority-indicator medium"></div>
                 </div>
                 <div class="notification-time">Monday</div>
                 <div class="notification-actions">
@@ -576,7 +611,6 @@
               
               <div class="notification-item" data-id="notif-8">
                 <div class="notification-status">
-                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/notification-icon.svg" alt="Notification">
@@ -584,6 +618,7 @@
                 <div class="notification-content">
                   <div class="notification-title">Library Book Due Soon</div>
                   <div class="notification-preview">"To Kill a Mockingbird" is due back to the library by Sunday. Renew online if needed.</div>
+                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-time">Tuesday</div>
                 <div class="notification-actions">
@@ -604,7 +639,6 @@
               <!-- Last week's notifications -->
               <div class="notification-item" data-id="notif-10">
                 <div class="notification-status">
-                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/homework-icon.svg" alt="Homework">
@@ -612,6 +646,7 @@
                 <div class="notification-content">
                   <div class="notification-title">Science Project Deadline Extended</div>
                   <div class="notification-preview">The science fair project submission deadline has been extended to November 15th.</div>
+                  <div class="priority-indicator low"></div>
                 </div>
                 <div class="notification-time">Last week</div>
                 <div class="notification-actions">
@@ -624,10 +659,9 @@
                 </div>
               </div>
               
-              <div class="notification-item starred" data-id="notif-11">
+              <div class="notification-item pinned" data-id="notif-11">
                 <div class="notification-status">
-                  <div class="starred-indicator"></div>
-                  <div class="priority-indicator medium"></div>
+                  <div class="pinned-indicator"></div>
                 </div>
                 <div class="notification-icon">
                   <img src="Assets/alert.svg" alt="Alert">
@@ -635,6 +669,7 @@
                 <div class="notification-content">
                   <div class="notification-title">Parent-Teacher Conference</div>
                   <div class="notification-preview">Parent-Teacher conferences are scheduled for November 3rd from 3PM to 7PM. Book your slot online.</div>
+                  <div class="priority-indicator medium"></div>
                 </div>
                 <div class="notification-time">Last week</div>
                 <div class="notification-actions">
