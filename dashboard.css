@@ -14,7 +14,7 @@
   /* Text colors - Improved contrast */
   --text-primary: #F7F8F8;
   --text-secondary: #A0A0A0; /* Slightly brighter for better readability */
-  --text-tertiary: #707070;
+  --text-tertiary: #909090; /* Increased from #707070 for better contrast */
   
   /* Sizing - Updated with golden ratio */
   --sidebar-width: 220px;
@@ -382,7 +382,7 @@ body.light-theme .quick-card:hover {
 .nav-heading-container {
   display: flex;
   align-items: center;
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-xs) var(--space-md); /* Reduced vertical padding */
   cursor: pointer;
   margin-bottom: 2px;
   transition: var(--transition-fast);
@@ -414,6 +414,8 @@ body.light-theme .quick-card:hover {
   filter: invert(0.7);
   /* Position next to heading */
   margin-left: 4px;
+  /* Ensure color matches the heading */
+  color: var(--text-tertiary);
 }
 
 .nav-heading-container:hover .nav-collapse-icon,
@@ -634,7 +636,7 @@ body.light-theme .nav-collapse-icon {
   will-change: transform;
   transform: translateZ(0);
   contain: content;
-  padding: 0 var(--space-md) var(--space-md) 0; /* Removed left padding */
+  padding: var(--space-md); /* Added padding at the top */
 }
 
 .main-content::-webkit-scrollbar {
@@ -739,7 +741,8 @@ body.light-theme .nav-collapse-icon {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin-left: 0; /* Ensure no margin between sidebar and content */
+  margin: 0; /* Reset margin */
+  margin-top: var(--space-xs); /* Add small margin at top */
 }
 
 /* Content wrapper - Updated to handle scrolling and extend full height */
@@ -2169,4 +2172,224 @@ body.light-theme .list-table-row {
 /* Update to the Light theme sidebar nav items */
 body.light-theme .nav-link {
   color: var(--text-primary);
+} 
+
+/* Notifications modal - Styled similar to search modal but with notification-specific elements */
+.notifications-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-normal), visibility var(--transition-normal);
+  padding-top: 15vh;
+}
+
+.notifications-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.notifications-modal-container {
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  transform: translateY(-20px);
+  transition: transform var(--transition-bounce);
+  border: 1px solid var(--border-color);
+  height: auto;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.notifications-modal.active .notifications-modal-container {
+  transform: translateY(0);
+}
+
+.notifications-modal-header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notifications-modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.notifications-modal-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.notification-action-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--card-radius);
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.notification-action-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: var(--hover-border-color);
+}
+
+.notifications-modal-content {
+  overflow-y: auto;
+  max-height: calc(80vh - 52px - 48px); /* Viewport height minus header and footer */
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+.notifications-modal-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.notifications-modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notifications-modal-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.notification-item {
+  display: flex;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.notification-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.notification-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #3291ff;
+}
+
+.notification-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: var(--space-md);
+  border-radius: 50%;
+  background-color: rgba(50, 145, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-icon img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  filter: invert(1);
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.notification-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+  line-height: var(--line-height-normal);
+}
+
+.notification-time {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.notification-actions {
+  margin-top: var(--space-sm);
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.notification-btn {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--card-radius);
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.notification-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: var(--hover-border-color);
+}
+
+.notifications-modal-footer {
+  padding: var(--space-md);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 48px;
+}
+
+.notification-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.notification-empty-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--space-md);
+  opacity: 0.4;
+}
+
+.notification-empty-text {
+  font-size: var(--font-size-md);
 } 
