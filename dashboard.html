@@ -127,11 +127,6 @@
 
     <!-- Main content area -->
     <main class="main-content">
-      <!-- Add sidebar toggle button -->
-      <button id="sidebar-toggle" class="sidebar-toggle tooltip-trigger" data-tooltip="Toggle sidebar">
-        <img src="Assets/sidebar.svg" alt="Toggle sidebar">
-      </button>
-      
       <div class="content-container">
         <header class="content-header">
           <h1 class="page-title">Home</h1>
@@ -387,242 +382,299 @@
       <!-- Middle panel for notification list -->
       <div class="notifications-list-panel">
         <div class="notifications-list-header">
+          <div class="list-search">
+            <input type="text" placeholder="Search notifications...">
+            <img src="Assets/search.svg" alt="Search" class="search-icon">
+          </div>
           <div class="list-header-actions">
-            <div class="list-search">
-              <input type="text" placeholder="Search notifications...">
-              <img src="Assets/search.svg" alt="Search" class="search-icon">
-            </div>
-            <button class="header-action-btn tooltip-trigger" data-tooltip="Filter notifications">
-              <img src="Assets/filter.svg" alt="Filter">
+            <button class="header-action-btn" id="mark-all-read" title="Mark all as read">
+              <img src="Assets/mark-read.svg" alt="Mark all as read" class="tooltip-trigger" data-tooltip="Mark all as read">
             </button>
-            <button class="header-action-btn tooltip-trigger" data-tooltip="Sort notifications">
-              <img src="Assets/sort.svg" alt="Sort">
+            <button class="header-action-btn" title="Filter">
+              <img src="Assets/filter.svg" alt="Filter" class="tooltip-trigger" data-tooltip="Filter notifications">
             </button>
-          </div>
-          <div class="list-view-options">
-            <button class="view-option-btn active tooltip-trigger" data-tooltip="List view">
-              <img src="Assets/list-view.svg" alt="List">
-            </button>
-            <button class="view-option-btn tooltip-trigger" data-tooltip="Grid view">
-              <img src="Assets/grid-view.svg" alt="Grid">
+            <button class="header-action-btn" title="Sort">
+              <img src="Assets/sort.svg" alt="Sort" class="tooltip-trigger" data-tooltip="Sort notifications">
             </button>
           </div>
         </div>
         
-        <div class="notifications-date-section">
-          <h4 class="date-header">Today</h4>
-          <div class="notification-items">
-            <!-- Today's notifications -->
-            <div class="notification-item unread selected" data-id="notif-1">
-              <div class="notification-status">
-                <div class="unread-indicator"></div>
-                <div class="priority-indicator high"></div>
+        <div class="notifications-list-content">
+          <!-- Today's notifications -->
+          <div class="notifications-date-section">
+            <h4 class="date-header">Today</h4>
+            <div class="notification-items">
+              <div class="notification-item unread selected" data-id="notif-1">
+                <div class="notification-status">
+                  <div class="unread-indicator"></div>
+                  <div class="priority-indicator high"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/alert.svg" alt="Alert">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">System Maintenance Alert</div>
+                  <div class="notification-preview">The portal will be undergoing scheduled maintenance this weekend. Please save all your work before Friday 8 PM.</div>
+                </div>
+                <div class="notification-time">10:45 AM</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as read">
+                    <img src="Assets/mark-read.svg" alt="Mark as read">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
-              <div class="notification-icon">
-                <img src="Assets/alert.svg" alt="Alert">
+              
+              <div class="notification-item unread" data-id="notif-2">
+                <div class="notification-status">
+                  <div class="unread-indicator"></div>
+                  <div class="priority-indicator medium"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/homework-icon.svg" alt="Homework">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">New Math Assignment</div>
+                  <div class="notification-preview">Algebra II assignment on Quadratic Equations posted. Due date: Monday, October 30th.</div>
+                </div>
+                <div class="notification-time">9:30 AM</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as read">
+                    <img src="Assets/mark-read.svg" alt="Mark as read">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
-              <div class="notification-content">
-                <div class="notification-title">System Maintenance Alert</div>
-                <div class="notification-preview">The portal will be undergoing scheduled maintenance this weekend. Please save all your work before Friday 8 PM.</div>
-              </div>
-              <div class="notification-time">10:45 AM</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as read">
-                  <img src="Assets/mark-read.svg" alt="Mark as read">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
-                  <img src="Assets/pin.svg" alt="Pin">
-                </button>
-              </div>
-            </div>
-            
-            <div class="notification-item unread" data-id="notif-2">
-              <div class="notification-status">
-                <div class="unread-indicator"></div>
-                <div class="priority-indicator medium"></div>
-              </div>
-              <div class="notification-icon">
-                <img src="Assets/homework-icon.svg" alt="Homework">
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">New Math Assignment</div>
-                <div class="notification-preview">You have a new Math assignment due next Monday. Check the assignments section for details.</div>
-              </div>
-              <div class="notification-time">9:30 AM</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as read">
-                  <img src="Assets/mark-read.svg" alt="Mark as read">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
-                  <img src="Assets/pin.svg" alt="Pin">
-                </button>
-              </div>
-            </div>
-            
-            <div class="notification-item unread" data-id="notif-3">
-              <div class="notification-status">
-                <div class="unread-indicator"></div>
-                <div class="priority-indicator medium"></div>
-              </div>
-              <div class="notification-icon">
-                <img src="Assets/calendar-icon.svg" alt="Calendar">
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">Calendar Update</div>
-                <div class="notification-preview">School assembly has been rescheduled to Thursday at 10 AM in the main hall.</div>
-              </div>
-              <div class="notification-time">8:15 AM</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as read">
-                  <img src="Assets/mark-read.svg" alt="Mark as read">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
-                  <img src="Assets/pin.svg" alt="Pin">
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="notifications-date-section">
-          <h4 class="date-header">Yesterday</h4>
-          <div class="notification-items">
-            <!-- Yesterday's notifications -->
-            <div class="notification-item" data-id="notif-4">
-              <div class="notification-status">
-                <div class="priority-indicator low"></div>
-              </div>
-              <div class="notification-icon">
-                <img src="Assets/grade.svg" alt="Grade">
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">Graded Assignment</div>
-                <div class="notification-preview">Your English essay has been graded. You received an A-. Check your grades section for feedback.</div>
-              </div>
-              <div class="notification-time">Yesterday</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
-                  <img src="Assets/mark-unread.svg" alt="Mark as unread">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
-                  <img src="Assets/pin.svg" alt="Pin">
-                </button>
-              </div>
-            </div>
-            
-            <div class="notification-item" data-id="notif-5">
-              <div class="notification-status">
-                <div class="priority-indicator low"></div>
-              </div>
-              <div class="notification-icon">
-                <img src="Assets/system.svg" alt="System">
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">Password Change Reminder</div>
-                <div class="notification-preview">Your password will expire in 15 days. Please update your password in the account settings.</div>
-              </div>
-              <div class="notification-time">Yesterday</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
-                  <img src="Assets/mark-unread.svg" alt="Mark as unread">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
-                  <img src="Assets/pin.svg" alt="Pin">
-                </button>
+              
+              <div class="notification-item unread" data-id="notif-3">
+                <div class="notification-status">
+                  <div class="unread-indicator"></div>
+                  <div class="priority-indicator medium"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/calendar-icon.svg" alt="Calendar">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">School Assembly Rescheduled</div>
+                  <div class="notification-preview">School assembly has been moved to Thursday at 10 AM in the main hall due to facility scheduling.</div>
+                </div>
+                <div class="notification-time">8:15 AM</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as read">
+                    <img src="Assets/mark-read.svg" alt="Mark as read">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div class="notifications-date-section">
-          <h4 class="date-header">This Week</h4>
-          <div class="notification-items">
-            <!-- This week's notifications -->
-            <div class="notification-item starred" data-id="notif-6">
-              <div class="notification-status">
-                <div class="starred-indicator"></div>
-                <div class="priority-indicator high"></div>
+          
+          <div class="notifications-date-section">
+            <h4 class="date-header">Yesterday</h4>
+            <div class="notification-items">
+              <!-- Yesterday's notifications -->
+              <div class="notification-item" data-id="notif-4">
+                <div class="notification-status">
+                  <div class="priority-indicator low"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/grade.svg" alt="Grade">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">English Essay Graded</div>
+                  <div class="notification-preview">Your essay on "The Great Gatsby" has been graded. Grade: A-. View teacher comments in your assignments.</div>
+                </div>
+                <div class="notification-time">Yesterday</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
-              <div class="notification-icon">
-                <img src="Assets/calendar-icon.svg" alt="Calendar">
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">Exam Schedule Posted</div>
-                <div class="notification-preview">The final exam schedule has been posted. Check the calendar for your exam dates and times.</div>
-              </div>
-              <div class="notification-time">Monday</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Unpin notification">
-                  <img src="Assets/unpin.svg" alt="Unpin">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
-                  <img src="Assets/mark-unread.svg" alt="Mark as unread">
-                </button>
+              
+              <div class="notification-item" data-id="notif-5">
+                <div class="notification-status">
+                  <div class="priority-indicator low"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/system.svg" alt="System">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Password Change Reminder</div>
+                  <div class="notification-preview">Your password will expire in 15 days. Please update your password in the account settings.</div>
+                </div>
+                <div class="notification-time">Yesterday</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
             </div>
-            
-            <!-- Additional notifications would be added here -->
-            <!-- I'll just add placeholders for brevity but we should have 20+ total -->
           </div>
-        </div>
-        
-        <div class="notifications-date-section">
-          <h4 class="date-header">Last Week</h4>
-          <div class="notification-items">
-            <!-- Last week's notifications -->
-            <div class="notification-item" data-id="notif-10">
-              <div class="notification-status">
-                <div class="priority-indicator low"></div>
+          
+          <div class="notifications-date-section">
+            <h4 class="date-header">This Week</h4>
+            <div class="notification-items">
+              <!-- This week's notifications -->
+              <div class="notification-item starred" data-id="notif-6">
+                <div class="notification-status">
+                  <div class="starred-indicator"></div>
+                  <div class="priority-indicator high"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/calendar-icon.svg" alt="Calendar">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Final Exam Schedule Posted</div>
+                  <div class="notification-preview">Fall semester final exam schedule is now available. Mathematics: Dec 12, English: Dec 14, Science: Dec 15.</div>
+                </div>
+                <div class="notification-time">Monday</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Unpin notification">
+                    <img src="Assets/pinned.svg" alt="Unpin">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                </div>
               </div>
-              <div class="notification-icon">
-                <img src="Assets/homework-icon.svg" alt="Homework">
+              
+              <div class="notification-item" data-id="notif-7">
+                <div class="notification-status">
+                  <div class="priority-indicator medium"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/homework-icon.svg" alt="Homework">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Chemistry Lab Report Due</div>
+                  <div class="notification-preview">Reminder: Your lab report on the titration experiment is due this Friday at 11:59 PM.</div>
+                </div>
+                <div class="notification-time">Monday</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
-              <div class="notification-content">
-                <div class="notification-title">Science Project Deadline Extended</div>
-                <div class="notification-preview">The deadline for the science project has been extended by one week. New due date is April 15th.</div>
-              </div>
-              <div class="notification-time">Last week</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
-                  <img src="Assets/mark-unread.svg" alt="Mark as unread">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
-                  <img src="Assets/pin.svg" alt="Pin">
-                </button>
+              
+              <div class="notification-item" data-id="notif-8">
+                <div class="notification-status">
+                  <div class="priority-indicator low"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/notification-icon.svg" alt="Notification">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Library Book Due Soon</div>
+                  <div class="notification-preview">"To Kill a Mockingbird" is due back to the library by Sunday. Renew online if needed.</div>
+                </div>
+                <div class="notification-time">Tuesday</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
             </div>
-            
-            <!-- More last week notifications -->
           </div>
-        </div>
-        
-        <div class="notifications-date-section">
-          <h4 class="date-header">Older</h4>
-          <div class="notification-items">
-            <!-- Older notifications -->
-            <div class="notification-item" data-id="notif-15">
-              <div class="notification-status">
-                <div class="priority-indicator low"></div>
+          
+          <div class="notifications-date-section">
+            <h4 class="date-header">Last Week</h4>
+            <div class="notification-items">
+              <!-- Last week's notifications -->
+              <div class="notification-item" data-id="notif-10">
+                <div class="notification-status">
+                  <div class="priority-indicator low"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/homework-icon.svg" alt="Homework">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Science Project Deadline Extended</div>
+                  <div class="notification-preview">The science fair project submission deadline has been extended to November 15th.</div>
+                </div>
+                <div class="notification-time">Last week</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
               </div>
-              <div class="notification-icon">
-                <img src="Assets/general.svg" alt="General">
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">Welcome to the New Portal</div>
-                <div class="notification-preview">Welcome to the new Millennium portal! Explore the new features and improved design. Let us know if you have any feedback.</div>
-              </div>
-              <div class="notification-time">3 weeks ago</div>
-              <div class="notification-actions">
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
-                  <img src="Assets/mark-unread.svg" alt="Mark as unread">
-                </button>
-                <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
-                  <img src="Assets/pin.svg" alt="Pin">
-                </button>
+              
+              <div class="notification-item starred" data-id="notif-11">
+                <div class="notification-status">
+                  <div class="starred-indicator"></div>
+                  <div class="priority-indicator medium"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/alert.svg" alt="Alert">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Parent-Teacher Conference</div>
+                  <div class="notification-preview">Parent-Teacher conferences are scheduled for November 3rd from 3PM to 7PM. Book your slot online.</div>
+                </div>
+                <div class="notification-time">Last week</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Unpin notification">
+                    <img src="Assets/pinned.svg" alt="Unpin">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                </div>
               </div>
             </div>
-            
-            <!-- More older notifications -->
+          </div>
+          
+          <div class="notifications-date-section">
+            <h4 class="date-header">Older</h4>
+            <div class="notification-items">
+              <!-- Older notifications -->
+              <div class="notification-item" data-id="notif-15">
+                <div class="notification-status">
+                  <div class="priority-indicator low"></div>
+                </div>
+                <div class="notification-icon">
+                  <img src="Assets/general.svg" alt="General">
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Welcome to the New Portal</div>
+                  <div class="notification-preview">Welcome to the new Millennium portal! Explore the new features and improved design. Let us know if you have any feedback.</div>
+                </div>
+                <div class="notification-time">3 weeks ago</div>
+                <div class="notification-actions">
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Mark as unread">
+                    <img src="Assets/mark-unread.svg" alt="Mark as unread">
+                  </button>
+                  <button class="notif-action-btn tooltip-trigger" data-tooltip="Pin notification">
+                    <img src="Assets/pin.svg" alt="Pin">
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -673,7 +725,6 @@
           <div class="detail-footer">
             <div class="detail-footer-actions">
               <button class="detail-footer-btn primary">Mark as read</button>
-              <button class="detail-footer-btn">Reply</button>
             </div>
           </div>
         </div>
