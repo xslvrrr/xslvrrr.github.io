@@ -2676,65 +2676,42 @@ body.light-theme .nav-link {
 
 /* Priority indicators for notifications */
 .priority-indicator {
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  margin-top: var(--space-xs);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 20px;
-  padding: 0 8px;
-  border-radius: 10px;
-  font-size: 11px;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-left: 8px;
-  transform: translateZ(0);
 }
 
 .priority-indicator.high {
-  background-color: rgba(255, 76, 76, 0.15);
-  color: #ff4c4c;
+  background-color: rgba(255, 77, 79, 0.15);
+  color: var(--priority-high);
+  animation: pulse 2s infinite;
 }
 
 .priority-indicator.medium {
-  background-color: rgba(255, 170, 0, 0.15);
-  color: #ffaa00;
+  background-color: rgba(250, 173, 20, 0.15);
+  color: var(--priority-medium);
 }
 
 .priority-indicator.low {
-  background-color: rgba(0, 184, 148, 0.15);
-  color: #00b894;
+  background-color: rgba(82, 196, 26, 0.15);
+  color: var(--priority-low);
 }
 
-.priority-indicator::before {
-  content: attr(data-priority);
-}
-
-.priority-indicator.high::before {
+.priority-indicator.high:before {
   content: "High";
 }
 
-.priority-indicator.medium::before {
+.priority-indicator.medium:before {
   content: "Medium";
 }
 
-.priority-indicator.low::before {
+.priority-indicator.low:before {
   content: "Low";
-}
-
-/* Light theme adjustments */
-body.light-theme .priority-indicator.high {
-  background-color: rgba(255, 76, 76, 0.1);
-  color: #e73c3c;
-}
-
-body.light-theme .priority-indicator.medium {
-  background-color: rgba(255, 170, 0, 0.1);
-  color: #e69500;
-}
-
-body.light-theme .priority-indicator.low {
-  background-color: rgba(0, 184, 148, 0.1);
-  color: #00a37f;
 }
 
 .notification-icon {
@@ -3335,172 +3312,4 @@ body.resizing * {
 .filter-btn.primary:hover {
   background-color: var(--color-primary);
   opacity: 0.9;
-}
-
-/* High-performance notification center optimizations */
-.optimize-animations * {
-  animation-duration: 0.2s !important;
-  transition-duration: 0.2s !important;
-}
-
-/* Use GPU acceleration for animations */
-.notifications-modal-container,
-.notifications-list-panel,
-.notifications-detail-panel,
-.notifications-sidebar {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-/* Optimize scrolling performance */
-.notifications-list-content,
-.notifications-sidebar-content,
-.detail-content {
-  scroll-behavior: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* Optimize rendering for notification items */
-.notification-item {
-  contain: content;
-  content-visibility: auto;
-  contain-intrinsic-size: 0 80px;
-}
-
-/* Higher quality rendering for visible notifications */
-.notification-item.fully-rendered {
-  content-visibility: visible;
-}
-
-/* Optimize animations */
-@media (prefers-reduced-motion: reduce) {
-  .notifications-modal-container,
-  .notification-item,
-  .detail-content {
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
-/* Optimize paint operations */
-.notifications-modal {
-  contain: layout style paint;
-}
-
-/* Reduce layout shifts */
-.notification-items {
-  contain-intrinsic-size: 0 auto;
-  contain: content;
-}
-
-/* Optimize for mobile */
-@media (max-width: 768px) {
-  .notification-item {
-    contain-intrinsic-size: 0 70px;
-  }
-  
-  .notifications-modal-container {
-    contain: strict;
-  }
-}
-
-/* Optimize priority indicators */
-.priority-indicator {
-  transform: translateZ(0);
-}
-
-/* Optimize filter dropdown */
-.filter-dropdown-menu {
-  transform: translateZ(0);
-  will-change: opacity, transform;
-  contain: content;
-}
-
-/* Optimize empty states */
-.empty-state {
-  contain: content;
-}
-
-/* Optimize detail panel content */
-.detail-content {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 400px;
-}
-
-/* Reduce repaints for notification actions */
-.notification-actions {
-  transform: translateZ(0);
-  will-change: opacity;
-}
-
-/* Optimize touch interactions */
-.notification-item,
-.category-item,
-.detail-action-btn,
-.notif-action-btn {
-  touch-action: manipulation;
-}
-
-/* Additional performance optimizations */
-@supports (content-visibility: auto) {
-  .notification-item {
-    content-visibility: auto;
-    contain-intrinsic-size: 0 80px;
-  }
-  
-  .detail-content {
-    content-visibility: auto;
-    contain-intrinsic-size: 0 400px;
-  }
-  
-  .notifications-date-section {
-    content-visibility: auto;
-    contain-intrinsic-size: 0 auto;
-  }
-}
-
-/* Optimize rendering pipeline */
-.notifications-modal * {
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
-
-/* Optimize animations */
-.notification-item,
-.detail-content,
-.filter-dropdown-menu {
-  transition-property: transform, opacity !important;
-}
-
-/* Reduce paint areas */
-.notifications-modal-container {
-  isolation: isolate;
-}
-
-/* Optimize scrolling */
-.notifications-list-content,
-.notifications-sidebar-content,
-.detail-content {
-  scroll-padding: 16px;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Optimize for high refresh rate displays */
-@media (min-resolution: 120dpi) {
-  .notification-item {
-    transition-duration: 0.15s !important;
-  }
-  
-  .notifications-modal-container {
-    transition-duration: 0.15s !important;
-  }
-}
-
-/* Reduce memory usage */
-.notification-item img {
-  max-width: 100%;
-  height: auto;
 }
