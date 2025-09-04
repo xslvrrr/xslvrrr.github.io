@@ -53,29 +53,24 @@ function parsePortalHTML(html: string): DashboardData {
   const timetableMatch = html.match(/<div id="timetable"[^>]*>.*?<table[^>]*>(.*?)<\/table>/s);
   if (timetableMatch) {
     const tableContent = timetableMatch[1];
-    const rowMatches = tableContent.matchAll(/<tr><td><B>([^<]+)<\/B><\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td[^>]*><span[^>]*style='background-color:#20e020;'[^>]*>/g);
     
-    for (const row of rowMatches) {
-      timetable.push({
-        period: row[1],
-        room: row[2],
-        subject: row[3],
-        teacher: row[4],
-        current: true // Green background indicates current
-      });
-    }
-
-    // Get non-current periods
-    const allRowMatches = tableContent.matchAll(/<tr><td><B>([^<]+)<\/B><\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td[^>]*><span[^>]*(?!style='background-color:#20e020;')[^>]*>/g);
+    // Find all table rows
+    const allRows = tableContent.match(/<tr><td><B>([^<]+)<\/B><\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td[^>]*>.*?<\/td><\/tr>/g);
     
-    for (const row of allRowMatches) {
-      timetable.push({
-        period: row[1],
-        room: row[2],
-        subject: row[3],
-        teacher: row[4],
-        current: false
-      });
+    if (allRows) {
+      for (const rowHtml of allRows) {
+        const rowMatch = rowHtml.match(/<tr><td><B>([^<]+)<\/B><\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td[^>]*>(.*?)<\/td><\/tr>/);
+        if (rowMatch) {
+          const isCurrent = rowMatch[5].includes('background-color:#20e020');
+          timetable.push({
+            period: rowMatch[1],
+            room: rowMatch[2],
+            subject: rowMatch[3],
+            teacher: rowMatch[4],
+            current: isCurrent
+          });
+        }
+      }
     }
   }
 
@@ -84,13 +79,18 @@ function parsePortalHTML(html: string): DashboardData {
   const noticesMatch = html.match(/<div id="notices"[^>]*>.*?<div class="jdash-body">(.*?)<\/div>/s);
   if (noticesMatch) {
     const noticesContent = noticesMatch[1];
-    const noticeMatches = noticesContent.matchAll(/<li><a[^>]*title="([^"]*)"[^>]*>([^<]+)<\/a>/g);
+    const noticeElements = noticesContent.match(/<li><a[^>]*title="([^"]*)"[^>]*>([^<]+)<\/a>/g);
     
-    for (const notice of noticeMatches) {
-      notices.push({
-        title: notice[2].replace(/&#\d+;/g, ''), // Remove HTML entities
-        content: notice[1].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
-      });
+    if (noticeElements) {
+      for (const noticeHtml of noticeElements) {
+        const noticeMatch = noticeHtml.match(/<li><a[^>]*title="([^"]*)"[^>]*>([^<]+)<\/a>/);
+        if (noticeMatch) {
+          notices.push({
+            title: noticeMatch[2].replace(/&#\d+;/g, ''), // Remove HTML entities
+            content: noticeMatch[1].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+          });
+        }
+      }
     }
   }
 
@@ -99,14 +99,19 @@ function parsePortalHTML(html: string): DashboardData {
   const diaryMatch = html.match(/<div id="mydiary"[^>]*>.*?<div id="diary">(.*?)<\/div>/s);
   if (diaryMatch) {
     const diaryContent = diaryMatch[1];
-    const eventMatches = diaryContent.matchAll(/<div[^>]*><B>([^<]+)<\/B><BR><small><I[^>]*>([^<]+)<BR>\s*([^<]*)\s*<\/I><\/small><\/div>/g);
+    const eventElements = diaryContent.match(/<div[^>]*><B>([^<]+)<\/B><BR><small><I[^>]*>([^<]+)<BR>\s*([^<]*)\s*<\/I><\/small><\/div>/g);
     
-    for (const event of eventMatches) {
-      diary.push({
-        title: event[1],
-        date: event[2].trim(),
-        time: event[3].trim()
-      });
+    if (eventElements) {
+      for (const eventHtml of eventElements) {
+        const eventMatch = eventHtml.match(/<div[^>]*><B>([^<]+)<\/B><BR><small><I[^>]*>([^<]+)<BR>\s*([^<]*)\s*<\/I><\/small><\/div>/);
+        if (eventMatch) {
+          diary.push({
+            title: eventMatch[1],
+            date: eventMatch[2].trim(),
+            time: eventMatch[3].trim()
+          });
+        }
+      }
     }
   }
 
