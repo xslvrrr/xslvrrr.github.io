@@ -51,7 +51,13 @@ export default function Home() {
               <img src="/Assets/Millennium Logo 2.png" alt="Millennium Logo" className={styles.logo} />
             </div>
             <div className={styles.navRight}>
-              <a href="/login" className={styles.loginBtn} role="button">Log in</a>
+              <button 
+                onClick={() => router.push('/login')} 
+                className={styles.loginBtn}
+                type="button"
+              >
+                Log in
+              </button>
               <button 
                 className={`${styles.loginBtn} ${styles.debugAccessBtn}`}
                 onClick={handleDebugLogin}
