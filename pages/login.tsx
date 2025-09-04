@@ -245,7 +245,7 @@ export default function Login() {
 
           {state.step === 'username' && (
             <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <h2 className={styles.questionTitle}>What's your username or email?</h2>
+              <h2 className={styles.questionTitle}>What&apos;s your username or email?</h2>
               <input
                 type="text"
                 className={styles.questionInput}
@@ -277,7 +277,7 @@ export default function Login() {
 
           {state.step === 'password' && (
             <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <h2 className={styles.questionTitle}>What's your password?</h2>
+              <h2 className={styles.questionTitle}>What&apos;s your password?</h2>
               <input
                 type="password"
                 className={styles.questionInput}
@@ -305,7 +305,7 @@ export default function Login() {
 
           {state.step === 'school' && (
             <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <h2 className={styles.questionTitle}>What's your school?</h2>
+              <h2 className={styles.questionTitle}>What&apos;s your school?</h2>
               <input
                 type="text"
                 className={styles.questionInput}
@@ -353,14 +353,27 @@ export default function Login() {
               {renderNotification()}
               
               <div className={styles.questionButtons}>
-                <a href="/" className={styles.returnBtn}>Return to main page</a>
+                <button 
+                  onClick={() => router.push('/')} 
+                  className={styles.returnBtn}
+                  type="button"
+                >
+                  Return to main page
+                </button>
               </div>
             </div>
           )}
 
           {state.step !== 'completion' && (
             <div className={`${styles.returnLinkContainer} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <a href="/" className={styles.returnLink}>Return to main page</a>
+              <button 
+                onClick={() => router.push('/')} 
+                className={styles.returnLink}
+                type="button"
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Return to main page
+              </button>
             </div>
           )}
         </div>
