@@ -1,5 +1,5 @@
 /* Login page styles */
-.login-body {
+.loginBody {
   min-height: 100vh;
   background: linear-gradient(to bottom, #0F1011 0%, #08090A 50%, #08090A 100%);
   display: flex;
@@ -10,7 +10,7 @@
 }
 
 /* Grid background */
-.login-body::before {
+.loginBody::before {
   content: '';
   position: absolute;
   top: 0;
@@ -28,7 +28,7 @@
   z-index: 0;
 }
 
-.login-container {
+.loginContainer {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -41,12 +41,12 @@
   transition: opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 
-.login-container.fade-in {
+.loginContainer.fadeIn {
   opacity: 1;
 }
 
 /* Header section with logo and title */
-.login-header {
+.loginHeader {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -57,26 +57,26 @@
   animation: fadeUpBlur 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
-.login-header.fade-out {
+.loginHeader.fadeOut {
   animation: fadeDownBlur 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
-.login-logo {
+.loginLogo {
   width: 48px;
   height: 48px;
   margin-bottom: 24px;
 }
 
-.login-title {
+.loginTitle {
   font-size: 24px;
   font-weight: 600;
-  color: var(--text-white);
+  color: #F7F8F8;
   margin-bottom: 32px;
   text-align: center;
 }
 
 /* Login options */
-.login-options {
+.loginOptions {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -88,16 +88,16 @@
   animation-delay: 0.2s;
 }
 
-.login-options.fade-out {
+.loginOptions.fadeOut {
   animation: fadeDownBlur 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
-.login-option-btn {
+.loginOptionBtn {
   background-color: #101316;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 12px 16px;
-  color: var(--text-white);
+  color: #F7F8F8;
   font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 500;
@@ -107,18 +107,18 @@
   width: 100%;
 }
 
-.login-option-btn:hover {
+.loginOptionBtn:hover {
   background-color: #1a1d21;
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
-.login-option-btn:active {
+.loginOptionBtn:active {
   transform: translateY(0);
 }
 
 /* Questionnaire styles */
-.login-questionnaire {
+.loginQuestionnaire {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -129,7 +129,7 @@
   animation: fadeUpBlur 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
-.login-questionnaire.fade-out {
+.loginQuestionnaire.fadeOut {
   animation: fadeDownBlur 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
@@ -159,55 +159,55 @@
   }
 }
 
-.question-title {
+.questionTitle {
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-white);
+  color: #F7F8F8;
   margin-bottom: 16px;
   text-align: center;
 }
 
-.question-subtitle {
+.questionSubtitle {
   font-size: 15px;
-  color: var(--text-gray);
+  color: #A1A5A9;
   margin-bottom: 24px;
   text-align: center;
 }
 
-.question-input {
+.questionInput {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-white);
+  color: #F7F8F8;
   font-family: 'Inter', sans-serif;
   font-size: 15px;
   margin-bottom: 24px;
   transition: all 0.2s ease;
 }
 
-.question-input:hover {
+.questionInput:hover {
   background-color: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-.question-input:focus {
+.questionInput:focus {
   outline: none;
   background-color: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 0 2px rgba(247, 248, 248, 0.1);
 }
 
-.question-buttons {
+.questionButtons {
   display: flex;
   gap: 12px;
   width: 100%;
 }
 
-.submit-btn, .back-btn, .return-btn {
-  background-color: var(--text-white);
-  color: var(--bg-color);
+.submitBtn, .backBtn, .returnBtn {
+  background-color: #F7F8F8;
+  color: #08090A;
   border: none;
   border-radius: 8px;
   padding: 12px;
@@ -220,53 +220,53 @@
   text-decoration: none;
 }
 
-.submit-btn {
+.submitBtn {
   flex: 2;
 }
 
-.back-btn {
+.backBtn {
   flex: 1;
   background-color: #101316;
-  color: var(--text-white);
+  color: #F7F8F8;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.return-btn {
+.returnBtn {
   display: inline-block;
   width: 100%;
 }
 
-.submit-btn:hover, .return-btn:hover {
+.submitBtn:hover, .returnBtn:hover {
   background-color: #e6e7e7;
   transform: translateY(-1px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
-.back-btn:hover {
+.backBtn:hover {
   background-color: #1a1d21;
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
-.submit-btn:active, .back-btn:active, .return-btn:active {
+.submitBtn:active, .backBtn:active, .returnBtn:active {
   transform: translateY(0);
   box-shadow: none;
 }
 
-.back-link {
-  color: var(--text-gray);
+.backLink {
+  color: #A1A5A9;
   text-decoration: none;
   font-size: 14px;
   margin-top: 16px;
   transition: color 0.2s ease;
 }
 
-.back-link:hover {
-  color: var(--text-white);
+.backLink:hover {
+  color: #F7F8F8;
 }
 
 /* Return link container at the bottom */
-.return-link-container {
+.returnLinkContainer {
   margin-top: 40px;
   opacity: 0;
   transform: translateY(20px);
@@ -274,34 +274,23 @@
   animation: fadeUpBlur 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
-.return-link-container.fade-out {
+.returnLinkContainer.fadeOut {
   animation: fadeDownBlur 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
-.return-link {
-  color: var(--text-gray);
+.returnLink {
+  color: #A1A5A9;
   text-decoration: none;
   font-size: 14px;
   transition: color 0.2s ease;
 }
 
-.return-link:hover {
-  color: var(--text-white);
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .login-container {
-    padding: 30px 16px;
-  }
-  
-  .question-title {
-    font-size: 18px;
-  }
+.returnLink:hover {
+  color: #F7F8F8;
 }
 
 /* Verification display */
-.verification-display {
+.verificationDisplay {
   width: 100%;
   margin-bottom: 24px;
   background-color: rgba(255, 255, 255, 0.05);
@@ -312,29 +301,29 @@
   animation: fadeUpBlur 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
 }
 
-.verification-fields {
+.verificationFields {
   padding: 16px;
 }
 
-.field-row {
+.fieldRow {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.field-row:last-child {
+.fieldRow:last-child {
   border-bottom: none;
 }
 
-.field-label {
-  color: var(--text-gray);
+.fieldLabel {
+  color: #A1A5A9;
   font-size: 14px;
   font-weight: 500;
 }
 
-.field-value {
-  color: var(--text-white);
+.fieldValue {
+  color: #F7F8F8;
   font-size: 14px;
   font-weight: 400;
   overflow: hidden;
@@ -343,7 +332,7 @@
   max-width: 200px;
 }
 
-.radio-group {
+.radioGroup {
   display: flex;
   gap: 20px;
   background-color: rgba(255, 255, 255, 0.08);
@@ -351,28 +340,32 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.radio-label {
+.radioLabel {
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: default;
 }
 
-.radio-label input[type="radio"] {
+.radioLabel input[type="radio"] {
   margin: 0;
   width: 14px;
   height: 14px;
-  accent-color: var(--text-white);
+  accent-color: #F7F8F8;
 }
 
-.radio-label span {
-  color: var(--text-white);
+.radioLabel span {
+  color: #F7F8F8;
   font-size: 14px;
   font-weight: 500;
 }
 
+.highlight {
+  /* Highlight for student option */
+}
+
 /* Loading animation */
-.loading-dots {
+.loadingDots {
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -382,7 +375,7 @@
 .dot {
   width: 8px;
   height: 8px;
-  background-color: var(--text-gray);
+  background-color: #A1A5A9;
   border-radius: 50%;
   animation: dotPulse 1.5s infinite ease-in-out;
 }
@@ -436,7 +429,7 @@
   color: #a6a6a6;
 }
 
-.notification-icon {
+.notificationIcon {
   width: 24px;
   height: 24px;
   margin-right: 12px;
@@ -448,18 +441,29 @@
 }
 
 /* Debug login button styles */
-.debug-btn {
-  background-color: rgba(119, 97, 255, 0.1);
-  border: 1px solid rgba(119, 97, 255, 0.3);
-  color: #a997ff;
+.debugBtn {
+  background-color: rgba(119, 97, 255, 0.1) !important;
+  border: 1px solid rgba(119, 97, 255, 0.3) !important;
+  color: #a997ff !important;
 }
 
-.debug-btn:hover {
-  background-color: rgba(119, 97, 255, 0.15);
-  border-color: rgba(119, 97, 255, 0.4);
+.debugBtn:hover {
+  background-color: rgba(119, 97, 255, 0.15) !important;
+  border-color: rgba(119, 97, 255, 0.4) !important;
   transform: translateY(-1px);
 }
 
-.debug-btn:active {
+.debugBtn:active {
   transform: translateY(0);
-} 
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .loginContainer {
+    padding: 30px 16px;
+  }
+  
+  .questionTitle {
+    font-size: 18px;
+  }
+}
