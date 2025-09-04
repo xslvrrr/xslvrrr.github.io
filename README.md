@@ -4,6 +4,9 @@ A modern redesign of the Millennium Education portal built with Next.js, providi
 
 ## Features
 
+- **Real Portal Data**: Scrapes actual timetable, notices, and diary from each user's Millennium portal
+- **Linear-Style Interface**: Beautiful, professional workflow UI inspired by Linear.app
+- **Fixed Layout**: Clean bento box dashboard cards (drag-and-drop available in dashboard-with-dnd.tsx)
 - **Server-side Authentication**: Secure login handling via Next.js API routes
 - **Session Management**: Persistent user sessions with iron-session
 - **Responsive Design**: Modern UI that works on all devices
@@ -79,10 +82,13 @@ Or use the "Debug Access" / "Try demo" buttons for instant access.
 
 ### Real Login
 
-The system authenticates with the actual Millennium Education portal:
-1. Enter your real Millennium credentials
+The system authenticates with the actual Millennium Education portal and scrapes your real data:
+1. Enter your real Millennium credentials (username, password, school name)
 2. The server securely validates them with millennium.education
-3. On success, you'll be redirected to the redesigned dashboard
+3. On successful login, your portal data is scraped and cached
+4. You'll see your actual timetable, notices, diary, and user information
+5. Dashboard shows your real classes, teachers, rooms, and current period status
+6. All data is personalized to your specific school and account
 
 ## Project Structure
 
@@ -117,12 +123,31 @@ The system authenticates with the actual Millennium Education portal:
 
 ## Development Notes
 
-This project was designed to wrap the existing Millennium Education portal with a modern interface. The authentication system:
+This project was designed to wrap the existing Millennium Education portal with a modern Linear.app-style interface. The system:
 
+### Authentication & Data Flow:
 1. Accepts user credentials on the redesigned login page
-2. Submits them server-side to millennium.education
-3. Tracks the response to determine success/failure
+2. Submits them server-side to millennium.education for validation
+3. Stores session cookies for authenticated portal access
 4. Creates encrypted sessions for successful logins
-5. Provides the redesigned interface while maintaining security
+5. Scrapes real portal data using the authenticated session
+6. Displays personalized data in a beautiful, modern interface
+
+### Data Scraping:
+- **Timetable**: Extracts periods, subjects, teachers, rooms, and active status
+- **Notices**: Parses all student notices with full content
+- **Diary**: Gets personal calendar events and activities
+- **User Info**: Retrieves actual name and school information
+
+### Interface Features:
+- **Linear-Style Design**: Clean, professional workflow UI
+- **Fixed Layout**: Beautiful bento box dashboard cards (drag-and-drop version available)
+- **Real-Time Updates**: Refresh button to get latest portal data
+- **Responsive**: Works perfectly on desktop and mobile devices
+
+### Drag & Drop (Optional):
+- **Available**: `dashboard-with-dnd.tsx` contains the full drag-and-drop version
+- **To Enable**: Add `@dnd-kit` packages back to package.json and replace dashboard.tsx
+- **Note**: Temporarily disabled for Vercel deployment compatibility
 
 The debug mode allows testing the interface without needing real Millennium credentials.

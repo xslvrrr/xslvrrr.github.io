@@ -1,6 +1,25 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import styles from '../styles/Dashboard.module.css';
 
 interface UserSession {
@@ -31,10 +50,56 @@ interface DiaryEntry {
   description?: string;
 }
 
+interface DashboardCard {
+  id: string;
+  title: string;
+  type: 'stats' | 'timetable' | 'notices' | 'activity' | 'status';
+  gridColumn: string;
+  component: React.ReactNode;
+}
+
+interface SortableCardProps {
+  card: DashboardCard;
+  children: React.ReactNode;
+}
+
+// Sortable Card Component
+function SortableCard({ card, children }: SortableCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: card.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`${styles.dashboardCard} ${styles[card.type + 'Card']}`}
+      data-card-type={card.type}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [session, setSession] = useState<UserSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [cardOrder, setCardOrder] = useState<string[]>(['stats', 'timetable', 'activity', 'notices', 'status']);
   const [portalData, setPortalData] = useState<{
     user: { name: string; school: string };
     timetable: TimetableEntry[];
@@ -43,6 +108,13 @@ export default function Dashboard() {
     lastUpdated: string;
   } | null>(null);
   const [dataLoading, setDataLoading] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     checkSession();
@@ -142,6 +214,177 @@ export default function Dashboard() {
     return portalData?.user.school || session?.school || 'School';
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setCardOrder((items) => {
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over?.id as string);
+
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+        // Persist to localStorage
+        localStorage.setItem('dashboardCardOrder', JSON.stringify(newOrder));
+        return newOrder;
+      });
+    }
+  };
+
+  // Load card order from localStorage on component mount
+  useEffect(() => {
+    const savedOrder = localStorage.getItem('dashboardCardOrder');
+    if (savedOrder) {
+      try {
+        const parsedOrder = JSON.parse(savedOrder);
+        if (Array.isArray(parsedOrder)) {
+          setCardOrder(parsedOrder);
+        }
+      } catch (error) {
+        console.error('Error parsing saved card order:', error);
+      }
+    }
+  }, []);
+
+  // Generate dashboard cards based on order
+  const generateDashboardCards = (): DashboardCard[] => {
+    const cardDefinitions: Record<string, DashboardCard> = {
+      stats: {
+        id: 'stats',
+        title: "Today's Overview",
+        type: 'stats',
+        gridColumn: 'span 4',
+        component: (
+          <>
+            <h2>Today&apos;s Overview</h2>
+            <div className={styles.statsGrid}>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>{portalData?.notices.length || 0}</span>
+                <span className={styles.statLabel}>New Notices</span>
+              </div>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>{getActiveClassesCount()}</span>
+                <span className={styles.statLabel}>Active Classes</span>
+              </div>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>{portalData?.timetable.length || 0}</span>
+                <span className={styles.statLabel}>Total Periods</span>
+              </div>
+            </div>
+          </>
+        ),
+      },
+      timetable: {
+        id: 'timetable',
+        title: "Today's Timetable",
+        type: 'timetable',
+        gridColumn: 'span 6',
+        component: (
+          <>
+            <h2>Today&apos;s Timetable</h2>
+            <div className={styles.timetableList}>
+              {portalData?.timetable.length ? (
+                portalData.timetable.map((item, index) => (
+                  <div key={index} className={`${styles.timetableItem} ${item.isActive ? styles.active : ''}`}>
+                    <span className={styles.timetablePeriod}>{item.period}</span>
+                    <span className={styles.timetableSubject}>{item.subject}</span>
+                    <span className={styles.timetableTeacher}>{item.teacher}</span>
+                    <span className={styles.timetableRoom}>{item.room}</span>
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                  {dataLoading ? 'Loading timetable...' : 'No timetable data available'}
+                </div>
+              )}
+            </div>
+          </>
+        ),
+      },
+      activity: {
+        id: 'activity',
+        title: 'Upcoming Events',
+        type: 'activity',
+        gridColumn: 'span 4',
+        component: (
+          <>
+            <h2>Upcoming Events</h2>
+            <div className={styles.activityList}>
+              {getUpcomingActivities().map((item, index) => (
+                <div key={index} className={styles.activityItem}>
+                  <div className={styles.activityDate}>{item.date}</div>
+                  <div className={styles.activityContent}>
+                    <div className={styles.activityTitle}>{item.title}</div>
+                    {item.description && (
+                      <div className={styles.activityDescription}>{item.description}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ),
+      },
+      notices: {
+        id: 'notices',
+        title: 'Student Notices',
+        type: 'notices',
+        gridColumn: 'span 6',
+        component: (
+          <>
+            <h2>Student Notices</h2>
+            <div className={styles.noticesList}>
+              {portalData?.notices.length ? (
+                portalData.notices.slice(0, 6).map((notice, index) => (
+                  <div key={index} className={styles.noticeItem}>
+                    <div className={styles.noticeTitle}>{notice.title}</div>
+                    <div className={styles.noticePreview}>{notice.preview}</div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                  {dataLoading ? 'Loading notices...' : 'No notices available'}
+                </div>
+              )}
+            </div>
+          </>
+        ),
+      },
+      status: {
+        id: 'status',
+        title: 'System Status',
+        type: 'status',
+        gridColumn: 'span 8',
+        component: (
+          <>
+            <h2>System Status</h2>
+            <div className={styles.systemStatus}>
+              <div className={styles.statusItem}>
+                <div className={`${styles.statusIndicator} ${styles.statusGreen}`}></div>
+                <span>Millennium Services</span>
+              </div>
+              <div className={styles.statusItem}>
+                <div className={`${styles.statusIndicator} ${styles.statusGreen}`}></div>
+                <span>Redesigned Interface</span>
+              </div>
+              <div className={styles.statusItem}>
+                <div className={`${styles.statusIndicator} ${styles.statusBlue}`}></div>
+                <span>Data Synchronization</span>
+              </div>
+              {session?.isDebug && (
+                <div className={styles.statusItem}>
+                  <div className={`${styles.statusIndicator} ${styles.statusOrange}`}></div>
+                  <span>Debug Mode Enabled</span>
+                </div>
+              )}
+            </div>
+          </>
+        ),
+      },
+    };
+
+    return cardOrder.map(id => cardDefinitions[id]).filter(Boolean);
+  };
+
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
@@ -175,13 +418,13 @@ export default function Dashboard() {
                     {getUserInitials(session.username)}
                   </span>
                 </div>
-                <div className={styles.userInfo}>
-                  <div className={styles.userName}>
-                    {getDisplayName()}
-                    {session.isDebug && <span className={styles.debugBadge}>DEBUG</span>}
-                  </div>
-                  <div className={styles.userSchool}>{getDisplaySchool()}</div>
+                              <div className={styles.userInfo}>
+                <div className={styles.userName}>
+                  {getDisplayName()}
+                  {session.isDebug && <span className={styles.debugBadge}>DEBUG</span>}
                 </div>
+                <div className={styles.userSchool}>{getDisplaySchool()}</div>
+              </div>
               </div>
 
               {/* Navigation */}
@@ -313,109 +556,21 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className={styles.dashboardGrid}>
-              {/* Stats Card */}
-              <div className={`${styles.dashboardCard} ${styles.statsCard}`}>
-                <h2>Today&apos;s Overview</h2>
-                <div className={styles.statsGrid}>
-                  <div className={styles.statItem}>
-                    <span className={styles.statNumber}>{portalData?.notices.length || 0}</span>
-                    <span className={styles.statLabel}>New Notices</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span className={styles.statNumber}>{getActiveClassesCount()}</span>
-                    <span className={styles.statLabel}>Active Classes</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span className={styles.statNumber}>{portalData?.timetable.length || 0}</span>
-                    <span className={styles.statLabel}>Total Periods</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Timetable Card */}
-              <div className={`${styles.dashboardCard} ${styles.timetableCard}`}>
-                <h2>Today&apos;s Timetable</h2>
-                <div className={styles.timetableList}>
-                  {portalData?.timetable.length ? (
-                    portalData.timetable.map((item, index) => (
-                      <div key={index} className={`${styles.timetableItem} ${item.isActive ? styles.active : ''}`}>
-                        <span className={styles.timetablePeriod}>{item.period}</span>
-                        <span className={styles.timetableSubject}>{item.subject}</span>
-                        <span className={styles.timetableTeacher}>{item.teacher}</span>
-                        <span className={styles.timetableRoom}>{item.room}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      {dataLoading ? 'Loading timetable...' : 'No timetable data available'}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Activity/Diary Card */}
-              <div className={`${styles.dashboardCard} ${styles.activityCard}`}>
-                <h2>Upcoming Events</h2>
-                <div className={styles.activityList}>
-                  {getUpcomingActivities().map((item, index) => (
-                    <div key={index} className={styles.activityItem}>
-                      <div className={styles.activityDate}>{item.date}</div>
-                      <div className={styles.activityContent}>
-                        <div className={styles.activityTitle}>{item.title}</div>
-                        {item.description && (
-                          <div className={styles.activityDescription}>{item.description}</div>
-                        )}
-                      </div>
-                    </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={cardOrder} strategy={rectSortingStrategy}>
+                <div className={styles.dashboardGrid}>
+                  {generateDashboardCards().map((card) => (
+                    <SortableCard key={card.id} card={card}>
+                      {card.component}
+                    </SortableCard>
                   ))}
                 </div>
-              </div>
-
-              {/* Notices Card */}
-              <div className={`${styles.dashboardCard} ${styles.noticesCard}`}>
-                <h2>Student Notices</h2>
-                <div className={styles.noticesList}>
-                  {portalData?.notices.length ? (
-                    portalData.notices.slice(0, 6).map((notice, index) => (
-                      <div key={index} className={styles.noticeItem}>
-                        <div className={styles.noticeTitle}>{notice.title}</div>
-                        <div className={styles.noticePreview}>{notice.preview}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      {dataLoading ? 'Loading notices...' : 'No notices available'}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* System Status Card */}
-              <div className={`${styles.dashboardCard} ${styles.statusCard}`}>
-                <h2>System Status</h2>
-                <div className={styles.systemStatus}>
-                  <div className={styles.statusItem}>
-                    <div className={`${styles.statusIndicator} ${styles.statusGreen}`}></div>
-                    <span>Millennium Services</span>
-                  </div>
-                  <div className={styles.statusItem}>
-                    <div className={`${styles.statusIndicator} ${styles.statusGreen}`}></div>
-                    <span>Redesigned Interface</span>
-                  </div>
-                  <div className={styles.statusItem}>
-                    <div className={`${styles.statusIndicator} ${styles.statusBlue}`}></div>
-                    <span>Data Synchronization</span>
-                  </div>
-                  {session.isDebug && (
-                    <div className={styles.statusItem}>
-                      <div className={`${styles.statusIndicator} ${styles.statusOrange}`}></div>
-                      <span>Debug Mode Enabled</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              </SortableContext>
+            </DndContext>
           </main>
         </div>
       </div>
