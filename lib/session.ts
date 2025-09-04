@@ -8,6 +8,7 @@ export interface SessionData {
   school?: string;
   sessionCookies?: string[];
   timestamp?: string;
+  portalData?: any; // Stores scraped portal data
 }
 
 const defaultSession: SessionData = {
