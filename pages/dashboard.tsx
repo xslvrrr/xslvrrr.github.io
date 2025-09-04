@@ -124,6 +124,7 @@ export default function Dashboard() {
     if (session?.loggedIn) {
       loadPortalData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const checkSession = async () => {
@@ -254,7 +255,7 @@ export default function Dashboard() {
         gridColumn: 'span 4',
         component: (
           <>
-            <h2>Today's Overview</h2>
+            <h2>Today&apos;s Overview</h2>
             <div className={styles.statsGrid}>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>{portalData?.notices.length || 0}</span>
@@ -279,7 +280,7 @@ export default function Dashboard() {
         gridColumn: 'span 6',
         component: (
           <>
-            <h2>Today's Timetable</h2>
+            <h2>Today&apos;s Timetable</h2>
             <div className={styles.timetableList}>
               {portalData?.timetable.length ? (
                 portalData.timetable.map((item, index) => (
