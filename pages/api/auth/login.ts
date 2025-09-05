@@ -7,7 +7,6 @@ interface LoginRequest {
   username: string;
   password: string;
   school: string;
-  isDebug?: boolean;
 }
 
 interface LoginResponse {
@@ -24,7 +23,7 @@ export default async function handler(
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
-  const { username, password, school, isDebug }: LoginRequest = req.body;
+  const { username, password, school }: LoginRequest = req.body;
 
   // Validate input
   if (!username || !password || !school) {
@@ -34,21 +33,6 @@ export default async function handler(
     });
   }
 
-  // Handle debug login
-  if (isDebug && username === 'debug' && password === 'debug123') {
-    const session = await getSession(req, res);
-    session.loggedIn = true;
-    session.isDebug = true;
-    session.username = username;
-    session.school = school;
-    session.timestamp = new Date().toISOString();
-    await session.save();
-
-    return res.status(200).json({
-      success: true,
-      message: 'Debug login successful'
-    });
-  }
 
   try {
     // Create form data for millennium.education login

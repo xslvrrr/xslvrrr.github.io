@@ -3,7 +3,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 export interface SessionData {
   loggedIn: boolean;
-  isDebug?: boolean;
   username?: string;
   school?: string;
   sessionCookies?: string[];

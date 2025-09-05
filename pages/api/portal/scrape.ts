@@ -49,52 +49,8 @@ export default async function handler(
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    // If debug mode, return mock data
-    if (session.isDebug) {
-      const mockData: PortalData = {
-        user: {
-          name: session.username || 'Debug User',
-          school: session.school || 'Test School',
-        },
-        timetable: [
-          { period: 'P1', room: 'E4', subject: 'HMAA.B', teacher: 'Mrs B Rizal', isActive: true },
-          { period: 'P2', room: 'E4', subject: 'HMAA.B', teacher: 'Mrs B Rizal', isActive: false },
-          { period: 'P3b', room: 'F101', subject: 'HENS.C2', teacher: 'Ms K Ellis', isActive: true },
-          { period: 'P4', room: 'F101', subject: 'HENS.C2', teacher: 'Ms K Ellis', isActive: false },
-          { period: 'P5', room: 'F101', subject: 'HENS.C2', teacher: 'Ms K Ellis', isActive: false },
-          { period: 'P6b', room: 'M1', subject: 'HBIO.A', teacher: 'Ms A Pobjie', isActive: false },
-          { period: 'P7', room: 'M1', subject: 'HBIO.A', teacher: 'Ms A Pobjie', isActive: false },
-          { period: 'P8', room: 'M1', subject: 'HBIO.A', teacher: 'Ms A Pobjie', isActive: false },
-        ],
-        notices: [
-          {
-            title: '🌟 Pulse Alive 2026 🌟',
-            preview: 'Students are invited to take part in Pulse Alive 2026, a performing arts festival...',
-            content: 'Students are invited to take part in Pulse Alive 2026, a performing arts festival event held at Sydney Olympic Park in March next year.'
-          },
-          {
-            title: '📢 Jersey Day - Trick Shot Comp 📢',
-            preview: 'Next Friday we are celebrating Jersey Day! Wear a jersey over your school uniform...',
-            content: 'Next Friday we are celebrating Jersey Day! Wear a jersey over your school uniform to show your support for organ donation.'
-          },
-          {
-            title: 'Debug Mode Notice',
-            preview: 'This is a test notice for debug mode...',
-            content: 'You are currently using debug mode. Real portal data would be displayed here for actual users.'
-          }
-        ],
-        diary: [
-          { date: 'Sep 4', title: 'Debug Event 1', description: 'Test event' },
-          { date: 'Sep 5', title: 'Debug Event 2', description: 'Test event' },
-          { date: 'Sep 6', title: 'Debug Event 3', description: 'Test event' },
-        ],
-        lastUpdated: new Date().toISOString()
-      };
 
-      return res.status(200).json(mockData);
-    }
-
-    // For real users, scrape the portal
+    // Scrape the portal
     if (!session.sessionCookies || session.sessionCookies.length === 0) {
       return res.status(400).json({ message: 'No session cookies available for scraping' });
     }

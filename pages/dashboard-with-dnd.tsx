@@ -26,7 +26,6 @@ interface UserSession {
   loggedIn: boolean;
   username?: string;
   school?: string;
-  isDebug?: boolean;
   timestamp?: string;
 }
 
@@ -370,12 +369,6 @@ export default function Dashboard() {
                 <div className={`${styles.statusIndicator} ${styles.statusBlue}`}></div>
                 <span>Data Synchronization</span>
               </div>
-              {session?.isDebug && (
-                <div className={styles.statusItem}>
-                  <div className={`${styles.statusIndicator} ${styles.statusOrange}`}></div>
-                  <span>Debug Mode Enabled</span>
-                </div>
-              )}
             </div>
           </>
         ),
@@ -421,7 +414,6 @@ export default function Dashboard() {
                               <div className={styles.userInfo}>
                 <div className={styles.userName}>
                   {getDisplayName()}
-                  {session.isDebug && <span className={styles.debugBadge}>DEBUG</span>}
                 </div>
                 <div className={styles.userSchool}>{getDisplaySchool()}</div>
               </div>

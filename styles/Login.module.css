@@ -440,22 +440,6 @@
   font-weight: 500;
 }
 
-/* Debug login button styles */
-.debugBtn {
-  background-color: rgba(119, 97, 255, 0.1) !important;
-  border: 1px solid rgba(119, 97, 255, 0.3) !important;
-  color: #a997ff !important;
-}
-
-.debugBtn:hover {
-  background-color: rgba(119, 97, 255, 0.15) !important;
-  border-color: rgba(119, 97, 255, 0.4) !important;
-  transform: translateY(-1px);
-}
-
-.debugBtn:active {
-  transform: translateY(0);
-}
 
 /* Responsive adjustments */
 @media (max-width: 480px) {

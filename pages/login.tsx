@@ -30,49 +30,7 @@ export default function Login() {
     isTransitioning: false
   });
 
-  // Check for debug auto-login
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isDebugLogin = urlParams.get('debug') === 'true';
-    
-    if (isDebugLogin) {
-      handleDebugLogin();
-    }
-  }, []);
 
-  const handleDebugLogin = async () => {
-    setState(prev => ({ ...prev, isLoading: true }));
-    
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'debug',
-          password: 'debug123',
-          school: 'Test School',
-          isDebug: true
-        }),
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        setState(prev => ({
-          ...prev,
-          step: 'completion',
-          notification: { type: 'success', message: result.message },
-          isLoading: false
-        }));
-        
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1500);
-      }
-    } catch (error) {
-      console.error('Debug login failed:', error);
-    }
-  };
 
   const transition = (newStep: LoginState['step'], delay = 400) => {
     setState(prev => ({ ...prev, isTransitioning: true }));
@@ -233,12 +191,6 @@ export default function Login() {
                 onClick={() => transition('username')}
               >
                 Continue with login details
-              </button>
-              <button 
-                className={`${styles.loginOptionBtn} ${styles.debugBtn}`}
-                onClick={handleDebugLogin}
-              >
-                Continue with test account
               </button>
             </div>
           )}

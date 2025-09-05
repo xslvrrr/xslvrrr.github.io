@@ -16,7 +16,6 @@ export default async function handler(
       loggedIn: session.loggedIn,
       username: session.username,
       school: session.school,
-      isDebug: session.isDebug,
       timestamp: session.timestamp
     });
   } catch (error) {

@@ -84,20 +84,6 @@
   transform: none;
 }
 
-/* Debug access button styling */
-.debugAccessBtn {
-  background-color: rgba(119, 97, 255, 0.1) !important;
-  color: #a997ff !important;
-  border: 1px solid rgba(119, 97, 255, 0.3) !important;
-  margin-left: 10px;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-}
-
-.debugAccessBtn:hover:not(:disabled) {
-  background-color: rgba(119, 97, 255, 0.15) !important;
-  border-color: rgba(119, 97, 255, 0.4) !important;
-}
 
 /* Center Content */
 .content {

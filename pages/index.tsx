@@ -1,40 +1,10 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleDebugLogin = async () => {
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'debug',
-          password: 'debug123',
-          school: 'Test School',
-          isDebug: true
-        }),
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        router.push('/dashboard');
-      } else {
-        console.error('Debug login failed:', result.message);
-      }
-    } catch (error) {
-      console.error('Debug login error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <>
@@ -58,14 +28,6 @@ export default function Home() {
               >
                 Log in
               </button>
-              <button 
-                className={`${styles.loginBtn} ${styles.debugAccessBtn}`}
-                onClick={handleDebugLogin}
-                disabled={isLoading}
-                role="button"
-              >
-                {isLoading ? 'Loading...' : 'Debug Access'}
-              </button>
             </div>
           </div>
         </header>
@@ -84,14 +46,6 @@ export default function Home() {
               <a href="#" className={`${styles.learnMore} ${styles.animateButton}`} role="button">
                 Learn more
               </a>
-              <button 
-                className={`${styles.tryDemo} ${styles.animateButton}`}
-                onClick={handleDebugLogin}
-                disabled={isLoading}
-                role="button"
-              >
-                {isLoading ? 'Loading...' : 'Try demo'}
-              </button>
             </div>
           </div>
         </main>
