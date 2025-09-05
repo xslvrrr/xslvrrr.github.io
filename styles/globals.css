@@ -1,5 +1,6 @@
 /* CSS Variables */
 :root {
+  /* Legacy variables */
   --bg-color: #08090A;
   --bg-secondary: #0F1011;
   --text-white: #F7F8F8;
@@ -10,6 +11,69 @@
   --hover-bg: rgba(255, 255, 255, 0.05);
   --shadow-light: rgba(0, 0, 0, 0.1);
   --shadow-medium: rgba(0, 0, 0, 0.2);
+
+  /* Dashboard color palette - Updated with precise colors */
+  --sidebar-bg: #050505;
+  --main-bg: #050505;
+  --content-bg: #0f0f0f;
+  --card-bg: transparent;
+  --hover-bg: rgba(255, 255, 255, 0.03);
+  --active-bg: rgba(255, 255, 255, 0.06);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --hover-card-bg: rgba(255, 255, 255, 0.02);
+  --hover-border-color: rgba(255, 255, 255, 0.12);
+  
+  /* Text colors - Improved contrast */
+  --text-primary: #F7F8F8;
+  --text-secondary: #A0A0A0;
+  --text-tertiary: #8A8A8A;
+  
+  /* Status colors for priority indicators */
+  --priority-high: #ff4d4f;
+  --priority-medium: #faad14;
+  --priority-low: #52c41a;
+  
+  /* Sizing - Updated with golden ratio */
+  --sidebar-width: 220px;
+  --sidebar-narrow-width: 60px;
+  --header-height: 60px;
+  --card-radius: 6px;
+  
+  /* Spacing - Updated to golden ratio */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.24);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Font sizes - Adjusted to match Linear better */
+  --font-size-base: 13px;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 13px;
+  --font-size-lg: 15px;
+  --font-size-xl: 18px;
+  --font-size-xxl: 28px;
+  
+  /* Line heights for harmony */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.618;
+  
+  /* Radius values */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 }
 
 /* Reset */

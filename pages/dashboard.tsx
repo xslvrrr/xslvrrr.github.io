@@ -134,26 +134,7 @@ export default function Dashboard() {
     return username.substring(0, 2).toUpperCase();
   };
 
-  const getCurrentTime = () => {
-    return new Date().toLocaleDateString('en-AU', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
   // Memoized calculations for better performance
-  const activeClassesCount = useMemo(() => {
-    if (!portalData?.timetable) return 0;
-    return portalData.timetable.filter(item => item.isActive).length;
-  }, [portalData?.timetable]);
-
-  const upcomingActivities = useMemo(() => {
-    if (!portalData?.diary) return [];
-    return portalData.diary.slice(0, 3);
-  }, [portalData?.diary]);
-
   const displayName = useMemo(() => {
     return portalData?.user.name || session?.username || 'User';
   }, [portalData?.user.name, session?.username]);
@@ -161,12 +142,6 @@ export default function Dashboard() {
   const displaySchool = useMemo(() => {
     return portalData?.user.school || session?.school || 'School';
   }, [portalData?.user.school, session?.school]);
-
-  // Legacy functions for backward compatibility
-  const getActiveClassesCount = () => activeClassesCount;
-  const getUpcomingActivities = () => upcomingActivities;
-  const getDisplayName = () => displayName;
-  const getDisplaySchool = () => displaySchool;
 
   // Enhanced functionality methods
   const toggleSection = useCallback((section: string) => {
@@ -229,12 +204,12 @@ export default function Dashboard() {
                   <h2 className={styles.cardTitle}>Welcome to Millennium</h2>
                   <p className={styles.cardText}>This is the redesigned Millennium interface, built for productivity and ease of use.</p>
                   {dataLoading && (
-                    <p className={styles.cardText} style={{ color: '#6b7280', fontSize: '13px' }}>
+                    <p className={styles.cardText} style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>
                       Loading portal data...
                     </p>
                   )}
                   {portalData?.lastUpdated && (
-                    <p className={styles.cardText} style={{ color: '#6b7280', fontSize: '13px' }}>
+                    <p className={styles.cardText} style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>
                       Last updated: {new Date(portalData.lastUpdated).toLocaleTimeString()}
                     </p>
                   )}
@@ -319,6 +294,39 @@ export default function Dashboard() {
                   </ul>
                 </div>
               </div>
+
+              {/* Classes list (linear style) */}
+              <div className={styles.listSection}>
+                <h2 className={styles.sectionTitle}>Your Classes</h2>
+                <div className={styles.card}>
+                  <table className={styles.listTable}>
+                    <thead className={styles.listTableHeader}>
+                      <tr>
+                        <th>Subject</th>
+                        <th>Teacher</th>
+                        <th>Room</th>
+                        <th>Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {portalData?.timetable.map((item, index) => (
+                        <tr key={index} className={styles.listTableRow}>
+                          <td>{item.subject}</td>
+                          <td>{item.teacher}</td>
+                          <td>{item.room}</td>
+                          <td>{item.period}</td>
+                        </tr>
+                      )) || (
+                        <tr className={styles.listTableRow}>
+                          <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                            {dataLoading ? 'Loading classes...' : 'No class data available'}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -338,7 +346,7 @@ export default function Dashboard() {
                       </div>
                     ))
                   ) : (
-                    <div style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
                       {dataLoading ? 'Loading notices...' : 'No notices available'}
                     </div>
                   )}
@@ -365,45 +373,10 @@ export default function Dashboard() {
                       </div>
                     ))
                   ) : (
-                    <div style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
                       {dataLoading ? 'Loading timetable...' : 'No timetable data available'}
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'calendar':
-        return (
-          <div className={styles.contentWrapper}>
-            <div className={styles.contentWrapperInner}>
-              <div className={`${styles.card} ${styles.calendarCard}`}>
-                <h2>Calendar & Events</h2>
-                <div className={styles.calendarContainer}>
-                  <div className={styles.calendarHeader}>
-                    <h3 className={styles.calendarTitle}>{new Date().toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}</h3>
-                  </div>
-                  <div className={styles.eventsList}>
-                    {getUpcomingActivities().length > 0 ? (
-                      getUpcomingActivities().map((item, index) => (
-                        <div key={index} className={styles.eventItem}>
-                          <div className={styles.eventDate}>{item.date}</div>
-                          <div className={styles.eventContent}>
-                            <div className={styles.eventTitle}>{item.title}</div>
-                            {item.description && (
-                              <div className={styles.eventTime}>{item.description}</div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                        {dataLoading ? 'Loading events...' : 'No upcoming events'}
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
@@ -419,11 +392,11 @@ export default function Dashboard() {
                 <div className={styles.accountFields}>
                   <div className={styles.accountField}>
                     <label className={styles.accountFieldLabel}>Name</label>
-                    <div className={styles.accountFieldValue}>{getDisplayName()}</div>
+                    <div className={styles.accountFieldValue}>{displayName}</div>
                   </div>
                   <div className={styles.accountField}>
                     <label className={styles.accountFieldLabel}>School</label>
-                    <div className={styles.accountFieldValue}>{getDisplaySchool()}</div>
+                    <div className={styles.accountFieldValue}>{displaySchool}</div>
                   </div>
                   <div className={styles.accountField}>
                     <label className={styles.accountFieldLabel}>Username</label>
@@ -495,9 +468,9 @@ export default function Dashboard() {
                 </div>
                 <div className={styles.userInfo}>
                   <div className={styles.userName}>
-                    {getDisplayName()}
+                    {displayName}
                   </div>
-                  <div className={styles.userSchool}>{getDisplaySchool()}</div>
+                  <div className={styles.userSchool}>{displaySchool}</div>
                 </div>
               </div>
 
@@ -604,49 +577,51 @@ export default function Dashboard() {
               </div>
               <div className={styles.dropdownItem} onClick={handleLogout}>
                 <img src="/Assets/cross.svg" alt="Logout" className={styles.dropdownIcon} />
-                <span>Logout</span>
+                <span>Log out</span>
               </div>
             </div>
           </nav>
 
           {/* Main content area */}
           <main className={styles.mainContent}>
-            <div className={styles.contentHeader}>
-              <h1 className={styles.pageTitle}>{currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}</h1>
-              
-              {/* Search shortcut info */}
-              <div className={styles.headerSearchShortcut}>
-                Press <span className={styles.shortcutKey}>⌘</span><span className={styles.shortcutKey}>K</span> to search
-              </div>
-              
-              {/* Header actions */}
-              <div className={styles.headerActions}>
-                <button 
-                  className={styles.headerActionBtn} 
-                  onClick={() => loadPortalData(true)}
-                  disabled={dataLoading}
-                  title="Refresh"
-                >
-                  <img src="/Assets/refresh-icon.svg" alt="Refresh" />
-                </button>
-                <button 
-                  className={styles.headerActionBtn} 
-                  onClick={() => setShowNotificationsModal(true)}
-                  title="Notifications"
-                >
-                  <img src="/Assets/notification-icon.svg" alt="Notifications" />
-                </button>
-                <button 
-                  className={styles.headerActionBtn} 
-                  onClick={() => handleSectionClick('preferences')}
-                  title="Preferences"
-                >
-                  <img src="/Assets/preferences-icon.svg" alt="Preferences" />
-                </button>
-              </div>
-            </div>
+            <div className={styles.contentContainer}>
+              <header className={styles.contentHeader}>
+                <h1 className={styles.pageTitle}>{currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}</h1>
+                
+                {/* Search shortcut info */}
+                <div className={styles.headerSearchShortcut}>
+                  Press <span className={styles.shortcutKey}>⌘</span><span className={styles.shortcutKey}>K</span> to search
+                </div>
+                
+                {/* Header actions */}
+                <div className={styles.headerActions}>
+                  <button 
+                    className={styles.headerActionBtn} 
+                    onClick={() => loadPortalData(true)}
+                    disabled={dataLoading}
+                    title="Refresh"
+                  >
+                    <img src="/Assets/refresh-icon.svg" alt="Refresh" />
+                  </button>
+                  <button 
+                    className={styles.headerActionBtn} 
+                    onClick={() => setShowNotificationsModal(true)}
+                    title="Notifications"
+                  >
+                    <img src="/Assets/notification-icon.svg" alt="Notifications" />
+                  </button>
+                  <button 
+                    className={styles.headerActionBtn} 
+                    onClick={() => handleSectionClick('preferences')}
+                    title="Preferences"
+                  >
+                    <img src="/Assets/preferences-icon.svg" alt="Preferences" />
+                  </button>
+                </div>
+              </header>
 
-{renderCurrentSection()}
+              {renderCurrentSection()}
+            </div>
           </main>
         </div>
 
@@ -706,7 +681,7 @@ export default function Dashboard() {
 
         {/* Notifications modal */}
         {showNotificationsModal && (
-          <div className={styles.notificationsModal} onClick={(e) => e.target === e.currentTarget && setShowNotificationsModal(false)}>
+          <div className={`${styles.notificationsModal} ${showNotificationsModal ? styles.active : ''}`} onClick={(e) => e.target === e.currentTarget && setShowNotificationsModal(false)}>
             <div className={`${styles.notificationsModalContainer} ${styles.emailStyle}`}>
               {/* Left sidebar for categories */}
               <div className={styles.notificationsSidebar}>
@@ -749,6 +724,18 @@ export default function Dashboard() {
                       </div>
                       <span>Assignments</span>
                       <span className={styles.unreadCount}>4</span>
+                    </li>
+                    <li className={styles.categoryItem} data-category="archive">
+                      <div className={styles.categoryIcon}>
+                        <img src="/Assets/archive.svg" alt="Archive" />
+                      </div>
+                      <span>Archive</span>
+                    </li>
+                    <li className={styles.categoryItem} data-category="trash">
+                      <div className={styles.categoryIcon}>
+                        <img src="/Assets/trash.svg" alt="Trash" />
+                      </div>
+                      <span>Trash</span>
                     </li>
                   </ul>
                 </div>
@@ -806,6 +793,14 @@ export default function Dashboard() {
                           <div className={`${styles.priorityIndicator} ${styles.high}`}></div>
                         </div>
                         <div className={styles.notificationTime}>10:45 AM</div>
+                        <div className={styles.notificationActions}>
+                          <button className={styles.notifActionBtn} title="Mark as read">
+                            <img src="/Assets/mark-read.svg" alt="Mark as read" />
+                          </button>
+                          <button className={styles.notifActionBtn} title="Pin notification">
+                            <img src="/Assets/pin.svg" alt="Pin" />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className={`${styles.notificationItem} ${styles.unread}`}>
@@ -821,6 +816,14 @@ export default function Dashboard() {
                           <div className={`${styles.priorityIndicator} ${styles.medium}`}></div>
                         </div>
                         <div className={styles.notificationTime}>9:30 AM</div>
+                        <div className={styles.notificationActions}>
+                          <button className={styles.notifActionBtn} title="Mark as read">
+                            <img src="/Assets/mark-read.svg" alt="Mark as read" />
+                          </button>
+                          <button className={styles.notifActionBtn} title="Pin notification">
+                            <img src="/Assets/pin.svg" alt="Pin" />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className={`${styles.notificationItem} ${styles.unread}`}>
@@ -836,6 +839,14 @@ export default function Dashboard() {
                           <div className={`${styles.priorityIndicator} ${styles.medium}`}></div>
                         </div>
                         <div className={styles.notificationTime}>8:15 AM</div>
+                        <div className={styles.notificationActions}>
+                          <button className={styles.notifActionBtn} title="Mark as read">
+                            <img src="/Assets/mark-read.svg" alt="Mark as read" />
+                          </button>
+                          <button className={styles.notifActionBtn} title="Pin notification">
+                            <img src="/Assets/pin.svg" alt="Pin" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -854,6 +865,14 @@ export default function Dashboard() {
                           <div className={`${styles.priorityIndicator} ${styles.low}`}></div>
                         </div>
                         <div className={styles.notificationTime}>Yesterday</div>
+                        <div className={styles.notificationActions}>
+                          <button className={styles.notifActionBtn} title="Mark as unread">
+                            <img src="/Assets/mark-unread.svg" alt="Mark as unread" />
+                          </button>
+                          <button className={styles.notifActionBtn} title="Pin notification">
+                            <img src="/Assets/pin.svg" alt="Pin" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
