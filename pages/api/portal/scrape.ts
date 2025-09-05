@@ -74,51 +74,112 @@ export default async function handler(
     const schoolName = userParts[0] || session.school || 'Unknown School';
     const userName = userParts[1] || session.username || 'Unknown User';
 
-    // Extract timetable data
+    // Extract timetable data from the compressed HTML structure
     const timetable: TimetableEntry[] = [];
-    $('#timetable .jdash-body table.table1 tr').each((i, el) => {
-      const cells = $(el).find('td');
-      if (cells.length >= 4) {
-        const period = $(cells[0]).text().trim();
-        const room = $(cells[1]).text().trim();
-        const subject = $(cells[2]).text().trim();
-        const teacher = $(cells[3]).text().trim();
-        
-        // Check if period is currently active (has green background)
-        const isActive = $(cells[4]).find('span[style*="background-color:#20e020"]').length > 0;
-        
-        if (period && subject) {
-          timetable.push({
-            period,
-            room,
-            subject,
-            teacher,
-            isActive
-          });
-        }
-      }
-    });
-
-    // Extract notices
-    const notices: Notice[] = [];
-    $('#notices .jdash-body table.table1 li').each((i, el) => {
-      const $link = $(el).find('a');
-      const title = $link.text().trim();
-      const fullContent = $link.attr('title') || '';
+    
+    // Look for timetable data within the dashboard div
+    const dashboardHtml = $('#dashboard').html() || '';
+    
+    // Use regex to find table rows with timetable data
+    const timetableRegex = /<tr><td><B>(P\d+[AB]?)<\/B><\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td[^>]*><span[^>]*style='[^']*background-color:#([^;']*);'[^>]*>[^<]*<\/span><\/td><\/tr>/g;
+    
+    let match;
+    while ((match = timetableRegex.exec(dashboardHtml)) !== null) {
+      const [, period, room, subject, teacher, bgColor] = match;
       
-      if (title) {
-        // Create preview from content (first 100 characters)
-        const preview = fullContent.length > 100 
-          ? fullContent.substring(0, 100) + '...'
-          : fullContent;
-        
-        notices.push({
-          title,
-          preview,
-          content: fullContent
+      // Determine if active based on background color
+      const isActive = bgColor === '20e020'; // Green color indicates present/active
+      
+      if (period && subject.trim()) {
+        timetable.push({
+          period: period.trim(),
+          room: room.trim(),
+          subject: subject.trim(),
+          teacher: teacher.trim(),
+          isActive
         });
       }
-    });
+    }
+    
+    // Fallback: try the original method if regex didn't find anything
+    if (timetable.length === 0) {
+      $('#timetable .jdash-body table.table1 tr').each((i, el) => {
+        const cells = $(el).find('td');
+        if (cells.length >= 4) {
+          const period = $(cells[0]).text().trim();
+          const room = $(cells[1]).text().trim();
+          const subject = $(cells[2]).text().trim();
+          const teacher = $(cells[3]).text().trim();
+          
+          // Check if period is currently active (has green background)
+          const isActive = $(cells[4]).find('span[style*="background-color:#20e020"]').length > 0;
+          
+          if (period && subject) {
+            timetable.push({
+              period,
+              room,
+              subject,
+              teacher,
+              isActive
+            });
+          }
+        }
+      });
+    }
+
+    // Extract notices from the HTML structure
+    const notices: Notice[] = [];
+    
+    // Look for notices in the dashboard HTML - they appear as list items with links
+    const noticeRegex = /<li><a[^>]*title="([^"]*)"[^>]*class="help">([^<]*)<\/a>/g;
+    
+    let noticeMatch;
+    while ((noticeMatch = noticeRegex.exec(dashboardHtml)) !== null) {
+      const [, fullContent, title] = noticeMatch;
+      
+      if (title && title.trim()) {
+        // Decode HTML entities and clean up the content
+        const decodedContent = fullContent
+          .replace(/&#8217;/g, "'")
+          .replace(/&#8212;/g, "—")
+          .replace(/&#8211;/g, "–")
+          .replace(/<[^>]*>/g, '') // Remove HTML tags
+          .trim();
+        
+        // Create preview from content (first 120 characters)
+        const preview = decodedContent.length > 120 
+          ? decodedContent.substring(0, 120) + '...'
+          : decodedContent;
+        
+        notices.push({
+          title: title.trim(),
+          preview,
+          content: decodedContent
+        });
+      }
+    }
+    
+    // Fallback: try the original method if regex didn't find anything
+    if (notices.length === 0) {
+      $('#notices .jdash-body table.table1 li, .jdash-body li').each((i, el) => {
+        const $link = $(el).find('a');
+        const title = $link.text().trim();
+        const fullContent = $link.attr('title') || '';
+        
+        if (title) {
+          // Create preview from content (first 100 characters)
+          const preview = fullContent.length > 100 
+            ? fullContent.substring(0, 100) + '...'
+            : fullContent;
+          
+          notices.push({
+            title,
+            preview,
+            content: fullContent
+          });
+        }
+      });
+    }
 
     // Extract diary entries
     const diary: DiaryEntry[] = [];
