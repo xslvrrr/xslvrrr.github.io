@@ -74,6 +74,8 @@ export default async function handler(
       session.timestamp = new Date().toISOString();
       await session.save();
 
+      console.log(`Login successful for ${username} at ${school}. Cookies: ${cookies.length > 0 ? 'Available' : 'None'}`);
+
       return res.status(200).json({
         success: true,
         message: 'Login successful! You can now use the redesigned interface.'
@@ -96,12 +98,17 @@ export default async function handler(
     // Handle specific error cases
     if (error.response?.status === 302) {
       // Redirect means successful login
+      const cookies = error.response.headers['set-cookie'] || [];
+      
       const session = await getSession(req, res);
       session.loggedIn = true;
       session.username = username;
       session.school = school;
+      session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
       await session.save();
+
+      console.log(`Login successful (302 redirect) for ${username} at ${school}. Cookies: ${cookies.length > 0 ? 'Available' : 'None'}`);
 
       return res.status(200).json({
         success: true,

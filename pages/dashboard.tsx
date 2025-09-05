@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import styles from '../styles/Dashboard.module.css';
@@ -81,8 +81,20 @@ export default function Dashboard() {
     }
   };
 
-  const loadPortalData = async () => {
+  const loadPortalData = async (force = false) => {
     if (dataLoading) return;
+    
+    // Check if we have recent data (less than 2 minutes old) and not forcing refresh
+    if (!force && portalData?.lastUpdated) {
+      const lastUpdate = new Date(portalData.lastUpdated);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - lastUpdate.getTime()) / (1000 * 60);
+      
+      if (diffMinutes < 2) {
+        console.log('Using cached portal data (less than 2 minutes old)');
+        return;
+      }
+    }
     
     setDataLoading(true);
     try {
@@ -131,23 +143,30 @@ export default function Dashboard() {
     });
   };
 
-  const getActiveClassesCount = () => {
+  // Memoized calculations for better performance
+  const activeClassesCount = useMemo(() => {
     if (!portalData?.timetable) return 0;
     return portalData.timetable.filter(item => item.isActive).length;
-  };
+  }, [portalData?.timetable]);
 
-  const getUpcomingActivities = () => {
+  const upcomingActivities = useMemo(() => {
     if (!portalData?.diary) return [];
     return portalData.diary.slice(0, 3);
-  };
+  }, [portalData?.diary]);
 
-  const getDisplayName = () => {
+  const displayName = useMemo(() => {
     return portalData?.user.name || session?.username || 'User';
-  };
+  }, [portalData?.user.name, session?.username]);
 
-  const getDisplaySchool = () => {
+  const displaySchool = useMemo(() => {
     return portalData?.user.school || session?.school || 'School';
-  };
+  }, [portalData?.user.school, session?.school]);
+
+  // Legacy functions for backward compatibility
+  const getActiveClassesCount = () => activeClassesCount;
+  const getUpcomingActivities = () => upcomingActivities;
+  const getDisplayName = () => displayName;
+  const getDisplaySchool = () => displaySchool;
 
   // Enhanced functionality methods
   const toggleSection = useCallback((section: string) => {
@@ -585,7 +604,7 @@ export default function Dashboard() {
               </div>
               <div className={styles.dropdownItem} onClick={handleLogout}>
                 <img src="/Assets/cross.svg" alt="Logout" className={styles.dropdownIcon} />
-                <span>Log out</span>
+                <span>Logout</span>
               </div>
             </div>
           </nav>
@@ -604,7 +623,7 @@ export default function Dashboard() {
               <div className={styles.headerActions}>
                 <button 
                   className={styles.headerActionBtn} 
-                  onClick={loadPortalData}
+                  onClick={() => loadPortalData(true)}
                   disabled={dataLoading}
                   title="Refresh"
                 >
@@ -619,10 +638,10 @@ export default function Dashboard() {
                 </button>
                 <button 
                   className={styles.headerActionBtn} 
-                  onClick={() => handleSectionClick('settings')}
-                  title="Settings"
+                  onClick={() => handleSectionClick('preferences')}
+                  title="Preferences"
                 >
-                  <img src="/Assets/settings-icon.svg" alt="Settings" />
+                  <img src="/Assets/preferences-icon.svg" alt="Preferences" />
                 </button>
               </div>
             </div>
