@@ -47,12 +47,10 @@ export default function Dashboard() {
   const [currentSection, setCurrentSection] = useState('home');
   const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchSuggestions, setSearchSuggestions] = useState([]);
-  const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
 
   useEffect(() => {
     checkSession();
@@ -164,128 +162,70 @@ export default function Dashboard() {
     setShowUserDropdown(prev => !prev);
   }, []);
 
+  // Get filtered search results
+  const getSearchResults = useCallback(() => {
+    const sections = ['home', 'account', 'notices', 'calendar', 'classes', 'timetable', 'reports', 'attendance'];
+    return sections.filter(item => 
+      item.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  // Handle search modal keyboard navigation
+  const handleSearchKeyDown = useCallback((e: any) => {
+    const results = getSearchResults();
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedSearchIndex(prev => 
+        prev < results.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedSearchIndex(prev => 
+        prev > 0 ? prev - 1 : results.length - 1
+      );
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (results[selectedSearchIndex]) {
+        handleSectionClick(results[selectedSearchIndex]);
+        setShowSearchModal(false);
+        setSearchQuery('');
+        setSelectedSearchIndex(0);
+      }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      if (results[selectedSearchIndex]) {
+        setSearchQuery(results[selectedSearchIndex]);
+      }
+    }
+  }, [getSearchResults, selectedSearchIndex, handleSectionClick]);
+
+  // Reset selected index when search query changes
+  useEffect(() => {
+    setSelectedSearchIndex(0);
+  }, [searchQuery]);
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Cmd/Ctrl + K for search
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
       setShowSearchModal(true);
+      setSelectedSearchIndex(0);
     }
     // Escape to close modals
     if (e.key === 'Escape') {
       setShowSearchModal(false);
+      setShowNotificationsModal(false);
+      setShowUserDropdown(false);
       setSearchQuery('');
-      setSearchResults([]);
-      setSearchSuggestions([]);
-      setSelectedSuggestion(-1);
+      setSelectedSearchIndex(0);
     }
-    if (showSearchModal && searchSuggestions.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedSuggestion(prev => 
-          prev < searchSuggestions.length - 1 ? prev + 1 : 0
-        );
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedSuggestion(prev => 
-          prev > 0 ? prev - 1 : searchSuggestions.length - 1
-        );
-      }
-      if (e.key === 'Enter' && selectedSuggestion >= 0) {
-        e.preventDefault();
-        const selected = searchSuggestions[selectedSuggestion];
-        handleSearchSelect(selected);
-      }
-      if (e.key === 'Tab' && selectedSuggestion >= 0) {
-        e.preventDefault();
-        const selected = searchSuggestions[selectedSuggestion];
-        setSearchQuery(selected.title);
-      }
-    }
-  }, [showSearchModal, searchSuggestions, selectedSuggestion]);
+  }, []);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setShowSearchModal(true);
-      }
-      if (e.key === 'Escape') {
-        setShowSearchModal(false);
-        setSearchQuery('');
-        setSearchResults([]);
-        setSearchSuggestions([]);
-        setSelectedSuggestion(-1);
-      }
-      if (showSearchModal && searchSuggestions.length > 0) {
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          setSelectedSuggestion(prev => 
-            prev < searchSuggestions.length - 1 ? prev + 1 : 0
-          );
-        }
-        if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          setSelectedSuggestion(prev => 
-            prev > 0 ? prev - 1 : searchSuggestions.length - 1
-          );
-        }
-        if (e.key === 'Enter' && selectedSuggestion >= 0) {
-          e.preventDefault();
-          const selected = searchSuggestions[selectedSuggestion];
-          handleSearchSelect(selected);
-        }
-        if (e.key === 'Tab' && selectedSuggestion >= 0) {
-          e.preventDefault();
-          const selected = searchSuggestions[selectedSuggestion];
-          setSearchQuery(selected.title);
-        }
-      }
-    };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showSearchModal, searchSuggestions, selectedSuggestion]);
-
-  const handleSearchSelect = (item) => {
-    if (item.type === 'page') {
-      setCurrentSection(item.path);
-    } else if (item.type === 'action' && item.path === 'notifications') {
-      setShowNotificationsModal(true);
-    }
-    setShowSearchModal(false);
-    setSearchQuery('');
-    setSearchResults([]);
-    setSearchSuggestions([]);
-    setSelectedSuggestion(-1);
-  };
-
-  const searchableItems = [
-    { type: 'page', title: 'Dashboard', path: 'home', description: 'View your overview and quick actions' },
-    { type: 'page', title: 'Notices', path: 'notices', description: 'Check student notices and announcements' },
-    { type: 'page', title: 'Timetable', path: 'timetable', description: 'View your class schedule' },
-    { type: 'page', title: 'Account', path: 'account', description: 'Manage your account settings' },
-    { type: 'action', title: 'View Notifications', path: 'notifications', description: 'Open notifications panel' },
-    { type: 'data', title: 'Classes Today', path: 'classes', description: 'See today\'s class schedule' },
-    { type: 'data', title: 'Recent Activity', path: 'activity', description: 'View recent portal activity' },
-  ];
-
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (!query.trim()) {
-      setSearchResults([]);
-      setSearchSuggestions([]);
-      return;
-    }
-    
-    const results = searchableItems.filter(item => 
-      item.title.toLowerCase().includes(query.toLowerCase()) ||
-      item.description.toLowerCase().includes(query.toLowerCase())
-    );
-    setSearchResults(results);
-    setSearchSuggestions(results.slice(0, 5));
-    setSelectedSuggestion(-1);
-  };
+  }, [handleKeyDown]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -369,99 +309,69 @@ export default function Dashboard() {
               {/* Recent activity */}
               <div className={styles.listSection}>
                 <h2 className={styles.sectionTitle}>Recent Activity</h2>
-                <div className={styles.activityCard}>
-                  <ul className={styles.activityList}>
-                    <li className={styles.activityItem}>
-                      <div className={styles.activityIcon}>
-                        <img src="/Assets/activity-icon.svg" alt="Activity" />
-                      </div>
-                      <div className={styles.activityContent}>
-                        <div className={styles.activityTitle}>Portal Data Synced</div>
-                        <div className={styles.activityTime}>Just now</div>
-                      </div>
-                    </li>
-                    <li className={styles.activityItem}>
-                      <div className={styles.activityIcon}>
-                        <img src="/Assets/activity-icon.svg" alt="Activity" />
-                      </div>
-                      <div className={styles.activityContent}>
-                        <div className={styles.activityTitle}>Logged into Dashboard</div>
-                        <div className={styles.activityTime}>Today</div>
-                      </div>
-                    </li>
-                    <li className={styles.activityItem}>
-                      <div className={styles.activityIcon}>
-                        <img src="/Assets/activity-icon.svg" alt="Activity" />
-                      </div>
-                      <div className={styles.activityContent}>
-                        <div className={styles.activityTitle}>Account Settings Updated</div>
-                        <div className={styles.activityTime}>Yesterday</div>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
+                <ul className={styles.activityList}>
+                  <li className={styles.activityItem}>
+                    <div className={styles.activityIcon}>
+                      <img src="/Assets/activity-icon.svg" alt="Activity" />
+                    </div>
+                    <div className={styles.activityContent}>
+                      <div className={styles.activityTitle}>Portal Data Synced</div>
+                      <div className={styles.activityTime}>Just now</div>
+                    </div>
+                  </li>
+                  <li className={styles.activityItem}>
+                    <div className={styles.activityIcon}>
+                      <img src="/Assets/activity-icon.svg" alt="Activity" />
+                    </div>
+                    <div className={styles.activityContent}>
+                      <div className={styles.activityTitle}>Logged into Dashboard</div>
+                      <div className={styles.activityTime}>Today</div>
+                    </div>
+                  </li>
+                  <li className={styles.activityItem}>
+                    <div className={styles.activityIcon}>
+                      <img src="/Assets/activity-icon.svg" alt="Activity" />
+                    </div>
+                    <div className={styles.activityContent}>
+                      <div className={styles.activityTitle}>Account Settings Updated</div>
+                      <div className={styles.activityTime}>Yesterday</div>
+                    </div>
+                  </li>
+                </ul>
               </div>
 
               {/* Classes list (linear style) */}
               <div className={styles.listSection}>
                 <h2 className={styles.sectionTitle}>Your Classes</h2>
-                <div className={styles.card}>
-                  <table className={styles.listTable}>
-                    <thead className={styles.listTableHeader}>
-                      <tr>
-                        <th>Subject</th>
-                        <th>Teacher</th>
-                        <th>Room</th>
-                        <th>Time</th>
+                <table className={styles.listTable}>
+                  <thead className={styles.listTableHeader}>
+                    <tr>
+                      <th>Subject</th>
+                      <th>Teacher</th>
+                      <th>Room</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {portalData?.timetable && portalData.timetable.length > 0 ? (
+                      portalData.timetable.map((item, index) => (
+                        <tr key={index} className={styles.listTableRow}>
+                          <td>{item.subject}</td>
+                          <td>{item.teacher}</td>
+                          <td>{item.room}</td>
+                          <td>{item.period}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr className={styles.listTableRow}>
+                        <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                          {dataLoading ? 'Loading classes...' : 
+                           new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No data to display'}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        const today = new Date();
-                        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
-                        
-                        if (dataLoading) {
-                          return (
-                            <tr className={styles.listTableRow}>
-                              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                                Loading classes...
-                              </td>
-                            </tr>
-                          );
-                        }
-                        
-                        if (isWeekend) {
-                          return (
-                            <tr className={styles.listTableRow}>
-                              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                                No classes today
-                              </td>
-                            </tr>
-                          );
-                        }
-                        
-                        if (!portalData?.timetable || portalData.timetable.length === 0) {
-                          return (
-                            <tr className={styles.listTableRow}>
-                              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                                No data to display
-                              </td>
-                            </tr>
-                          );
-                        }
-                        
-                        return portalData.timetable.map((item, index) => (
-                          <tr key={index} className={styles.listTableRow}>
-                            <td>{item.subject}</td>
-                            <td>{item.teacher}</td>
-                            <td>{item.room}</td>
-                            <td>{item.period}</td>
-                          </tr>
-                        ));
-                      })()}
-                    </tbody>
-                  </table>
-                </div>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -474,30 +384,18 @@ export default function Dashboard() {
               <div className={`${styles.card} ${styles.noticesCard}`}>
                 <h2>Student Notices</h2>
                 <div className={styles.noticesList}>
-                  {(() => {
-                    if (dataLoading) {
-                      return (
-                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                          Loading notices...
-                        </div>
-                      );
-                    }
-                    
-                    if (!portalData?.notices || portalData.notices.length === 0) {
-                      return (
-                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                          No data to display
-                        </div>
-                      );
-                    }
-                    
-                    return portalData.notices.map((notice, index) => (
+                  {portalData?.notices && portalData.notices.length > 0 ? (
+                    portalData.notices.map((notice, index) => (
                       <div key={index} className={styles.noticeItem}>
                         <div className={styles.noticeTitle}>{notice.title}</div>
                         <div className={styles.noticePreview}>{notice.preview}</div>
                       </div>
-                    ));
-                  })()}
+                    ))
+                  ) : (
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                      {dataLoading ? 'Loading notices...' : 'No data to display'}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -511,43 +409,21 @@ export default function Dashboard() {
               <div className={`${styles.card} ${styles.timetableCard}`}>
                 <h2>Today&apos;s Timetable</h2>
                 <div className={styles.timetableList}>
-                  {(() => {
-                    const today = new Date();
-                    const isWeekend = today.getDay() === 0 || today.getDay() === 6;
-                    
-                    if (dataLoading) {
-                      return (
-                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                          Loading timetable...
-                        </div>
-                      );
-                    }
-                    
-                    if (isWeekend) {
-                      return (
-                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                          No classes today
-                        </div>
-                      );
-                    }
-                    
-                    if (!portalData?.timetable || portalData.timetable.length === 0) {
-                      return (
-                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                          No data to display
-                        </div>
-                      );
-                    }
-                    
-                    return portalData.timetable.map((item, index) => (
+                  {portalData?.timetable && portalData.timetable.length > 0 ? (
+                    portalData.timetable.map((item, index) => (
                       <div key={index} className={`${styles.timetableItem} ${item.isActive ? styles.active : ''}`}>
                         <span className={styles.timetablePeriod}>{item.period}</span>
                         <span className={styles.timetableSubject}>{item.subject}</span>
                         <span className={styles.timetableTeacher}>{item.teacher}</span>
                         <span className={styles.timetableRoom}>{item.room}</span>
                       </div>
-                    ));
-                  })()}
+                    ))
+                  ) : (
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                      {dataLoading ? 'Loading timetable...' : 
+                       new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No data to display'}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -648,13 +524,13 @@ export default function Dashboard() {
               {/* Navigation - Essentials */}
               <div className={`${styles.navSection} ${collapsedSections.includes('essentials') ? styles.collapsed : ''}`}>
                 <div className={styles.navHeadingContainer} onClick={() => toggleSection('essentials')}>
-                  <h2 className={styles.navHeading}>Essentials</h2>
                   <img 
                     src="/Assets/angle-down.svg" 
                     alt="Collapse" 
                     className={styles.navCollapseIcon}
                     style={{ transform: collapsedSections.includes('essentials') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
                   />
+                  <h2 className={styles.navHeading}>Essentials</h2>
                 </div>
                 <ul className={styles.navList}>
                   <li className={`${styles.navItem} ${currentSection === 'home' ? styles.active : ''}`}>
@@ -695,13 +571,13 @@ export default function Dashboard() {
               {/* Navigation - Register */}
               <div className={`${styles.navSection} ${collapsedSections.includes('register') ? styles.collapsed : ''}`}>
                 <div className={styles.navHeadingContainer} onClick={() => toggleSection('register')}>
-                  <h2 className={styles.navHeading}>Register</h2>
                   <img 
                     src="/Assets/angle-down.svg" 
                     alt="Collapse" 
                     className={styles.navCollapseIcon}
                     style={{ transform: collapsedSections.includes('register') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
                   />
+                  <h2 className={styles.navHeading}>Register</h2>
                 </div>
                 <ul className={styles.navList}>
                   <li className={`${styles.navItem} ${currentSection === 'classes' ? styles.active : ''}`}>
@@ -806,7 +682,8 @@ export default function Dashboard() {
                   className={styles.searchModalInput} 
                   placeholder="Search commands, pages, and more..." 
                   value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   autoFocus
                 />
               </div>
@@ -814,27 +691,45 @@ export default function Dashboard() {
                 {searchQuery ? (
                   <div>
                     <div className={styles.searchCategoryHeader}>Navigation</div>
-                    {searchResults
-                      .filter(item => item.type === 'page')
-                      .map(item => (
-                        <div key={item.title} className={styles.searchResult} onClick={() => {
-                          handleSearchSelect(item);
-                        }}>
-                          <div className={styles.searchResultIcon}>
-                            <img src={`/Assets/${item.path === 'home' ? 'home' : item.path === 'account' ? 'account' : item.path === 'notices' ? 'notices' : item.path === 'calendar' ? 'calendar' : item.path === 'classes' ? 'classes' : item.path === 'timetable' ? 'timetable' : item.path === 'reports' ? 'reports' : 'attendance'}-icon.svg`} alt={item.title} />
-                            <img src={`/Assets/${item === 'home' ? 'home' : item === 'account' ? 'account' : item === 'notices' ? 'notices' : item === 'calendar' ? 'calendar' : item === 'classes' ? 'classes' : item === 'timetable' ? 'timetable' : item === 'reports' ? 'reports' : 'attendance'}-icon.svg`} alt={item} />
-                          </div>
-                          <div className={styles.searchResultContent}>
-                            <div className={styles.searchResultTitle}>{item.charAt(0).toUpperCase() + item.slice(1)}</div>
-                            <div className={styles.searchResultDescription}>Navigate to {item}</div>
-                          </div>
+                    {getSearchResults().map((item, index) => (
+                      <div 
+                        key={item} 
+                        className={`${styles.searchResult} ${index === selectedSearchIndex ? styles.selected : ''}`} 
+                        onClick={() => {
+                          handleSectionClick(item);
+                          setShowSearchModal(false);
+                          setSearchQuery('');
+                          setSelectedSearchIndex(0);
+                        }}
+                      >
+                        <div className={styles.searchResultIcon}>
+                          <img src={`/Assets/${item}-icon.svg`} alt={item} />
                         </div>
-                      ))
-                    }
+                        <div className={styles.searchResultContent}>
+                          <div className={styles.searchResultTitle}>{item.charAt(0).toUpperCase() + item.slice(1)}</div>
+                          <div className={styles.searchResultDescription}>Navigate to {item}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className={styles.searchEmptyState}>
                     <p>Start typing to search...</p>
+                    <div className={styles.searchHints}>
+                      <div className={styles.searchHint}>
+                        <span className={styles.shortcutKey}>↑</span>
+                        <span className={styles.shortcutKey}>↓</span>
+                        <span>to navigate</span>
+                      </div>
+                      <div className={styles.searchHint}>
+                        <span className={styles.shortcutKey}>↵</span>
+                        <span>to select</span>
+                      </div>
+                      <div className={styles.searchHint}>
+                        <span className={styles.shortcutKey}>Tab</span>
+                        <span>to autocomplete</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -946,106 +841,43 @@ export default function Dashboard() {
                 </div>
                 
                 <div className={styles.notificationsListContent}>
-                  {/* Today's notifications */}
-                  <div className={styles.notificationsDateSection}>
-                    <h4 className={styles.dateHeader}>Today</h4>
-                    <div className={styles.notificationItems}>
-                      <div className={`${styles.notificationItem} ${styles.unread} ${styles.selected}`}>
-                        <div className={styles.notificationStatus}>
-                          <div className={styles.unreadIndicator}></div>
-                        </div>
-                        <div className={styles.notificationIcon}>
-                          <img src="/Assets/alert.svg" alt="Alert" />
-                        </div>
-                        <div className={styles.notificationContent}>
-                          <div className={styles.notificationTitle}>Portal Maintenance Notice</div>
-                          <div className={styles.notificationPreview}>Scheduled maintenance will occur this weekend. Please save your work before Friday 8 PM.</div>
-                          <div className={`${styles.priorityIndicator} ${styles.high}`}></div>
-                        </div>
-                        <div className={styles.notificationTime}>10:45 AM</div>
-                        <div className={styles.notificationActions}>
-                          <button className={styles.notifActionBtn} title="Mark as read">
-                            <img src="/Assets/mark-read.svg" alt="Mark as read" />
-                          </button>
-                          <button className={styles.notifActionBtn} title="Pin notification">
-                            <img src="/Assets/pin.svg" alt="Pin" />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className={`${styles.notificationItem} ${styles.unread}`}>
-                        <div className={styles.notificationStatus}>
-                          <div className={styles.unreadIndicator}></div>
-                        </div>
-                        <div className={styles.notificationIcon}>
-                          <img src="/Assets/homework-icon.svg" alt="Homework" />
-                        </div>
-                        <div className={styles.notificationContent}>
-                          <div className={styles.notificationTitle}>New Assignment Posted</div>
-                          <div className={styles.notificationPreview}>Mathematics assignment on functions has been posted. Due next Monday.</div>
-                          <div className={`${styles.priorityIndicator} ${styles.medium}`}></div>
-                        </div>
-                        <div className={styles.notificationTime}>9:30 AM</div>
-                        <div className={styles.notificationActions}>
-                          <button className={styles.notifActionBtn} title="Mark as read">
-                            <img src="/Assets/mark-read.svg" alt="Mark as read" />
-                          </button>
-                          <button className={styles.notifActionBtn} title="Pin notification">
-                            <img src="/Assets/pin.svg" alt="Pin" />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className={`${styles.notificationItem} ${styles.unread}`}>
-                        <div className={styles.notificationStatus}>
-                          <div className={styles.unreadIndicator}></div>
-                        </div>
-                        <div className={styles.notificationIcon}>
-                          <img src="/Assets/calendar-icon.svg" alt="Calendar" />
-                        </div>
-                        <div className={styles.notificationContent}>
-                          <div className={styles.notificationTitle}>Assembly Rescheduled</div>
-                          <div className={styles.notificationPreview}>School assembly moved to Thursday at 10 AM in the main hall.</div>
-                          <div className={`${styles.priorityIndicator} ${styles.medium}`}></div>
-                        </div>
-                        <div className={styles.notificationTime}>8:15 AM</div>
-                        <div className={styles.notificationActions}>
-                          <button className={styles.notifActionBtn} title="Mark as read">
-                            <img src="/Assets/mark-read.svg" alt="Mark as read" />
-                          </button>
-                          <button className={styles.notifActionBtn} title="Pin notification">
-                            <img src="/Assets/pin.svg" alt="Pin" />
-                          </button>
-                        </div>
+                  {portalData?.notices && portalData.notices.length > 0 ? (
+                    <div className={styles.notificationsDateSection}>
+                      <h4 className={styles.dateHeader}>Recent</h4>
+                      <div className={styles.notificationItems}>
+                        {portalData.notices.map((notice: Notice, index: number) => (
+                          <div key={index} className={`${styles.notificationItem} ${index === 0 ? styles.selected : ''}`}>
+                            <div className={styles.notificationStatus}>
+                              <div className={styles.unreadIndicator}></div>
+                            </div>
+                            <div className={styles.notificationIcon}>
+                              <img src="/Assets/notification-icon.svg" alt="Notice" />
+                            </div>
+                            <div className={styles.notificationContent}>
+                              <div className={styles.notificationTitle}>{notice.title}</div>
+                              <div className={styles.notificationPreview}>{notice.preview}</div>
+                              <div className={`${styles.priorityIndicator} ${styles.medium}`}></div>
+                            </div>
+                            <div className={styles.notificationTime}>Recent</div>
+                            <div className={styles.notificationActions}>
+                              <button className={styles.notifActionBtn} title="Mark as read">
+                                <img src="/Assets/mark-read.svg" alt="Mark as read" />
+                              </button>
+                              <button className={styles.notifActionBtn} title="Pin notification">
+                                <img src="/Assets/pin.svg" alt="Pin" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className={styles.notificationsDateSection}>
-                    <h4 className={styles.dateHeader}>Yesterday</h4>
-                    <div className={styles.notificationItems}>
-                      <div className={styles.notificationItem}>
-                        <div className={styles.notificationStatus}></div>
-                        <div className={styles.notificationIcon}>
-                          <img src="/Assets/grade.svg" alt="Grade" />
-                        </div>
-                        <div className={styles.notificationContent}>
-                          <div className={styles.notificationTitle}>Assignment Graded</div>
-                          <div className={styles.notificationPreview}>Your essay has been graded. Check your assignments for feedback.</div>
-                          <div className={`${styles.priorityIndicator} ${styles.low}`}></div>
-                        </div>
-                        <div className={styles.notificationTime}>Yesterday</div>
-                        <div className={styles.notificationActions}>
-                          <button className={styles.notifActionBtn} title="Mark as unread">
-                            <img src="/Assets/mark-unread.svg" alt="Mark as unread" />
-                          </button>
-                          <button className={styles.notifActionBtn} title="Pin notification">
-                            <img src="/Assets/pin.svg" alt="Pin" />
-                          </button>
-                        </div>
-                      </div>
+                  ) : (
+                    <div className={styles.noNotificationSelected}>
+                      <img src="/Assets/inbox.svg" alt="No notifications" className={styles.emptyStateIcon} />
+                      <h3>No notifications to display</h3>
+                      <p>You're all caught up! Check back later for new notifications.</p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
