@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import styles from '../styles/Dashboard.module.css';
+import notificationStyles from '../styles/NotificationsModal.module.css';
 
 interface UserSession {
   loggedIn: boolean;
@@ -51,6 +52,14 @@ export default function Dashboard() {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
+  
+  // Notifications state
+  const [selectedNotificationCategory, setSelectedNotificationCategory] = useState('inbox');
+  const [selectedNotification, setSelectedNotification] = useState<Notice | null>(null);
+  const [notificationSearchQuery, setNotificationSearchQuery] = useState('');
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState('');
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     checkSession();
@@ -143,6 +152,58 @@ export default function Dashboard() {
   const displaySchool = useMemo(() => {
     return portalData?.user.school || session?.school || 'School';
   }, [portalData?.user.school, session?.school]);
+
+  // Notification helper functions
+  const getNotificationsByCategory = useCallback((category: string) => {
+    if (!portalData?.notices) return [];
+    
+    switch (category) {
+      case 'inbox':
+        return portalData.notices;
+      case 'pinned':
+        return portalData.notices.filter((_, index) => index < 2); // Mock pinned
+      case 'alerts':
+        return portalData.notices.filter(notice => 
+          notice.title.toLowerCase().includes('alert') || 
+          notice.title.toLowerCase().includes('urgent')
+        );
+      case 'calendar':
+        return portalData.notices.filter(notice => 
+          notice.title.toLowerCase().includes('event') || 
+          notice.title.toLowerCase().includes('calendar')
+        );
+      case 'homework':
+        return portalData.notices.filter(notice => 
+          notice.title.toLowerCase().includes('assignment') || 
+          notice.title.toLowerCase().includes('homework')
+        );
+      case 'archive':
+        return [];
+      case 'trash':
+        return [];
+      default:
+        return portalData.notices;
+    }
+  }, [portalData?.notices]);
+
+  const getNotificationCount = useCallback((category: string) => {
+    return getNotificationsByCategory(category).length;
+  }, [getNotificationsByCategory]);
+
+  const handleTooltipShow = useCallback((tooltipId: string, event: React.MouseEvent) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltipPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top - 10
+    });
+    setTooltipContent(tooltipId);
+    setShowTooltip(true);
+  }, []);
+
+  const handleTooltipHide = useCallback(() => {
+    setShowTooltip(false);
+    setTooltipContent('');
+  }, []);
 
   // Enhanced functionality methods
   const toggleSection = useCallback((section: string) => {
@@ -763,145 +824,244 @@ export default function Dashboard() {
 
         {/* Notifications modal */}
         {showNotificationsModal && (
-          <div className={`${styles.notificationsModal} ${showNotificationsModal ? styles.active : ''}`} onClick={(e) => e.target === e.currentTarget && setShowNotificationsModal(false)}>
-            <div className={`${styles.notificationsModalContainer} ${styles.emailStyle}`}>
+          <div className={`${styles.notificationsModal} ${styles.active}`} onClick={(e) => e.target === e.currentTarget && setShowNotificationsModal(false)}>
+            <div className={styles.notificationsModalContainer}>
               {/* Left sidebar for categories */}
               <div className={styles.notificationsSidebar}>
                 <div className={styles.notificationsSidebarHeader}>
                   <h3>Notifications</h3>
+                  <button 
+                    className={styles.closeBtn}
+                    onClick={() => setShowNotificationsModal(false)}
+                    onMouseEnter={(e) => handleTooltipShow('close', e)}
+                    onMouseLeave={handleTooltipHide}
+                  >
+                    <img src="/Assets/cross.svg" alt="Close" />
+                  </button>
                 </div>
+                
                 <div className={styles.notificationsSidebarContent}>
                   <ul className={styles.notificationsCategories}>
-                    <li className={`${styles.categoryItem} ${styles.active}`} data-category="inbox">
-                      <div className={styles.categoryIcon}>
-                        <img src="/Assets/inbox.svg" alt="Inbox" />
-                      </div>
-                      <span>Inbox</span>
-                    </li>
-                    <li className={styles.categoryItem} data-category="pinned">
-                      <div className={styles.categoryIcon}>
-                        <img src="/Assets/pinned.svg" alt="Pinned" />
-                      </div>
-                      <span>Pinned</span>
-                    </li>
-                    <li className={styles.categoryItem} data-category="alerts">
-                      <div className={styles.categoryIcon}>
-                        <img src="/Assets/alert.svg" alt="Alerts" />
-                      </div>
-                      <span>Alerts</span>
-                    </li>
-                    <li className={styles.categoryItem} data-category="calendar">
-                      <div className={styles.categoryIcon}>
-                        <img src="/Assets/calendar-icon.svg" alt="Calendar" />
-                      </div>
-                      <span>Events</span>
-                    </li>
-                    <li className={styles.categoryItem} data-category="homework">
-                      <div className={styles.categoryIcon}>
-                        <img src="/Assets/homework-icon.svg" alt="Homework" />
-                      </div>
-                      <span>Assignments</span>
-                    </li>
-                    <li className={styles.categoryItem} data-category="archive">
-                      <div className={styles.categoryIcon}>
-                        <img src="/Assets/archive.svg" alt="Archive" />
-                      </div>
-                      <span>Archive</span>
-                    </li>
-                    <li className={styles.categoryItem} data-category="trash">
-                      <div className={styles.categoryIcon}>
-                        <img src="/Assets/trash.svg" alt="Trash" />
-                      </div>
-                      <span>Trash</span>
-                    </li>
+                    {[
+                      { id: 'inbox', icon: 'inbox.svg', label: 'Inbox' },
+                      { id: 'pinned', icon: 'pin-outline.svg', label: 'Pinned' },
+                      { id: 'alerts', icon: 'alert.svg', label: 'Alerts' },
+                      { id: 'calendar', icon: 'calendar-icon.svg', label: 'Events' },
+                      { id: 'homework', icon: 'homework-icon.svg', label: 'Assignments' },
+                      { id: 'archive', icon: 'archive.svg', label: 'Archive' },
+                      { id: 'trash', icon: 'trash.svg', label: 'Trash' }
+                    ].map(category => (
+                      <li 
+                        key={category.id}
+                        className={`${styles.categoryItem} ${selectedNotificationCategory === category.id ? styles.active : ''}`}
+                        onClick={() => {
+                          setSelectedNotificationCategory(category.id);
+                          setSelectedNotification(null);
+                        }}
+                      >
+                        <div className={styles.categoryIcon}>
+                          <img src={`/Assets/${category.icon}`} alt={category.label} />
+                        </div>
+                        <span className={styles.categoryLabel}>{category.label}</span>
+                        {getNotificationCount(category.id) > 0 && (
+                          <span className={styles.categoryCount}>{getNotificationCount(category.id)}</span>
+                        )}
+                      </li>
+                    ))}
                   </ul>
                 </div>
+                
                 <div className={styles.notificationsSidebarFooter}>
-                  <button className={styles.sidebarActionBtn} title="Notification settings">
+                  <button 
+                    className={styles.sidebarActionBtn}
+                    onMouseEnter={(e) => handleTooltipShow('settings', e)}
+                    onMouseLeave={handleTooltipHide}
+                  >
                     <img src="/Assets/settings-icon.svg" alt="Settings" />
                   </button>
-                  <button className={styles.sidebarActionBtn} title="Refresh notifications">
+                  <button 
+                    className={styles.sidebarActionBtn}
+                    onClick={() => loadPortalData(true)}
+                    onMouseEnter={(e) => handleTooltipShow('refresh', e)}
+                    onMouseLeave={handleTooltipHide}
+                  >
                     <img src="/Assets/refresh-icon.svg" alt="Refresh" />
-                  </button>
-                  <button className={styles.sidebarActionBtn} onClick={() => setShowNotificationsModal(false)} title="Close notifications">
-                    <img src="/Assets/cross.svg" alt="Close" />
                   </button>
                 </div>
               </div>
 
               {/* Middle panel for notification list */}
-              <div className={styles.notificationsListPanel}>
-                <div className={styles.notificationsListHeader}>
-                  <div className={styles.listSearch}>
-                    <span className={styles.searchIcon}>
-                      <img src="/Assets/search.svg" alt="Search" />
-                    </span>
-                    <input type="text" placeholder="Search notifications..." />
+              <div className={notificationStyles.notificationsListPanel}>
+                <div className={notificationStyles.notificationsListHeader}>
+                  <div className={notificationStyles.listSearch}>
+                    <img src="/Assets/search.svg" alt="Search" className={notificationStyles.searchIcon} />
+                    <input 
+                      type="text" 
+                      placeholder="Search notifications..." 
+                      value={notificationSearchQuery}
+                      onChange={(e) => setNotificationSearchQuery(e.target.value)}
+                    />
                   </div>
                   
-                  <div className={styles.listHeaderActions}>
-                    <button className={styles.headerActionBtn} title="Mark all as read">
+                  <div className={notificationStyles.listHeaderActions}>
+                    <button 
+                      className={notificationStyles.headerActionBtn}
+                      onMouseEnter={(e) => handleTooltipShow('mark-all-read', e)}
+                      onMouseLeave={handleTooltipHide}
+                    >
                       <img src="/Assets/mark-read.svg" alt="Mark all as read" />
                     </button>
-                    <button className={styles.headerActionBtn} title="Filter">
+                    <button 
+                      className={notificationStyles.headerActionBtn}
+                      onMouseEnter={(e) => handleTooltipShow('filter', e)}
+                      onMouseLeave={handleTooltipHide}
+                    >
                       <img src="/Assets/filter.svg" alt="Filter" />
                     </button>
-                    <button className={styles.headerActionBtn} title="Sort by date">
+                    <button 
+                      className={notificationStyles.headerActionBtn}
+                      onMouseEnter={(e) => handleTooltipShow('sort', e)}
+                      onMouseLeave={handleTooltipHide}
+                    >
                       <img src="/Assets/sort.svg" alt="Sort" />
                     </button>
                   </div>
                 </div>
                 
-                <div className={styles.notificationsListContent}>
-                  {portalData?.notices && portalData.notices.length > 0 ? (
-                    <div className={styles.notificationsDateSection}>
-                      <h4 className={styles.dateHeader}>Recent</h4>
-                      <div className={styles.notificationItems}>
-                        {portalData.notices.map((notice: Notice, index: number) => (
-                          <div key={index} className={`${styles.notificationItem} ${index === 0 ? styles.selected : ''}`}>
-                            <div className={styles.notificationStatus}>
-                              <div className={styles.unreadIndicator}></div>
+                <div className={notificationStyles.notificationsListContent}>
+                  {(() => {
+                    const notifications = getNotificationsByCategory(selectedNotificationCategory);
+                    const filteredNotifications = notifications.filter(notice =>
+                      notice.title.toLowerCase().includes(notificationSearchQuery.toLowerCase()) ||
+                      notice.preview.toLowerCase().includes(notificationSearchQuery.toLowerCase())
+                    );
+                    
+                    return filteredNotifications.length > 0 ? (
+                      <div className={notificationStyles.notificationsList}>
+                        {filteredNotifications.map((notice: Notice, index: number) => (
+                          <div 
+                            key={index} 
+                            className={`${notificationStyles.notificationItem} ${selectedNotification === notice ? notificationStyles.selected : ''}`}
+                            onClick={() => setSelectedNotification(notice)}
+                          >
+                            <div className={notificationStyles.notificationStatus}>
+                              <div className={notificationStyles.unreadIndicator}></div>
                             </div>
-                            <div className={styles.notificationIcon}>
+                            <div className={notificationStyles.notificationIcon}>
                               <img src="/Assets/notification-icon.svg" alt="Notice" />
                             </div>
-                            <div className={styles.notificationContent}>
-                              <div className={styles.notificationTitle}>{notice.title}</div>
-                              <div className={styles.notificationPreview}>{notice.preview}</div>
-                              <div className={`${styles.priorityIndicator} ${styles.medium}`}></div>
+                            <div className={notificationStyles.notificationContent}>
+                              <div className={notificationStyles.notificationTitle}>{notice.title}</div>
+                              <div className={notificationStyles.notificationPreview}>{notice.preview}</div>
                             </div>
-                            <div className={styles.notificationTime}>Recent</div>
-                            <div className={styles.notificationActions}>
-                              <button className={styles.notifActionBtn} title="Mark as read">
+                            <div className={notificationStyles.notificationTime}>Recent</div>
+                            <div className={notificationStyles.notificationActions}>
+                              <button 
+                                className={notificationStyles.notifActionBtn}
+                                onMouseEnter={(e) => handleTooltipShow('mark-read', e)}
+                                onMouseLeave={handleTooltipHide}
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <img src="/Assets/mark-read.svg" alt="Mark as read" />
                               </button>
-                              <button className={styles.notifActionBtn} title="Pin notification">
-                                <img src="/Assets/pin.svg" alt="Pin" />
+                              <button 
+                                className={notificationStyles.notifActionBtn}
+                                onMouseEnter={(e) => handleTooltipShow('pin', e)}
+                                onMouseLeave={handleTooltipHide}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <img src="/Assets/pin-outline.svg" alt="Pin" />
                               </button>
                             </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ) : (
-                    <div className={styles.noNotificationSelected}>
-                      <img src="/Assets/inbox.svg" alt="No notifications" className={styles.emptyStateIcon} />
-                      <h3>No notifications to display</h3>
-                      <p>You're all caught up! Check back later for new notifications.</p>
-                    </div>
-                  )}
+                    ) : (
+                      <div className={notificationStyles.emptyNotifications}>
+                        <img src="/Assets/inbox.svg" alt="No notifications" className={notificationStyles.emptyStateIcon} />
+                        <h3>No notifications</h3>
+                        <p>{notificationSearchQuery ? 'No notifications match your search.' : `No ${selectedNotificationCategory} notifications.`}</p>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
               {/* Right panel for notification details */}
-              <div className={styles.notificationsDetailPanel}>
-                <div className={styles.noNotificationSelected}>
-                  <img src="/Assets/inbox.svg" alt="No notification selected" className={styles.emptyStateIcon} />
-                  <h3>No notification selected</h3>
-                  <p>Select a notification to view its details</p>
-                </div>
+              <div className={notificationStyles.notificationsDetailPanel}>
+                {selectedNotification ? (
+                  <div className={notificationStyles.notificationDetail}>
+                    <div className={notificationStyles.detailHeader}>
+                      <div className={notificationStyles.detailTitle}>{selectedNotification.title}</div>
+                      <div className={notificationStyles.detailActions}>
+                        <button 
+                          className={notificationStyles.detailActionBtn}
+                          onMouseEnter={(e) => handleTooltipShow('reply', e)}
+                          onMouseLeave={handleTooltipHide}
+                        >
+                          <img src="/Assets/reply.svg" alt="Reply" />
+                        </button>
+                        <button 
+                          className={notificationStyles.detailActionBtn}
+                          onMouseEnter={(e) => handleTooltipShow('archive', e)}
+                          onMouseLeave={handleTooltipHide}
+                        >
+                          <img src="/Assets/archive.svg" alt="Archive" />
+                        </button>
+                        <button 
+                          className={notificationStyles.detailActionBtn}
+                          onMouseEnter={(e) => handleTooltipShow('delete', e)}
+                          onMouseLeave={handleTooltipHide}
+                        >
+                          <img src="/Assets/delete.svg" alt="Delete" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className={notificationStyles.detailContent}>
+                      <div className={notificationStyles.detailMeta}>
+                        <span className={notificationStyles.detailDate}>Recent</span>
+                        <span className={notificationStyles.detailCategory}>Notice</span>
+                      </div>
+                      <div className={notificationStyles.detailBody}>
+                        {selectedNotification.content}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={notificationStyles.noNotificationSelected}>
+                    <img src="/Assets/notification-icon.svg" alt="Select notification" className={notificationStyles.selectNotificationIcon} />
+                    <h3>Select a notification</h3>
+                    <p>Choose a notification from the list to view its details.</p>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Custom Tooltip */}
+        {showTooltip && (
+          <div 
+            className={notificationStyles.customTooltip}
+            style={{
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y}px`,
+            }}
+          >
+            {(() => {
+              switch (tooltipContent) {
+                case 'refresh': return 'Refresh notifications';
+                case 'mark-all-read': return 'Mark all as read';
+                case 'filter': return 'Filter notifications';
+                case 'sort': return 'Sort by date';
+                case 'mark-read': return 'Mark as read';
+                case 'pin': return 'Pin notification';
+                case 'reply': return 'Reply';
+                case 'archive': return 'Archive';
+                case 'delete': return 'Delete';
+                default: return '';
+              }
+            })()}
           </div>
         )}
       </div>
