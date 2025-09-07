@@ -671,8 +671,17 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Navigation - Notifications */}
-              <div className={styles.navSection}>
+              {/* Navigation - Essentials */}
+              <div className={`${styles.navSection} ${collapsedSections.includes('essentials') ? styles.collapsed : ''}`}>
+                <div className={styles.navHeadingContainer} onClick={() => toggleSection('essentials')}>
+                  <img 
+                    src="/Assets/angle-down.svg" 
+                    alt="Collapse" 
+                    className={styles.navCollapseIcon}
+                    style={{ transform: collapsedSections.includes('essentials') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+                  />
+                  <h2 className={styles.navHeading}>Essentials</h2>
+                </div>
                 <ul className={styles.navList}>
                   <li className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
                     <button 
@@ -688,21 +697,6 @@ export default function Dashboard() {
                       <span>Notifications</span>
                     </button>
                   </li>
-                </ul>
-              </div>
-
-              {/* Navigation - Essentials */}
-              <div className={`${styles.navSection} ${collapsedSections.includes('essentials') ? styles.collapsed : ''}`}>
-                <div className={styles.navHeadingContainer} onClick={() => toggleSection('essentials')}>
-                  <img 
-                    src="/Assets/angle-down.svg" 
-                    alt="Collapse" 
-                    className={styles.navCollapseIcon}
-                    style={{ transform: collapsedSections.includes('essentials') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
-                  />
-                  <h2 className={styles.navHeading}>Essentials</h2>
-                </div>
-                <ul className={styles.navList}>
                   <li className={styles.navItem}>
                     <Link href="/" className={styles.navLink}>
                       <div className={styles.navIcon}>
@@ -845,18 +839,18 @@ export default function Dashboard() {
                     
                     <div className={styles.sidebarFooter}>
                       <button 
-                        className={styles.sidebarActionBtn}
-                        onClick={() => setCurrentView('preferences')}
-                        onMouseEnter={() => setShowTooltip('settings')}
+                        className={styles.footerBtn}
+                        onMouseEnter={() => setShowTooltip('preferences')}
                         onMouseLeave={() => setShowTooltip(null)}
+                        onClick={() => handleSectionClick('preferences')}
                       >
                         <img src="/Assets/preferences-icon.svg" alt="Preferences" />
-                        {showTooltip === 'settings' && (
+                        {showTooltip === 'preferences' && (
                           <div className={styles.tooltip}>Preferences</div>
                         )}
                       </button>
                       <button 
-                        className={styles.sidebarActionBtn}
+                        className={styles.footerBtn}
                         onClick={() => loadPortalData(true)}
                         onMouseEnter={() => setShowTooltip('refresh')}
                         onMouseLeave={() => setShowTooltip(null)}
@@ -1216,13 +1210,13 @@ export default function Dashboard() {
                 
                 <div className={styles.sidebarFooter}>
                   <button 
-                    className={styles.sidebarActionBtn}
-                    onClick={() => setCurrentView('preferences')}
-                    onMouseEnter={() => setShowTooltip('settings')}
+                    className={styles.footerBtn}
+                    onMouseEnter={() => setShowTooltip('preferences')}
                     onMouseLeave={() => setShowTooltip(null)}
+                    onClick={() => handleSectionClick('preferences')}
                   >
                     <img src="/Assets/preferences-icon.svg" alt="Preferences" />
-                    {showTooltip === 'settings' && (
+                    {showTooltip === 'preferences' && (
                       <div className={styles.tooltip}>Preferences</div>
                     )}
                   </button>

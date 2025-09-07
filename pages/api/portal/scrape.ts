@@ -58,13 +58,12 @@ export default async function handler(
     // Create cookie header from stored session cookies
     const cookieHeader = session.sessionCookies.join('; ');
 
-    // Make request to portal notices page with session cookies
-    const portalResponse = await axios.get('https://portal.millennium.net.au/portal/notices.asp', {
+    // Scrape the main portal page
+    const portalResponse = await axios.get('https://millennium.education/portal/', {
       headers: {
         'Cookie': cookieHeader,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      timeout: 10000
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
     });
 
     const $ = cheerio.load(portalResponse.data);
@@ -184,57 +183,75 @@ export default async function handler(
     
     console.log(`Found ${timetable.length} timetable entries`);
 
-    // Extract notices from the notices page structure
-    const notices: Notice[] = [];
+    // Scrape notices from /portal/notices.asp
+    let notices: Notice[] = [];
     
-    // Look for notice items in the structure based on notices source.asp
-    $('.notice').each((_, element) => {
-      const $notice = $(element);
-      const $title = $notice.prev('h4'); // Title is in h4 before .notice div
-      
-      if ($title.length) {
-        const title = $title.text().trim();
-        const content = $notice.html() || '';
-        
-        // Clean up HTML content and create preview
-        const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-        const preview = cleanContent.length > 150 ? 
-          cleanContent.substring(0, 150) + '...' : cleanContent;
-        
-        if (title && cleanContent) {
-          notices.push({
-            title,
-            preview: preview || 'No preview available',
-            content: cleanContent
-          });
-        }
-      }
-    });
-    
-    // Also check for notices in table format if the above doesn't work
-    if (notices.length === 0) {
-      $('h4').each((_, element) => {
-        const $title = $(element);
-        const $content = $title.next('.notice');
-        
-        if ($content.length) {
-          const title = $title.text().trim();
-          const content = $content.html() || '';
-          
-          // Clean up HTML content and create preview
-          const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-          const preview = cleanContent.length > 150 ? 
-            cleanContent.substring(0, 150) + '...' : cleanContent;
-          
-          if (title && cleanContent && title.length > 3) {
-            notices.push({
-              title,
-              preview: preview || 'No preview available',
-              content: cleanContent
-            });
-          }
+    try {
+      const noticesResponse = await axios.get('https://millennium.education/portal/notices.asp', {
+        headers: {
+          'Cookie': cookieHeader,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
       });
+      
+      if (noticesResponse.status === 200) {
+        const noticesHtml = noticesResponse.data;
+        const $notices = cheerio.load(noticesHtml);
+        
+        // Extract notices based on the actual notices page structure
+        $notices('h4').each((i, el) => {
+          const $heading = $notices(el);
+          const title = $heading.text().trim();
+          
+          // Get the notice content from the following .notice div
+          const $noticeDiv = $heading.next('.notice');
+          let content = '';
+          let preview = '';
+          
+          if ($noticeDiv.length > 0) {
+            content = $noticeDiv.html() || '';
+            // Create preview from text content
+            const textContent = $noticeDiv.text().trim();
+            preview = textContent.length > 150 
+              ? textContent.substring(0, 150) + '...'
+              : textContent;
+          } else {
+            // Fallback: get content from next sibling elements until next h4
+            let $current = $heading.next();
+            const contentParts: string[] = [];
+            
+            while ($current.length > 0 && !$current.is('h4')) {
+              if ($current.hasClass('notice')) {
+                contentParts.push($current.html() || '');
+                const textContent = $current.text().trim();
+                if (!preview && textContent) {
+                  preview = textContent.length > 150
+                    ? textContent.substring(0, 150) + '...'
+                    : textContent;
+                }
+              }
+              $current = $current.next();
+            }
+            
+            content = contentParts.join('\n');
+          }
+          
+          // Skip empty or invalid notices
+          if (title && title.length > 3 && preview) {
+            notices.push({
+              title: title.replace(/[\u1F300-\u1F9FF]/g, '').trim(), // Remove emojis for cleaner titles
+              preview,
+              content
+            });
+          }
+        });
+        
+        console.log(`Found ${notices.length} notices from notices page`);
+      } else {
+        console.log('Failed to fetch notices page, status:', noticesResponse.status);
+      }
+    } catch (error) {
+      console.log('Error fetching notices:', error);
     }
     
     console.log(`Found ${notices.length} notices`);
