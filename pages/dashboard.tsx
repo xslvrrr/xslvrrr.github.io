@@ -671,20 +671,24 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Notifications - Standalone */}
-              <div className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
-                <button 
-                  className={styles.navLink}
-                  onClick={() => setCurrentView('notifications')}
-                >
-                  <div className={styles.navIcon}>
-                    <img src="/Assets/notification-icon.svg" alt="Notifications" />
-                  </div>
-                  <span>Notifications</span>
-                  {notificationCounts.inbox > 0 && (
-                    <span className={styles.notificationBadge}>{notificationCounts.inbox}</span>
-                  )}
-                </button>
+              {/* Navigation - Notifications */}
+              <div className={styles.navSection}>
+                <ul className={styles.navList}>
+                  <li className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
+                    <button 
+                      className={styles.navLink}
+                      onClick={() => setCurrentView('notifications')}
+                    >
+                      <span className={styles.navIcon}>
+                        <img src="/Assets/notification-icon.svg" alt="Notifications" />
+                        {notificationCounts.inbox > 0 && (
+                          <span className={styles.notificationBadge}>{notificationCounts.inbox}</span>
+                        )}
+                      </span>
+                      <span>Notifications</span>
+                    </button>
+                  </li>
+                </ul>
               </div>
 
               {/* Navigation - Essentials */}
@@ -841,17 +845,18 @@ export default function Dashboard() {
                     
                     <div className={styles.sidebarFooter}>
                       <button 
-                        className={styles.footerBtn}
+                        className={styles.sidebarActionBtn}
+                        onClick={() => setCurrentView('preferences')}
                         onMouseEnter={() => setShowTooltip('settings')}
                         onMouseLeave={() => setShowTooltip(null)}
                       >
-                        <img src="/Assets/settings-icon.svg" alt="Settings" />
+                        <img src="/Assets/preferences-icon.svg" alt="Preferences" />
                         {showTooltip === 'settings' && (
-                          <div className={styles.tooltip}>Settings</div>
+                          <div className={styles.tooltip}>Preferences</div>
                         )}
                       </button>
                       <button 
-                        className={styles.footerBtn}
+                        className={styles.sidebarActionBtn}
                         onClick={() => loadPortalData(true)}
                         onMouseEnter={() => setShowTooltip('refresh')}
                         onMouseLeave={() => setShowTooltip(null)}
@@ -1211,13 +1216,14 @@ export default function Dashboard() {
                 
                 <div className={styles.sidebarFooter}>
                   <button 
-                    className={styles.footerBtn}
+                    className={styles.sidebarActionBtn}
+                    onClick={() => setCurrentView('preferences')}
                     onMouseEnter={() => setShowTooltip('settings')}
                     onMouseLeave={() => setShowTooltip(null)}
                   >
-                    <img src="/Assets/settings-icon.svg" alt="Settings" />
+                    <img src="/Assets/preferences-icon.svg" alt="Preferences" />
                     {showTooltip === 'settings' && (
-                      <div className={styles.tooltip}>Settings</div>
+                      <div className={styles.tooltip}>Preferences</div>
                     )}
                   </button>
                   <button 

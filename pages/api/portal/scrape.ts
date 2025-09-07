@@ -58,12 +58,13 @@ export default async function handler(
     // Create cookie header from stored session cookies
     const cookieHeader = session.sessionCookies.join('; ');
 
-    // Scrape the main portal page
-    const portalResponse = await axios.get('https://millennium.education/portal/', {
+    // Make request to portal notices page with session cookies
+    const portalResponse = await axios.get('https://portal.millennium.net.au/portal/notices.asp', {
       headers: {
         'Cookie': cookieHeader,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      timeout: 10000
     });
 
     const $ = cheerio.load(portalResponse.data);
@@ -183,52 +184,57 @@ export default async function handler(
     
     console.log(`Found ${timetable.length} timetable entries`);
 
-    // Extract notices - based on the actual portal structure
+    // Extract notices from the notices page structure
     const notices: Notice[] = [];
-    const noticeSelectors = [
-      '#notices .jdash-body table.table1 li a',
-      '#notices .jdash-body li a',
-      '.jdash-widget .jdash-body table li a',
-      '.jdash-body table li a'
-    ];
     
-    for (const selector of noticeSelectors) {
-      $(selector).each((i, el) => {
-        const $link = $(el);
-        const title = $link.text().trim();
-        const fullContent = $link.attr('title') || '';
+    // Look for notice items in the structure based on notices source.asp
+    $('.notice').each((_, element) => {
+      const $notice = $(element);
+      const $title = $notice.prev('h4'); // Title is in h4 before .notice div
+      
+      if ($title.length) {
+        const title = $title.text().trim();
+        const content = $notice.html() || '';
         
-        // Skip if we already have this notice or if it's not a real notice
-        const isDuplicate = notices.some(n => n.title === title);
-        const isRealNotice = title.length > 5 && 
-          !title.match(/^(home|portal|logout|settings|view|click)/i) &&
-          !title.includes('href=') && 
-          !title.includes('javascript:');
+        // Clean up HTML content and create preview
+        const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        const preview = cleanContent.length > 150 ? 
+          cleanContent.substring(0, 150) + '...' : cleanContent;
         
-        if (title && !isDuplicate && isRealNotice && fullContent) {
-          // Clean up HTML content and create preview
-          const cleanContent = fullContent
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/&nbsp;/g, ' ')
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/\s+/g, ' ')
-            .trim();
-          
-          const preview = cleanContent.length > 150 
-            ? cleanContent.substring(0, 150) + '...'
-            : cleanContent || 'No preview available';
-          
+        if (title && cleanContent) {
           notices.push({
             title,
-            preview,
+            preview: preview || 'No preview available',
             content: cleanContent
           });
         }
+      }
+    });
+    
+    // Also check for notices in table format if the above doesn't work
+    if (notices.length === 0) {
+      $('h4').each((_, element) => {
+        const $title = $(element);
+        const $content = $title.next('.notice');
+        
+        if ($content.length) {
+          const title = $title.text().trim();
+          const content = $content.html() || '';
+          
+          // Clean up HTML content and create preview
+          const cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+          const preview = cleanContent.length > 150 ? 
+            cleanContent.substring(0, 150) + '...' : cleanContent;
+          
+          if (title && cleanContent && title.length > 3) {
+            notices.push({
+              title,
+              preview: preview || 'No preview available',
+              content: cleanContent
+            });
+          }
+        }
       });
-      
-      if (notices.length > 0) break; // Found notices, stop looking
     }
     
     console.log(`Found ${notices.length} notices`);
