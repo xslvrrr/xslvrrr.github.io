@@ -21,7 +21,7 @@
 /* Core layout - Updated to ensure full height content */
 .dashboardBody {
   margin: 0;
-  padding: 0;
+  padding: var(--space-md);
   background-color: var(--main-bg);
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -33,6 +33,7 @@
   line-height: var(--line-height-normal);
   will-change: contents;
   contain: layout paint style;
+  box-sizing: border-box;
 }
 
 /* Theme transition - smoother transition between themes */
@@ -43,12 +44,15 @@
 /* Performance optimizations */
 .dashboardContainer {
   display: flex;
-  height: 100vh;
-  width: 100vw;
+  height: calc(100vh - var(--space-xl));
+  width: 100%;
   overflow: hidden;
   will-change: contents;
   contain: layout style;
   transform: translateZ(0);
+  background: var(--content-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
 }
 
 /* Optimize transitions */
@@ -72,12 +76,6 @@
   background: var(--main-bg);
   color: var(--text-secondary);
   gap: var(--space-md);
-}
-
-.loadingSpinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--border-color);
   border-top: 2px solid var(--text-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -95,13 +93,27 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
 }
 
 .sidebarTop {
   flex: 1;
   padding: var(--space-xl) 0 0 0;
+}
+
+/* Search Header */
+.searchHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.searchInputContainer {
+  flex: 1;
+  position: relative;
 }
 
 /* User profile */
@@ -163,7 +175,7 @@
 
 /* Navigation sections */
 .navSection {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
   padding: 0 var(--space-lg);
 }
 
@@ -174,10 +186,11 @@
 .navHeadingContainer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   cursor: pointer;
   padding: var(--space-sm) 0;
   margin-bottom: var(--space-sm);
+  gap: var(--space-sm);
 }
 
 .navHeadingContainer:hover {
@@ -199,6 +212,7 @@
   opacity: 0.5;
   transition: var(--transition-fast);
   filter: invert(1);
+  order: 1;
 }
 
 .navHeadingContainer img.navCollapseIcon {
@@ -247,7 +261,7 @@
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   text-decoration: none;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-weight: 400;
   font-size: 13px;
   transition: var(--transition-fast);
@@ -356,7 +370,9 @@
   flex: 1;
   background: var(--content-bg);
   overflow-y: auto;
-  height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Content header */
@@ -385,18 +401,20 @@
   gap: var(--space-sm);
   font-size: 12px;
   color: var(--text-tertiary);
+  margin-left: auto;
+  margin-right: var(--space-lg);
 }
 
 .shortcutKey {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
+  width: 18px;
   height: 18px;
-  padding: 0 var(--space-sm);
+  padding: 0;
   background: var(--hover-bg);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 3px;
   font-size: 10px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -448,12 +466,15 @@
   padding: var(--space-xl);
   background: transparent;
   animation: fadeIn 0.3s ease;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .contentWrapperInner {
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
+  max-width: 100%;
 }
 
 /* Cards */
@@ -489,10 +510,12 @@
 
 /* Section titles */
 .sectionTitle {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 var(--space-lg) 0;
+  margin: 0 0 var(--space-xl) 0;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Grid layouts */
@@ -703,15 +726,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 2000;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 10vh;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition-fast);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding-top: 15vh;
 }
 
 .searchModal.active {
@@ -749,40 +770,43 @@
   align-items: center;
 }
 
-.searchModalInput {
+.searchInput {
   width: 100%;
-  background: transparent;
+  padding: var(--space-md);
   border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  background: transparent;
   color: var(--text-primary);
-  font-size: var(--font-size-lg);
   outline: none;
-  font-family: 'Inter', sans-serif;
-  padding: 0;
-  line-height: 24px;
-  height: 24px;
 }
 
-.searchModalInput::placeholder {
+.searchInput::placeholder {
   color: var(--text-tertiary);
+}
+
+.searchHint {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.searchHint span {
+  background: var(--hover-bg);
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
 }
 
 .searchModalResults {
   max-height: 400px;
   overflow-y: auto;
   padding: var(--space-sm) 0;
-}
-
-.searchModalResults::-webkit-scrollbar {
-  width: 6px;
-}
-
-.searchModalResults::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.searchModalResults::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
 }
 
 .searchCategoryHeader {
@@ -802,56 +826,79 @@
 .searchResult {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md) var(--space-xl);
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
   cursor: pointer;
   transition: var(--transition-fast);
+  border: none;
+  border-radius: 0;
 }
 
-.searchResult:hover {
-  background: var(--hover-bg);
-}
-
-.searchResultIcon {
-  width: 20px;
-  height: 20px;
+.searchResultMain {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.searchResultIcon img {
-  width: 16px;
-  height: 16px;
-  opacity: 0.6;
-  filter: invert(1);
-}
-
-.searchResult:hover .searchResultIcon, 
-.searchResult.selected .searchResultIcon {
-  opacity: 1;
-}
-
-.searchResult:hover .searchResultIcon img, 
-.searchResult.selected .searchResultIcon img {
-  opacity: 1;
-}
-
-.searchResultContent {
+  flex-direction: column;
+  gap: 2px;
   flex: 1;
 }
 
+.searchResultType {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  font-weight: 500;
+  background: var(--card-bg);
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
 .searchResultTitle {
-  font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 2px;
+  font-size: 14px;
+  line-height: 1.3;
 }
 
 .searchResultDescription {
-  font-size: 11px;
   color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.searchResult:hover,
+.searchResultSelected {
+  background: var(--hover-bg);
+}
+
+.searchResultSelected {
+  background: var(--hover-bg);
+  position: relative;
+}
+
+.searchResultSelected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--text-primary);
+}
+
+.searchNoResults {
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.searchNoResultsText {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: var(--space-xs);
+}
+
+.searchNoResultsHint {
+  color: var(--text-tertiary);
+  font-size: 12px;
 }
 
 .searchModalFooter {
@@ -874,17 +921,6 @@
 
 .shortcutLabel {
   margin-left: var(--space-sm);
-}
-
-.searchEmptyState {
-  padding: var(--space-xl);
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-.searchEmptyState p {
-  margin: 0;
-  font-size: 13px;
 }
 
 /* Notifications modal */
@@ -1430,12 +1466,14 @@
 
 .contentWrapperInner > div:first-child .sectionTitle {
   margin-top: 0;
+  padding-top: 0;
 }
 
 .contentContainer {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  flex: 1;
 }
 
 .timetableList {

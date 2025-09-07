@@ -47,9 +47,12 @@ export default function Dashboard() {
   const [currentSection, setCurrentSection] = useState('home');
   const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     checkSession();
@@ -170,15 +173,119 @@ export default function Dashboard() {
     // Escape to close modals
     if (e.key === 'Escape') {
       setShowSearchModal(false);
-      setShowNotificationsModal(false);
-      setShowUserDropdown(false);
+      setSearchQuery('');
+      setSearchResults([]);
+      setSearchSuggestions([]);
+      setSelectedSuggestion(-1);
     }
-  }, []);
+    if (showSearchModal && searchSuggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedSuggestion(prev => 
+          prev < searchSuggestions.length - 1 ? prev + 1 : 0
+        );
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedSuggestion(prev => 
+          prev > 0 ? prev - 1 : searchSuggestions.length - 1
+        );
+      }
+      if (e.key === 'Enter' && selectedSuggestion >= 0) {
+        e.preventDefault();
+        const selected = searchSuggestions[selectedSuggestion];
+        handleSearchSelect(selected);
+      }
+      if (e.key === 'Tab' && selectedSuggestion >= 0) {
+        e.preventDefault();
+        const selected = searchSuggestions[selectedSuggestion];
+        setSearchQuery(selected.title);
+      }
+    }
+  }, [showSearchModal, searchSuggestions, selectedSuggestion]);
 
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowSearchModal(true);
+      }
+      if (e.key === 'Escape') {
+        setShowSearchModal(false);
+        setSearchQuery('');
+        setSearchResults([]);
+        setSearchSuggestions([]);
+        setSelectedSuggestion(-1);
+      }
+      if (showSearchModal && searchSuggestions.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setSelectedSuggestion(prev => 
+            prev < searchSuggestions.length - 1 ? prev + 1 : 0
+          );
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setSelectedSuggestion(prev => 
+            prev > 0 ? prev - 1 : searchSuggestions.length - 1
+          );
+        }
+        if (e.key === 'Enter' && selectedSuggestion >= 0) {
+          e.preventDefault();
+          const selected = searchSuggestions[selectedSuggestion];
+          handleSearchSelect(selected);
+        }
+        if (e.key === 'Tab' && selectedSuggestion >= 0) {
+          e.preventDefault();
+          const selected = searchSuggestions[selectedSuggestion];
+          setSearchQuery(selected.title);
+        }
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  }, [showSearchModal, searchSuggestions, selectedSuggestion]);
+
+  const handleSearchSelect = (item) => {
+    if (item.type === 'page') {
+      setCurrentSection(item.path);
+    } else if (item.type === 'action' && item.path === 'notifications') {
+      setShowNotificationsModal(true);
+    }
+    setShowSearchModal(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchSuggestions([]);
+    setSelectedSuggestion(-1);
+  };
+
+  const searchableItems = [
+    { type: 'page', title: 'Dashboard', path: 'home', description: 'View your overview and quick actions' },
+    { type: 'page', title: 'Notices', path: 'notices', description: 'Check student notices and announcements' },
+    { type: 'page', title: 'Timetable', path: 'timetable', description: 'View your class schedule' },
+    { type: 'page', title: 'Account', path: 'account', description: 'Manage your account settings' },
+    { type: 'action', title: 'View Notifications', path: 'notifications', description: 'Open notifications panel' },
+    { type: 'data', title: 'Classes Today', path: 'classes', description: 'See today\'s class schedule' },
+    { type: 'data', title: 'Recent Activity', path: 'activity', description: 'View recent portal activity' },
+  ];
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setSearchSuggestions([]);
+      return;
+    }
+    
+    const results = searchableItems.filter(item => 
+      item.title.toLowerCase().includes(query.toLowerCase()) ||
+      item.description.toLowerCase().includes(query.toLowerCase())
+    );
+    setSearchResults(results);
+    setSearchSuggestions(results.slice(0, 5));
+    setSelectedSuggestion(-1);
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -262,7 +369,7 @@ export default function Dashboard() {
               {/* Recent activity */}
               <div className={styles.listSection}>
                 <h2 className={styles.sectionTitle}>Recent Activity</h2>
-                <div className={`${styles.card} ${styles.activityCard}`}>
+                <div className={styles.activityCard}>
                   <ul className={styles.activityList}>
                     <li className={styles.activityItem}>
                       <div className={styles.activityIcon}>
@@ -309,20 +416,49 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {portalData?.timetable.map((item, index) => (
-                        <tr key={index} className={styles.listTableRow}>
-                          <td>{item.subject}</td>
-                          <td>{item.teacher}</td>
-                          <td>{item.room}</td>
-                          <td>{item.period}</td>
-                        </tr>
-                      )) || (
-                        <tr className={styles.listTableRow}>
-                          <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                            {dataLoading ? 'Loading classes...' : 'No class data available'}
-                          </td>
-                        </tr>
-                      )}
+                      {(() => {
+                        const today = new Date();
+                        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+                        
+                        if (dataLoading) {
+                          return (
+                            <tr className={styles.listTableRow}>
+                              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                                Loading classes...
+                              </td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (isWeekend) {
+                          return (
+                            <tr className={styles.listTableRow}>
+                              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                                No classes today
+                              </td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (!portalData?.timetable || portalData.timetable.length === 0) {
+                          return (
+                            <tr className={styles.listTableRow}>
+                              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                                No data to display
+                              </td>
+                            </tr>
+                          );
+                        }
+                        
+                        return portalData.timetable.map((item, index) => (
+                          <tr key={index} className={styles.listTableRow}>
+                            <td>{item.subject}</td>
+                            <td>{item.teacher}</td>
+                            <td>{item.room}</td>
+                            <td>{item.period}</td>
+                          </tr>
+                        ));
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -338,18 +474,30 @@ export default function Dashboard() {
               <div className={`${styles.card} ${styles.noticesCard}`}>
                 <h2>Student Notices</h2>
                 <div className={styles.noticesList}>
-                  {portalData?.notices.length ? (
-                    portalData.notices.map((notice, index) => (
+                  {(() => {
+                    if (dataLoading) {
+                      return (
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                          Loading notices...
+                        </div>
+                      );
+                    }
+                    
+                    if (!portalData?.notices || portalData.notices.length === 0) {
+                      return (
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                          No data to display
+                        </div>
+                      );
+                    }
+                    
+                    return portalData.notices.map((notice, index) => (
                       <div key={index} className={styles.noticeItem}>
                         <div className={styles.noticeTitle}>{notice.title}</div>
                         <div className={styles.noticePreview}>{notice.preview}</div>
                       </div>
-                    ))
-                  ) : (
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      {dataLoading ? 'Loading notices...' : 'No notices available'}
-                    </div>
-                  )}
+                    ));
+                  })()}
                 </div>
               </div>
             </div>
@@ -363,20 +511,43 @@ export default function Dashboard() {
               <div className={`${styles.card} ${styles.timetableCard}`}>
                 <h2>Today&apos;s Timetable</h2>
                 <div className={styles.timetableList}>
-                  {portalData?.timetable.length ? (
-                    portalData.timetable.map((item, index) => (
+                  {(() => {
+                    const today = new Date();
+                    const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+                    
+                    if (dataLoading) {
+                      return (
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                          Loading timetable...
+                        </div>
+                      );
+                    }
+                    
+                    if (isWeekend) {
+                      return (
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                          No classes today
+                        </div>
+                      );
+                    }
+                    
+                    if (!portalData?.timetable || portalData.timetable.length === 0) {
+                      return (
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                          No data to display
+                        </div>
+                      );
+                    }
+                    
+                    return portalData.timetable.map((item, index) => (
                       <div key={index} className={`${styles.timetableItem} ${item.isActive ? styles.active : ''}`}>
                         <span className={styles.timetablePeriod}>{item.period}</span>
                         <span className={styles.timetableSubject}>{item.subject}</span>
                         <span className={styles.timetableTeacher}>{item.teacher}</span>
                         <span className={styles.timetableRoom}>{item.room}</span>
                       </div>
-                    ))
-                  ) : (
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      {dataLoading ? 'Loading timetable...' : 'No timetable data available'}
-                    </div>
-                  )}
+                    ));
+                  })()}
                 </div>
               </div>
             </div>
@@ -635,7 +806,7 @@ export default function Dashboard() {
                   className={styles.searchModalInput} 
                   placeholder="Search commands, pages, and more..." 
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearch(e.target.value)}
                   autoFocus
                 />
               </div>
@@ -643,15 +814,14 @@ export default function Dashboard() {
                 {searchQuery ? (
                   <div>
                     <div className={styles.searchCategoryHeader}>Navigation</div>
-                    {['home', 'account', 'notices', 'calendar', 'classes', 'timetable', 'reports', 'attendance']
-                      .filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()))
+                    {searchResults
+                      .filter(item => item.type === 'page')
                       .map(item => (
-                        <div key={item} className={styles.searchResult} onClick={() => {
-                          handleSectionClick(item);
-                          setShowSearchModal(false);
-                          setSearchQuery('');
+                        <div key={item.title} className={styles.searchResult} onClick={() => {
+                          handleSearchSelect(item);
                         }}>
                           <div className={styles.searchResultIcon}>
+                            <img src={`/Assets/${item.path === 'home' ? 'home' : item.path === 'account' ? 'account' : item.path === 'notices' ? 'notices' : item.path === 'calendar' ? 'calendar' : item.path === 'classes' ? 'classes' : item.path === 'timetable' ? 'timetable' : item.path === 'reports' ? 'reports' : 'attendance'}-icon.svg`} alt={item.title} />
                             <img src={`/Assets/${item === 'home' ? 'home' : item === 'account' ? 'account' : item === 'notices' ? 'notices' : item === 'calendar' ? 'calendar' : item === 'classes' ? 'classes' : item === 'timetable' ? 'timetable' : item === 'reports' ? 'reports' : 'attendance'}-icon.svg`} alt={item} />
                           </div>
                           <div className={styles.searchResultContent}>
