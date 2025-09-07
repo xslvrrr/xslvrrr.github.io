@@ -299,6 +299,16 @@ export default async function handler(
     };
 
     console.log(`Final portal data: ${finalTimetable.length} timetable, ${finalNotices.length} notices, ${finalDiary.length} diary entries`);
+    
+    // Add debug info for troubleshooting
+    console.log('Debug info:', {
+      cookieHeader: cookieHeader ? 'Present' : 'Missing',
+      userName,
+      schoolName,
+      noticesCount: notices.length,
+      timetableCount: timetable.length,
+      diaryCount: diary.length
+    });
 
     // Store scraped data in session for caching
     session.portalData = portalData;

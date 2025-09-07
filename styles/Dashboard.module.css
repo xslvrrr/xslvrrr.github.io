@@ -297,6 +297,35 @@
   opacity: 1;
 }
 
+.notificationBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--accent-color, #007AFF);
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  padding: 0;
+  border: 2px solid var(--sidebar-bg, #1a1a1a);
+}
+
+.navIcon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
 /* User dropdown */
 .userDropdown {
   position: absolute;

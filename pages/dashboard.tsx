@@ -288,6 +288,7 @@ export default function Dashboard() {
 
   const handleSectionClick = useCallback((section: string) => {
     setCurrentSection(section);
+    setCurrentView('dashboard'); // Clear currentView when navigating to sections
     setShowUserDropdown(false);
   }, []);
 
@@ -798,55 +799,32 @@ export default function Dashboard() {
           <div className={styles.mainContent}>
             {currentView === 'notifications' ? (
               <>
-                {/* Top Bar for Notifications */}
-                <div className={styles.topBar}>
-                  <div className={styles.topBarLeft}>
-                    <button 
-                      className={styles.backButton}
-                      onClick={() => setCurrentView('dashboard')}
-                      onMouseEnter={() => setShowTooltip('back')}
-                      onMouseLeave={() => setShowTooltip(null)}
-                    >
-                      <img src="/Assets/arrow-left.svg" alt="Back" />
-                      {showTooltip === 'back' && (
-                        <div className={styles.tooltip}>Back to Dashboard</div>
-                      )}
-                    </button>
-                    <h1>Notifications</h1>
+                {/* Header */}
+                <div className={styles.header}>
+                  <div className={styles.headerLeft}>
+                    <h1 className={styles.pageTitle}>Notifications</h1>
                   </div>
-                  <div className={styles.topBarActions}>
+                  <div className={styles.headerRight}>
                     <button 
-                      className={styles.headerActionBtn}
+                      className={styles.headerActionBtn} 
                       onClick={() => setShowSearchModal(true)}
-                      onMouseEnter={() => setShowTooltip('search')}
-                      onMouseLeave={() => setShowTooltip(null)}
+                      title="Search"
                     >
                       <img src="/Assets/search.svg" alt="Search" />
-                      {showTooltip === 'search' && (
-                        <div className={styles.tooltip}>Search</div>
-                      )}
                     </button>
                     <button 
-                      className={styles.headerActionBtn}
+                      className={styles.headerActionBtn} 
                       onClick={() => handleSectionClick('preferences')}
-                      onMouseEnter={() => setShowTooltip('preferences')}
-                      onMouseLeave={() => setShowTooltip(null)}
+                      title="Preferences"
                     >
                       <img src="/Assets/preferences-icon.svg" alt="Preferences" />
-                      {showTooltip === 'preferences' && (
-                        <div className={styles.tooltip}>Preferences</div>
-                      )}
                     </button>
                     <button 
-                      className={styles.headerActionBtn}
+                      className={styles.headerActionBtn} 
                       onClick={() => loadPortalData(true)}
-                      onMouseEnter={() => setShowTooltip('refresh')}
-                      onMouseLeave={() => setShowTooltip(null)}
+                      title="Refresh"
                     >
                       <img src="/Assets/refresh-icon.svg" alt="Refresh" />
-                      {showTooltip === 'refresh' && (
-                        <div className={styles.tooltip}>Refresh</div>
-                      )}
                     </button>
                   </div>
                 </div>
@@ -1103,7 +1081,8 @@ export default function Dashboard() {
                       {currentSection === 'resources' && 'Resources'}
                       {currentSection === 'reports' && 'Reports'}
                       {currentSection === 'preferences' && 'Preferences'}
-                      {!currentSection && 'Dashboard'}
+                      {currentView === 'notifications' && 'Notifications'}
+                      {!currentSection && !currentView && 'Dashboard'}
                     </h1>
                   </div>
                   <div className={styles.headerRight}>
