@@ -8,7 +8,7 @@ interface TimetableEntry {
   room: string;
   subject: string;
   teacher: string;
-  isActive?: boolean;
+  attendanceStatus: 'present' | 'absent' | 'partial' | 'unmarked';
 }
 
 interface Notice {
@@ -76,16 +76,19 @@ export default async function handler(
     const isLoggedIn = portalResponse.data.includes('Student & Parent Portal') || 
                       portalResponse.data.includes('Welcome to Millennium') ||
                       portalResponse.data.includes('jdash-widget') ||
-                      portalResponse.data.includes('table.grey');
+                      portalResponse.data.includes('table.grey') ||
+                      portalResponse.data.includes('Millennium Schools Pty Ltd');
     
-    const isLoginPage = portalResponse.data.includes('login') || 
-                       portalResponse.data.includes('username') || 
-                       portalResponse.data.includes('password');
+    const isLoginPage = portalResponse.data.includes('<input') && 
+                       (portalResponse.data.includes('username') || 
+                        portalResponse.data.includes('password') ||
+                        portalResponse.data.includes('login'));
     
     console.log(`Portal verification: isLoggedIn=${isLoggedIn}, isLoginPage=${isLoginPage}`);
     
-    if (!isLoggedIn || isLoginPage) {
-      console.error('Portal scraping failed: Not properly logged in or redirected to login page');
+    // Only fail if we're clearly on a login page, not just because there's no timetable data
+    if (isLoginPage && !isLoggedIn) {
+      console.error('Portal scraping failed: Redirected to login page');
       return res.status(401).json({ 
         message: 'Session expired or invalid. Please log in again.',
         expired: true,
@@ -141,9 +144,24 @@ export default async function handler(
             const subject = $(cells[2]).text().trim();
             const teacher = $(cells[3]).text().trim();
             
-            // Check if period is currently active (has green background #20e020)
-            const isActive = cells.length >= 5 && 
-              $(cells[4]).find('span[style*="background-color:#20e020"], span[style*="#20e020"]').length > 0;
+            // Check attendance status from the periods column
+            let attendanceStatus: 'present' | 'absent' | 'partial' | 'unmarked' = 'unmarked';
+            if (cells.length >= 5) {
+              const periodCell = $(cells[4]);
+              const span = periodCell.find('span');
+              if (span.length > 0) {
+                const style = span.attr('style') || '';
+                if (style.includes('#20e020') || style.includes('background-color:#20e020')) {
+                  attendanceStatus = 'present';
+                } else if (style.includes('#ff0000') || style.includes('background-color:#ff0000')) {
+                  attendanceStatus = 'absent';
+                } else if (style.includes('#ffa500') || style.includes('background-color:#ffa500')) {
+                  attendanceStatus = 'partial';
+                } else if (span.text().trim() === '' && !style.includes('background-color')) {
+                  attendanceStatus = 'unmarked';
+                }
+              }
+            }
             
             // Only add if it looks like a valid timetable entry
             if (subject && teacher) {
@@ -152,7 +170,7 @@ export default async function handler(
                 room,
                 subject,
                 teacher,
-                isActive
+                attendanceStatus
               });
               foundTimetable = true;
             }
@@ -239,14 +257,8 @@ export default async function handler(
       }
     });
 
-    // If no real data was found, provide some mock data for testing
-    const finalTimetable = timetable.length > 0 ? timetable : [
-      { period: 'P1', room: 'E4', subject: 'HMAA.B', teacher: 'Mrs B Rizal', isActive: true },
-      { period: 'P2', room: 'C12', subject: 'MATH.A', teacher: 'Mr J Smith', isActive: false },
-      { period: 'P3', room: 'B5', subject: 'ENG.B', teacher: 'Ms K Johnson', isActive: false },
-      { period: 'P4', room: 'A8', subject: 'SCI.A', teacher: 'Dr M Wilson', isActive: false },
-      { period: 'P5', room: 'D3', subject: 'HIST.B', teacher: 'Mrs L Davis', isActive: false }
-    ];
+    // Use real data if found, otherwise empty array (don't provide mock data for weekends)
+    const finalTimetable = timetable;
 
     const finalNotices = notices.length > 0 ? notices : [
       { 

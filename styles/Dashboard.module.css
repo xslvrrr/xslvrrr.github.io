@@ -696,23 +696,46 @@
   font-weight: bold;
 }
 
-.attendanceIndicator.active {
+.attendanceIndicator.present {
   color: #20e020;
 }
 
-.attendanceIndicator.inactive {
+.attendanceIndicator.absent {
+  color: #ff0000;
+}
+
+.attendanceIndicator.partial {
+  color: #ffa500;
+}
+
+.attendanceIndicator.unmarked {
   color: var(--text-tertiary);
 }
 
-.activeClass {
+.presentClass {
   background-color: rgba(32, 224, 32, 0.1);
 }
 
-.activeIndicator {
-  color: #20e020;
+.attendanceStatus {
   font-size: 12px;
   font-weight: 600;
   margin-left: auto;
+}
+
+.attendanceStatus.present {
+  color: #20e020;
+}
+
+.attendanceStatus.absent {
+  color: #ff0000;
+}
+
+.attendanceStatus.partial {
+  color: #ffa500;
+}
+
+.attendanceStatus.unmarked {
+  color: var(--text-tertiary);
 }
 
 /* List tables */

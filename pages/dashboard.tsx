@@ -15,7 +15,7 @@ interface TimetableEntry {
   room: string;
   subject: string;
   teacher: string;
-  isActive?: boolean;
+  attendanceStatus: 'present' | 'absent' | 'partial' | 'unmarked';
 }
 
 interface Notice {
@@ -339,10 +339,12 @@ export default function Dashboard() {
                     <tbody>
                       {portalData?.timetable && portalData.timetable.length > 0 ? (
                         portalData.timetable.map((item, index) => (
-                          <tr key={index} className={`${styles.listTableRow} ${item.isActive ? styles.activeClass : ''}`}>
+                          <tr key={index} className={`${styles.listTableRow} ${item.attendanceStatus === 'present' ? styles.presentClass : ''}`}>
                             <td>
-                              <div className={`${styles.attendanceIndicator} ${item.isActive ? styles.active : styles.inactive}`}>
-                                {item.isActive ? '●' : '○'}
+                              <div className={`${styles.attendanceIndicator} ${styles[item.attendanceStatus]}`}>
+                                {item.attendanceStatus === 'present' ? '●' : 
+                                 item.attendanceStatus === 'absent' ? '●' :
+                                 item.attendanceStatus === 'partial' ? '●' : '○'}
                               </div>
                             </td>
                             <td>{item.subject}</td>
@@ -416,14 +418,16 @@ export default function Dashboard() {
                   <div className={styles.timetableList}>
                     {portalData?.timetable && portalData.timetable.length > 0 ? (
                       portalData.timetable.map((item, index) => (
-                        <div key={index} className={`${styles.timetableItem} ${item.isActive ? styles.active : ''}`}>
+                        <div key={index} className={`${styles.timetableItem} ${item.attendanceStatus === 'present' ? styles.present : ''}`}>
                           <span className={styles.timetablePeriod}>{item.period}</span>
                           <span className={styles.timetableSubject}>{item.subject}</span>
                           <span className={styles.timetableTeacher}>{item.teacher}</span>
                           <span className={styles.timetableRoom}>{item.room}</span>
-                          {item.isActive && (
-                            <span className={styles.activeIndicator}>● Current</span>
-                          )}
+                          <span className={`${styles.attendanceStatus} ${styles[item.attendanceStatus]}`}>
+                            {item.attendanceStatus === 'present' ? '● Present' : 
+                             item.attendanceStatus === 'absent' ? '● Absent' :
+                             item.attendanceStatus === 'partial' ? '● Partial' : '○ Unmarked'}
+                          </span>
                         </div>
                       ))
                     ) : (
