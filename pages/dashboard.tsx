@@ -797,13 +797,62 @@ export default function Dashboard() {
           {/* Main Content */}
           <div className={styles.mainContent}>
             {currentView === 'notifications' ? (
-              <div className={styles.notificationsView}>
+              <>
+                {/* Top Bar for Notifications */}
+                <div className={styles.topBar}>
+                  <div className={styles.topBarLeft}>
+                    <button 
+                      className={styles.backButton}
+                      onClick={() => setCurrentView('dashboard')}
+                      onMouseEnter={() => setShowTooltip('back')}
+                      onMouseLeave={() => setShowTooltip(null)}
+                    >
+                      <img src="/Assets/arrow-left.svg" alt="Back" />
+                      {showTooltip === 'back' && (
+                        <div className={styles.tooltip}>Back to Dashboard</div>
+                      )}
+                    </button>
+                    <h1>Notifications</h1>
+                  </div>
+                  <div className={styles.topBarActions}>
+                    <button 
+                      className={styles.headerActionBtn}
+                      onClick={() => setShowSearchModal(true)}
+                      onMouseEnter={() => setShowTooltip('search')}
+                      onMouseLeave={() => setShowTooltip(null)}
+                    >
+                      <img src="/Assets/search.svg" alt="Search" />
+                      {showTooltip === 'search' && (
+                        <div className={styles.tooltip}>Search</div>
+                      )}
+                    </button>
+                    <button 
+                      className={styles.headerActionBtn}
+                      onClick={() => handleSectionClick('preferences')}
+                      onMouseEnter={() => setShowTooltip('preferences')}
+                      onMouseLeave={() => setShowTooltip(null)}
+                    >
+                      <img src="/Assets/preferences-icon.svg" alt="Preferences" />
+                      {showTooltip === 'preferences' && (
+                        <div className={styles.tooltip}>Preferences</div>
+                      )}
+                    </button>
+                    <button 
+                      className={styles.headerActionBtn}
+                      onClick={() => loadPortalData(true)}
+                      onMouseEnter={() => setShowTooltip('refresh')}
+                      onMouseLeave={() => setShowTooltip(null)}
+                    >
+                      <img src="/Assets/refresh-icon.svg" alt="Refresh" />
+                      {showTooltip === 'refresh' && (
+                        <div className={styles.tooltip}>Refresh</div>
+                      )}
+                    </button>
+                  </div>
+                </div>
                 <div className={styles.notificationsContainer}>
                   {/* Left sidebar - categories */}
                   <div className={styles.notificationsSidebar}>
-                    <div className={styles.sidebarHeader}>
-                      <h2>Notifications</h2>
-                    </div>
                     
                     <div className={styles.sidebarContent}>
                       <div className={styles.categoryList}>
@@ -1037,7 +1086,7 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
-              </div>
+              </>
             ) : (
               <>
                 {/* Header */}
