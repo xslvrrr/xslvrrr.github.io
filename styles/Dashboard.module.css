@@ -1,8 +1,28 @@
 /* Dashboard Styles - Inspired by Linear.app - Exact Migration from OLD DASH */
 
-/* CSS Variables - Core Design System */
-:root {
-  /* Spacing */
+/* CSS Variables - Core Design System moved to dashboardBody */
+
+/* Light theme variables - updated for consistent transparent cards */
+.dashboardBody.lightTheme {
+  --sidebar-bg: #f9f9f9;
+  --main-bg: #f9f9f9;
+  --content-bg: #ffffff;
+  --card-bg: transparent;
+  --hover-bg: rgba(0, 0, 0, 0.03);
+  --active-bg: rgba(0, 0, 0, 0.05);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --hover-card-bg: rgba(0, 0, 0, 0.01);
+  --hover-border-color: rgba(0, 0, 0, 0.12);
+  
+  /* Text colors with better contrast */
+  --text-primary: #1a1a1f;
+  --text-secondary: #3a3a3f;
+  --text-tertiary: #6a6a75;
+}
+
+/* Core layout - Updated to ensure full height content */
+.dashboardBody {
+  /* CSS Variables - Core Design System */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -39,28 +59,9 @@
   --accent-color: #6366f1;
   --input-bg: #ffffff;
   --bg-primary: #ffffff;
-}
-
-/* Light theme variables - updated for consistent transparent cards */
-.dashboardBody.lightTheme {
-  --sidebar-bg: #f9f9f9;
-  --main-bg: #f9f9f9;
-  --content-bg: #ffffff;
-  --card-bg: transparent;
-  --hover-bg: rgba(0, 0, 0, 0.03);
-  --active-bg: rgba(0, 0, 0, 0.05);
-  --border-color: rgba(0, 0, 0, 0.08);
-  --hover-card-bg: rgba(0, 0, 0, 0.01);
-  --hover-border-color: rgba(0, 0, 0, 0.12);
+  --priority-high: #ef4444;
+  --priority-medium: #f59e0b;
   
-  /* Text colors with better contrast */
-  --text-primary: #1a1a1f;
-  --text-secondary: #3a3a3f;
-  --text-tertiary: #6a6a75;
-}
-
-/* Core layout - Updated to ensure full height content */
-.dashboardBody {
   margin: 0;
   padding: 0;
   background-color: var(--main-bg);
@@ -2080,6 +2081,8 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  /* Fallback for browsers that don't support line-clamp */
+  max-height: calc(1.4em * 2);
 }
 
 .notificationTime {

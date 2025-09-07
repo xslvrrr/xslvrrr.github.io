@@ -291,7 +291,7 @@ export default function Dashboard() {
   }, [searchQuery]);
 
   // Handle search modal keyboard navigation
-  const handleSearchKeyDown = useCallback((e: any) => {
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     const results = getSearchResults();
     
     if (e.key === 'ArrowDown') {
