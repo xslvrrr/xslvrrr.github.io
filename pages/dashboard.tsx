@@ -658,18 +658,26 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Navigation - Essentials */}
-              <div className={`${styles.navSection} ${collapsedSections.includes('essentials') ? styles.collapsed : ''}`}>
-                <div className={styles.navHeadingContainer} onClick={() => toggleSection('essentials')}>
-                  <img 
-                    src="/Assets/angle-down.svg" 
-                    alt="Collapse" 
-                    className={styles.navCollapseIcon}
-                    style={{ transform: collapsedSections.includes('essentials') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
-                  />
-                  <h2 className={styles.navHeading}>Essentials</h2>
-                </div>
+              <nav className={styles.sidebarNav}>
+                {/* Notifications - Above Essentials */}
                 <ul className={styles.navList}>
+                  <li className={`${styles.navItem} ${showNotificationsModal ? styles.active : ''}`}>
+                    <a href="#notifications" className={styles.navLink} onClick={(e) => { e.preventDefault(); setShowNotificationsModal(true); }}>
+                      <span className={styles.navIcon}>
+                        <img src="/Assets/notification-icon.svg" alt="Notifications" />
+                        {notificationCounts.inbox > 0 && (
+                          <span className={styles.notificationBadge}>{notificationCounts.inbox}</span>
+                        )}
+                      </span>
+                      <span>Notifications</span>
+                    </a>
+                  </li>
+                </ul>
+
+                {/* Navigation - Essentials */}
+                <div className={`${styles.navSection} ${collapsedSections.includes('essentials') ? styles.collapsed : ''}`}>
+                  <h2 className={styles.navHeading}>Essentials</h2>
+                  <ul className={styles.navList}>
                   <li className={`${styles.navItem} ${currentSection === 'home' ? styles.active : ''}`}>
                     <a href="#home" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('home'); }}>
                       <span className={styles.navIcon}>
@@ -702,10 +710,10 @@ export default function Dashboard() {
                       <span>Calendar</span>
                     </a>
                   </li>
-                </ul>
-              </div>
+                  </ul>
+                </div>
 
-              {/* Navigation - Register */}
+                {/* Navigation - Register */}
               <div className={`${styles.navSection} ${collapsedSections.includes('register') ? styles.collapsed : ''}`}>
                 <div className={styles.navHeadingContainer} onClick={() => toggleSection('register')}>
                   <img 
@@ -751,23 +759,55 @@ export default function Dashboard() {
                   </li>
                 </ul>
               </div>
-            </div>
 
-            {/* User dropdown menu */}
-            <div className={`${styles.userDropdown} user-dropdown ${showUserDropdown ? styles.active : ''}`}>
-              <div className={styles.dropdownItem} onClick={() => handleSectionClick('preferences')}>
-                <img src="/Assets/preferences-icon.svg" alt="Preferences" className={styles.dropdownIcon} />
-                <span>Preferences</span>
+              {/* Navigation - More */}
+              <div className={`${styles.navSection} ${collapsedSections.includes('more') ? styles.collapsed : ''}`}>
+                <div className={styles.navHeadingContainer} onClick={() => toggleSection('more')}>
+                  <img 
+                    src="/Assets/angle-down.svg" 
+                    alt="Collapse" 
+                    className={styles.navCollapseIcon}
+                    style={{ transform: collapsedSections.includes('more') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+                  />
+                  <h2 className={styles.navHeading}>More</h2>
+                </div>
+                <ul className={styles.navList}>
+                  <li className={`${styles.navItem} ${currentSection === 'grades' ? styles.active : ''}`}>
+                    <a href="#grades" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('grades'); }}>
+                      <span className={styles.navIcon}>
+                        <img src="/Assets/grades-icon.svg" alt="Grades" />
+                      </span>
+                      <span>Grades</span>
+                    </a>
+                  </li>
+                  <li className={`${styles.navItem} ${currentSection === 'fees' ? styles.active : ''}`}>
+                    <a href="#fees" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('fees'); }}>
+                      <span className={styles.navIcon}>
+                        <img src="/Assets/fees-icon.svg" alt="Fees" />
+                      </span>
+                      <span>Fees</span>
+                    </a>
+                  </li>
+                </ul>
               </div>
-              <div className={styles.dropdownItem} onClick={handleLogout}>
-                <img src="/Assets/cross.svg" alt="Logout" className={styles.dropdownIcon} />
-                <span>Log out</span>
-              </div>
+            </nav>
+          </div>
+          
+          {/* User dropdown menu */}
+          <div className={`${styles.userDropdown} user-dropdown ${showUserDropdown ? styles.active : ''}`}>
+            <div className={styles.dropdownItem} onClick={() => handleSectionClick('preferences')}>
+              <img src="/Assets/preferences-icon.svg" alt="Preferences" className={styles.dropdownIcon} />
+              <span>Preferences</span>
             </div>
-          </nav>
+            <div className={styles.dropdownItem} onClick={handleLogout}>
+              <img src="/Assets/cross.svg" alt="Logout" className={styles.dropdownIcon} />
+              <span>Log out</span>
+            </div>
+          </div>
+        </nav>
 
-          {/* Main content area */}
-          <main className={styles.mainContent}>
+        {/* Main content area */}
+        <main className={styles.mainContent}>
             <div className={styles.contentContainer}>
               <header className={styles.contentHeader}>
                 <h1 className={styles.pageTitle}>{currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}</h1>
@@ -891,24 +931,13 @@ export default function Dashboard() {
               {/* Left sidebar - Spark inspired */}
               <div className={styles.notificationsSidebar}>
                 <div className={styles.sidebarHeader}>
-                  <button 
-                    className={styles.backBtn}
-                    onClick={() => setShowNotificationsModal(false)}
-                    onMouseEnter={() => setShowTooltip('back')}
-                    onMouseLeave={() => setShowTooltip(null)}
-                  >
-                    <img src="/Assets/arrow-left.svg" alt="Back" />
-                    {showTooltip === 'back' && (
-                      <div className={styles.tooltip}>Back to Dashboard</div>
-                    )}
-                  </button>
-                </div>
+                      </div>
                 
                 <div className={styles.sidebarContent}>
                   <div className={styles.categoryList}>
                     {[
                       { id: 'inbox', label: 'Inbox', icon: 'inbox.svg', count: notificationCounts.inbox },
-                      { id: 'pinned', label: 'Pinned', icon: 'pinned.svg', count: notificationCounts.pinned },
+                      { id: 'pinned', label: 'Pinned', icon: 'pin.svg', count: notificationCounts.pinned },
                       { id: 'alerts', label: 'Alerts', icon: 'alert.svg', count: notificationCounts.alerts },
                       { id: 'events', label: 'Events', icon: 'calendar-icon.svg', count: notificationCounts.events },
                       { id: 'assignments', label: 'Assignments', icon: 'homework-icon.svg', count: notificationCounts.assignments },
@@ -1077,6 +1106,20 @@ export default function Dashboard() {
                                     <div className={styles.tooltip}>{isPinned ? "Unpin notification" : "Pin notification"}</div>
                                   )}
                                 </button>
+                                <button 
+                                  className={styles.notificationActionBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleNotificationRead(notificationId);
+                                  }}
+                                  onMouseEnter={() => setShowTooltip(`archive-${originalIndex}`)}
+                                  onMouseLeave={() => setShowTooltip(null)}
+                                >
+                                  <img src="/Assets/archive.svg" alt="Archive" />
+                                  {showTooltip === `archive-${originalIndex}` && (
+                                    <div className={styles.tooltip}>Archive</div>
+                                  )}
+                                </button>
                               </div>
                             </div>
                           );
@@ -1096,7 +1139,7 @@ export default function Dashboard() {
               {/* Right panel - notification details */}
               <div className={styles.notificationDetails}>
                 {selectedNotification ? (() => {
-                  const selectedIndex = portalData?.notices?.findIndex(n => n === selectedNotification) || 0;
+                  const selectedIndex = portalData?.notices?.findIndex(n => n === selectedNotification) ?? 0;
                   const selectedId = getNotificationId(selectedNotification, selectedIndex);
                   const isSelectedRead = notificationStates[selectedId]?.read || false;
                   const isSelectedPinned = notificationStates[selectedId]?.pinned || false;
@@ -1104,7 +1147,7 @@ export default function Dashboard() {
                   return (
                     <div className={styles.detailsContent}>
                       <div className={styles.detailsHeader}>
-                        <h3>{selectedNotification.title}</h3>
+                        <h3>{selectedNotification?.title}</h3>
                         <div className={styles.detailsActions}>
                           <button 
                             className={styles.detailActionBtn}
@@ -1141,7 +1184,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className={styles.detailsBody}>
-                        <p>{selectedNotification.content}</p>
+                        <p>{selectedNotification?.content}</p>
                       </div>
                     </div>
                   );

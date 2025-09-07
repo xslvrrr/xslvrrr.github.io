@@ -1,5 +1,46 @@
 /* Dashboard Styles - Inspired by Linear.app - Exact Migration from OLD DASH */
 
+/* CSS Variables - Core Design System */
+:root {
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  
+  /* Typography */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --line-height-normal: 1.5;
+  --line-height-tight: 1.25;
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  
+  /* Layout */
+  --sidebar-width: 240px;
+  
+  /* Transitions */
+  --transition-fast: all 0.15s ease;
+  --transition-normal: all 0.2s ease;
+  --transition-bounce: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Colors */
+  --primary-color: #3b82f6;
+  --primary-color-light: rgba(59, 130, 246, 0.1);
+  --accent-color: #6366f1;
+  --input-bg: #ffffff;
+  --bg-primary: #ffffff;
+}
+
 /* Light theme variables - updated for consistent transparent cards */
 .dashboardBody.lightTheme {
   --sidebar-bg: #f9f9f9;
@@ -548,11 +589,12 @@
   width: 20px;
   height: 20px;
   opacity: 0.7;
-  filter: invert(1);
+  filter: brightness(0) saturate(100%) invert(45%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
 }
 
 .quickCard:hover .quickCardIcon img {
   opacity: 1;
+  filter: brightness(0) saturate(100%) invert(25%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
 }
 
 .quickCardTitle {
@@ -1194,10 +1236,12 @@
   height: 18px;
   opacity: 0.6;
   transition: var(--transition-fast);
+  filter: brightness(0) saturate(100%) invert(45%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
 }
 
 .categoryItem:hover .categoryIcon img {
   opacity: 0.8;
+  filter: brightness(0) saturate(100%) invert(25%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
 }
 
 .categoryItem.active .categoryIcon img {
@@ -1207,25 +1251,28 @@
 
 .categoryCount {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: -2px;
+  right: 2px;
   background: var(--accent-color);
   color: white;
   font-size: 10px;
   font-weight: 600;
   padding: 2px 5px;
-  border-radius: 8px;
-  min-width: 14px;
-  height: 14px;
+  border-radius: 10px;
+  min-width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  border: 2px solid var(--sidebar-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .categoryItem.active .categoryCount {
-  background: rgba(255, 255, 255, 0.3);
-  color: white;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 .sidebarFooter {
@@ -1384,6 +1431,8 @@
   height: 8px;
   background: var(--accent-color);
   border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: var(--space-xs);
 }
 
 .notificationIcon {
@@ -1392,6 +1441,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--accent-color);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 2px solid var(--sidebar-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .notificationIcon img {
@@ -1468,6 +1538,12 @@
   width: 14px;
   height: 14px;
   opacity: 0.6;
+  filter: brightness(0) saturate(100%) invert(45%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
+}
+
+.notificationActionBtn:hover img {
+  opacity: 0.8;
+  filter: brightness(0) saturate(100%) invert(25%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
 }
 
 /* Notification Details Panel */
@@ -1523,6 +1599,12 @@
   width: 16px;
   height: 16px;
   opacity: 0.7;
+  filter: brightness(0) saturate(100%) invert(45%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
+}
+
+.detailActionBtn:hover img {
+  opacity: 0.9;
+  filter: brightness(0) saturate(100%) invert(25%) sepia(8%) saturate(1037%) hue-rotate(202deg) brightness(95%) contrast(92%);
 }
 
 .detailsBody {
@@ -1539,21 +1621,21 @@
 
 /* Modern Tooltips */
 .tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.9);
+  position: fixed;
+  background: rgba(40, 44, 52, 0.95);
   color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  z-index: 10000;
+  z-index: 999999;
   pointer-events: none;
   opacity: 0;
   animation: tooltipFadeIn 0.2s ease-out forwards;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
 }
 
 @keyframes tooltipFadeIn {
@@ -1567,57 +1649,7 @@
   }
 }
 
-/* Tooltip positioning for sidebar items */
-.categoryItem .tooltip {
-  left: calc(100% + 12px);
-  bottom: 50%;
-  transform: translateY(50%);
-}
-
-.categoryItem .tooltip::before {
-  content: '';
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 4px solid transparent;
-  border-right-color: rgba(0, 0, 0, 0.9);
-}
-
-@keyframes tooltipSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(50%) translateX(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(50%) translateX(0);
-  }
-}
-
-.categoryItem .tooltip {
-  animation: tooltipSlideIn 0.2s ease-out forwards;
-}
-
-/* Footer button tooltips */
-.footerBtn .tooltip,
-.backBtn .tooltip {
-  left: calc(100% + 12px);
-  bottom: 50%;
-  transform: translateY(50%);
-  animation: tooltipSlideIn 0.2s ease-out forwards;
-}
-
-.footerBtn .tooltip::before,
-.backBtn .tooltip::before {
-  content: '';
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 4px solid transparent;
-  border-right-color: rgba(0, 0, 0, 0.9);
-}
+/* Remove old tooltip positioning - now handled by JavaScript */
 
 .tooltip::after {
   content: '';
