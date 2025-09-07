@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import styles from '../styles/Dashboard.module.css';
@@ -66,10 +67,11 @@ export default function Dashboard() {
     archive: 0,
     trash: 0
   });
-  const [notificationStates, setNotificationStates] = useState<{[key: string]: {read: boolean, pinned: boolean}}>({});
+  const [notificationStates, setNotificationStates] = useState<{[key: string]: {read: boolean, pinned: boolean, archived: boolean}}>({});
+  const [currentView, setCurrentView] = useState<string>('dashboard');
 
   // Functions to handle notification state changes
-  const toggleNotificationRead = (notificationId: string) => {
+  const toggleRead = useCallback((notificationId: string) => {
     setNotificationStates(prev => ({
       ...prev,
       [notificationId]: {
@@ -77,7 +79,18 @@ export default function Dashboard() {
         read: !prev[notificationId]?.read
       }
     }));
-  };
+  }, []);
+
+  const archiveNotification = useCallback((notificationId: string) => {
+    setNotificationStates(prev => ({
+      ...prev,
+      [notificationId]: {
+        ...prev[notificationId],
+        read: true,
+        archived: true
+      }
+    }));
+  }, []);
 
   const toggleNotificationPin = (notificationId: string) => {
     setNotificationStates(prev => ({
@@ -122,7 +135,7 @@ export default function Dashboard() {
         case 'assignments':
           return notice.title.toLowerCase().includes('assignment') || notice.title.toLowerCase().includes('homework');
         case 'archive':
-          return isRead; // Archive shows read notifications
+          return notificationStates[notificationId]?.archived || false; // Archive shows archived notifications
         case 'trash':
           return false; // No trash functionality yet
         default:
@@ -152,7 +165,7 @@ export default function Dashboard() {
       
       if (isPinned) counts.pinned++;
       if (!isPinned) counts.inbox++;
-      if (isRead) counts.archive++;
+      if (notificationStates[notificationId]?.archived) counts.archive++;
       if (notice.title.toLowerCase().includes('alert') || notice.title.toLowerCase().includes('urgent')) counts.alerts++;
       if (notice.title.toLowerCase().includes('event') || notice.title.toLowerCase().includes('meeting')) counts.events++;
       if (notice.title.toLowerCase().includes('assignment') || notice.title.toLowerCase().includes('homework')) counts.assignments++;
@@ -291,7 +304,7 @@ export default function Dashboard() {
   }, [searchQuery]);
 
   // Handle search modal keyboard navigation
-  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSearchKeyDown = useCallback((e: any) => {
     const results = getSearchResults();
     
     if (e.key === 'ArrowDown') {
@@ -658,34 +671,43 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <nav className={styles.sidebarNav}>
-                {/* Notifications - Above Essentials */}
-                <ul className={styles.navList}>
-                  <li className={`${styles.navItem} ${showNotificationsModal ? styles.active : ''}`}>
-                    <a href="#notifications" className={styles.navLink} onClick={(e) => { e.preventDefault(); setShowNotificationsModal(true); }}>
-                      <span className={styles.navIcon}>
-                        <img src="/Assets/notification-icon.svg" alt="Notifications" />
-                        {notificationCounts.inbox > 0 && (
-                          <span className={styles.notificationBadge}>{notificationCounts.inbox}</span>
-                        )}
-                      </span>
-                      <span>Notifications</span>
-                    </a>
-                  </li>
-                </ul>
+              {/* Notifications - Standalone */}
+              <div className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
+                <button 
+                  className={styles.navLink}
+                  onClick={() => setCurrentView('notifications')}
+                >
+                  <div className={styles.navIcon}>
+                    <img src="/Assets/notification-icon.svg" alt="Notifications" />
+                  </div>
+                  <span>Notifications</span>
+                  {notificationCounts.inbox > 0 && (
+                    <span className={styles.notificationBadge}>{notificationCounts.inbox}</span>
+                  )}
+                </button>
+              </div>
 
-                {/* Navigation - Essentials */}
-                <div className={`${styles.navSection} ${collapsedSections.includes('essentials') ? styles.collapsed : ''}`}>
+              {/* Navigation - Essentials */}
+              <div className={`${styles.navSection} ${collapsedSections.includes('essentials') ? styles.collapsed : ''}`}>
+                <div className={styles.navHeadingContainer} onClick={() => toggleSection('essentials')}>
+                  <img 
+                    src="/Assets/angle-down.svg" 
+                    alt="Collapse" 
+                    className={styles.navCollapseIcon}
+                    style={{ transform: collapsedSections.includes('essentials') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+                  />
                   <h2 className={styles.navHeading}>Essentials</h2>
-                  <ul className={styles.navList}>
-                  <li className={`${styles.navItem} ${currentSection === 'home' ? styles.active : ''}`}>
-                    <a href="#home" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('home'); }}>
-                      <span className={styles.navIcon}>
+                </div>
+                <ul className={styles.navList}>
+                  <li className={styles.navItem}>
+                    <Link href="/" className={styles.navLink}>
+                      <div className={styles.navIcon}>
                         <img src="/Assets/home-icon.svg" alt="Home" />
-                      </span>
+                      </div>
                       <span>Home</span>
-                    </a>
+                    </Link>
                   </li>
+
                   <li className={`${styles.navItem} ${currentSection === 'account' ? styles.active : ''}`}>
                     <a href="#account" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('account'); }}>
                       <span className={styles.navIcon}>
@@ -710,10 +732,10 @@ export default function Dashboard() {
                       <span>Calendar</span>
                     </a>
                   </li>
-                  </ul>
-                </div>
+                </ul>
+              </div>
 
-                {/* Navigation - Register */}
+              {/* Navigation - Register */}
               <div className={`${styles.navSection} ${collapsedSections.includes('register') ? styles.collapsed : ''}`}>
                 <div className={styles.navHeadingContainer} onClick={() => toggleSection('register')}>
                   <img 
@@ -759,94 +781,305 @@ export default function Dashboard() {
                   </li>
                 </ul>
               </div>
+            </div>
 
-              {/* Navigation - More */}
-              <div className={`${styles.navSection} ${collapsedSections.includes('more') ? styles.collapsed : ''}`}>
-                <div className={styles.navHeadingContainer} onClick={() => toggleSection('more')}>
-                  <img 
-                    src="/Assets/angle-down.svg" 
-                    alt="Collapse" 
-                    className={styles.navCollapseIcon}
-                    style={{ transform: collapsedSections.includes('more') ? 'rotate(-90deg)' : 'rotate(0deg)' }}
-                  />
-                  <h2 className={styles.navHeading}>More</h2>
-                </div>
-                <ul className={styles.navList}>
-                  <li className={`${styles.navItem} ${currentSection === 'grades' ? styles.active : ''}`}>
-                    <a href="#grades" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('grades'); }}>
-                      <span className={styles.navIcon}>
-                        <img src="/Assets/grades-icon.svg" alt="Grades" />
-                      </span>
-                      <span>Grades</span>
-                    </a>
-                  </li>
-                  <li className={`${styles.navItem} ${currentSection === 'fees' ? styles.active : ''}`}>
-                    <a href="#fees" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('fees'); }}>
-                      <span className={styles.navIcon}>
-                        <img src="/Assets/fees-icon.svg" alt="Fees" />
-                      </span>
-                      <span>Fees</span>
-                    </a>
-                  </li>
-                </ul>
+            {/* User dropdown menu */}
+            <div className={`${styles.userDropdown} user-dropdown ${showUserDropdown ? styles.active : ''}`}>
+              <div className={styles.dropdownItem} onClick={() => handleSectionClick('preferences')}>
+                <img src="/Assets/preferences-icon.svg" alt="Preferences" className={styles.dropdownIcon} />
+                <span>Preferences</span>
               </div>
-            </nav>
-          </div>
-          
-          {/* User dropdown menu */}
-          <div className={`${styles.userDropdown} user-dropdown ${showUserDropdown ? styles.active : ''}`}>
-            <div className={styles.dropdownItem} onClick={() => handleSectionClick('preferences')}>
-              <img src="/Assets/preferences-icon.svg" alt="Preferences" className={styles.dropdownIcon} />
-              <span>Preferences</span>
+              <div className={styles.dropdownItem} onClick={handleLogout}>
+                <img src="/Assets/cross.svg" alt="Logout" className={styles.dropdownIcon} />
+                <span>Log out</span>
+              </div>
             </div>
-            <div className={styles.dropdownItem} onClick={handleLogout}>
-              <img src="/Assets/cross.svg" alt="Logout" className={styles.dropdownIcon} />
-              <span>Log out</span>
-            </div>
-          </div>
-        </nav>
+          </nav>
 
-        {/* Main content area */}
-        <main className={styles.mainContent}>
-            <div className={styles.contentContainer}>
-              <header className={styles.contentHeader}>
-                <h1 className={styles.pageTitle}>{currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}</h1>
-                
-                {/* Search shortcut info */}
-                <div className={styles.headerSearchShortcut}>
-                  Press <span className={styles.shortcutKey}>⌘</span><span className={styles.shortcutKey}>K</span> to search
-                </div>
-                
-                {/* Header actions */}
-                <div className={styles.headerActions}>
-                  <button 
-                    className={styles.headerActionBtn} 
-                    onClick={() => loadPortalData(true)}
-                    disabled={dataLoading}
-                    title="Refresh"
-                  >
-                    <img src="/Assets/refresh-icon.svg" alt="Refresh" />
-                  </button>
-                  <button 
-                    className={styles.headerActionBtn} 
-                    onClick={() => setShowNotificationsModal(true)}
-                    title="Notifications"
-                  >
-                    <img src="/Assets/notification-icon.svg" alt="Notifications" />
-                  </button>
-                  <button 
-                    className={styles.headerActionBtn} 
-                    onClick={() => handleSectionClick('preferences')}
-                    title="Preferences"
-                  >
-                    <img src="/Assets/preferences-icon.svg" alt="Preferences" />
-                  </button>
-                </div>
-              </header>
+          {/* Main Content */}
+          <div className={styles.mainContent}>
+            {currentView === 'notifications' ? (
+              <div className={styles.notificationsView}>
+                <div className={styles.notificationsContainer}>
+                  {/* Left sidebar - categories */}
+                  <div className={styles.notificationsSidebar}>
+                    <div className={styles.sidebarHeader}>
+                      <h2>Notifications</h2>
+                    </div>
+                    
+                    <div className={styles.sidebarContent}>
+                      <div className={styles.categoryList}>
+                        {[
+                          { id: 'inbox', label: 'Inbox', icon: 'inbox.svg', count: notificationCounts.inbox },
+                          { id: 'pinned', label: 'Pinned', icon: 'pin.svg', count: notificationCounts.pinned },
+                          { id: 'alerts', label: 'Alerts', icon: 'alert.svg', count: notificationCounts.alerts },
+                          { id: 'events', label: 'Events', icon: 'calendar-icon.svg', count: notificationCounts.events },
+                          { id: 'assignments', label: 'Assignments', icon: 'homework-icon.svg', count: notificationCounts.assignments },
+                          { id: 'archive', label: 'Archive', icon: 'archive.svg', count: notificationCounts.archive },
+                          { id: 'trash', label: 'Trash', icon: 'trash.svg', count: notificationCounts.trash }
+                        ].map((category) => (
+                          <button
+                            key={category.id}
+                            className={`${styles.categoryItem} ${selectedCategory === category.id ? styles.active : ''}`}
+                            onClick={() => setSelectedCategory(category.id)}
+                            onMouseEnter={() => setShowTooltip(category.id)}
+                            onMouseLeave={() => setShowTooltip(null)}
+                          >
+                            <div className={styles.categoryIcon}>
+                              <img src={`/Assets/${category.icon}`} alt={category.label} />
+                            </div>
+                            {category.count > 0 && (
+                              <span className={styles.categoryCount}>{category.count}</span>
+                            )}
+                            {showTooltip === category.id && (
+                              <div className={styles.tooltip}>{category.label}</div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className={styles.sidebarFooter}>
+                      <button 
+                        className={styles.footerBtn}
+                        onMouseEnter={() => setShowTooltip('settings')}
+                        onMouseLeave={() => setShowTooltip(null)}
+                      >
+                        <img src="/Assets/settings-icon.svg" alt="Settings" />
+                        {showTooltip === 'settings' && (
+                          <div className={styles.tooltip}>Settings</div>
+                        )}
+                      </button>
+                      <button 
+                        className={styles.footerBtn}
+                        onClick={() => loadPortalData(true)}
+                        onMouseEnter={() => setShowTooltip('refresh')}
+                        onMouseLeave={() => setShowTooltip(null)}
+                      >
+                        <img src="/Assets/refresh-icon.svg" alt="Refresh" />
+                        {showTooltip === 'refresh' && (
+                          <div className={styles.tooltip}>Refresh</div>
+                        )}
+                      </button>
+                    </div>
+                  </div>
 
-              {renderCurrentSection()}
-            </div>
-          </main>
+                  {/* Middle panel - notification list */}
+                  <div className={styles.notificationsList}>
+                    <div className={styles.listHeader}>
+                      <div className={styles.searchContainer}>
+                        <img src="/Assets/search.svg" alt="Search" className={styles.searchIcon} />
+                        <input 
+                          type="text" 
+                          placeholder="Search notifications..."
+                          value={notificationSearchQuery}
+                          onChange={(e) => setNotificationSearchQuery(e.target.value)}
+                          className={styles.searchInput}
+                        />
+                      </div>
+                      
+                      <div className={styles.listActions}>
+                        <button 
+                          className={styles.actionBtn}
+                          onMouseEnter={() => setShowTooltip('markAll')}
+                          onMouseLeave={() => setShowTooltip(null)}
+                        >
+                          <img src="/Assets/mark-read.svg" alt="Mark all as read" />
+                          {showTooltip === 'markAll' && (
+                            <div className={styles.tooltip}>Mark all as read</div>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.listContent}>
+                      {(() => {
+                        const filteredNotifications = getFilteredNotifications();
+                        return filteredNotifications.length > 0 ? (
+                          <div className={styles.notificationGroup}>
+                            <div className={styles.groupHeader}>
+                              {selectedCategory === 'inbox' && 'Inbox'}
+                              {selectedCategory === 'pinned' && 'Pinned'}
+                              {selectedCategory === 'alerts' && 'Alerts'}
+                              {selectedCategory === 'events' && 'Events'}
+                              {selectedCategory === 'assignments' && 'Assignments'}
+                              {selectedCategory === 'archive' && 'Archive'}
+                              {selectedCategory === 'trash' && 'Trash'}
+                            </div>
+                            {filteredNotifications.map((notice, index) => {
+                              const originalIndex = portalData?.notices?.findIndex(n => n === notice) || 0;
+                              const notificationId = getNotificationId(notice, originalIndex);
+                              const isRead = notificationStates[notificationId]?.read || false;
+                              const isPinned = notificationStates[notificationId]?.pinned || false;
+                              
+                              return (
+                                <div 
+                                  key={index} 
+                                  className={`${styles.notificationItem} ${selectedNotification === notice ? styles.selected : ''} ${isRead ? styles.read : ''}`}
+                                  onClick={() => setSelectedNotification(notice)}
+                                >
+                                  <div className={styles.notificationMeta}>
+                                    {!isRead && <div className={styles.unreadDot}></div>}
+                                    <div className={styles.notificationIcon}>
+                                      <img src="/Assets/notification-icon.svg" alt="Notice" />
+                                    </div>
+                                  </div>
+                                  <div className={styles.notificationBody}>
+                                    <div className={styles.notificationHeader}>
+                                      <span className={styles.notificationTitle}>{notice.title}</span>
+                                      <span className={styles.notificationTime}>Recent</span>
+                                    </div>
+                                    <div className={styles.notificationPreview}>{notice.preview}</div>
+                                  </div>
+                                  <div className={styles.notificationActions}>
+                                    <button 
+                                      className={styles.notificationActionBtn}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleRead(getNotificationId(notice, index));
+                                      }}
+                                      onMouseEnter={() => setShowTooltip(`read-${originalIndex}`)}
+                                      onMouseLeave={() => setShowTooltip(null)}
+                                    >
+                                      <img src={isRead ? "/Assets/mark-unread.svg" : "/Assets/mark-read.svg"} alt={isRead ? "Mark as unread" : "Mark as read"} />
+                                      {showTooltip === `read-${originalIndex}` && (
+                                        <div className={styles.tooltip}>{isRead ? "Mark as unread" : "Mark as read"}</div>
+                                      )}
+                                    </button>
+                                    <button 
+                                      className={styles.notificationActionBtn}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleNotificationPin(notificationId);
+                                      }}
+                                      onMouseEnter={() => setShowTooltip(`pin-${originalIndex}`)}
+                                      onMouseLeave={() => setShowTooltip(null)}
+                                    >
+                                      <img src={isPinned ? "/Assets/pinned.svg" : "/Assets/pin.svg"} alt={isPinned ? "Unpin" : "Pin"} />
+                                      {showTooltip === `pin-${originalIndex}` && (
+                                        <div className={styles.tooltip}>{isPinned ? "Unpin notification" : "Pin notification"}</div>
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <img src="/Assets/inbox.svg" alt="No notifications" />
+                            <h3>No notifications</h3>
+                            <p>{selectedCategory === 'trash' ? 'Trash is empty' : 'No notifications in this category'}</p>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Right panel - notification details */}
+                  <div className={styles.notificationDetails}>
+                    {selectedNotification ? (() => {
+                      const selectedIndex = portalData?.notices?.findIndex(n => n === selectedNotification) || 0;
+                      const selectedId = getNotificationId(selectedNotification, selectedIndex);
+                      const isSelectedRead = notificationStates[selectedId]?.read || false;
+                      const isSelectedPinned = notificationStates[selectedId]?.pinned || false;
+                      
+                      return (
+                        <div className={styles.detailsContent}>
+                          <div className={styles.detailsHeader}>
+                            <h3>{selectedNotification.title}</h3>
+                            <div className={styles.detailsActions}>
+                              <button 
+                                className={styles.detailActionBtn}
+                                onClick={() => toggleRead(getNotificationId(selectedNotification, selectedIndex))}
+                                onMouseEnter={() => setShowTooltip('detailRead')}
+                                onMouseLeave={() => setShowTooltip(null)}
+                              >
+                                <img src={isSelectedRead ? "/Assets/mark-unread.svg" : "/Assets/mark-read.svg"} alt={isSelectedRead ? "Mark as unread" : "Mark as read"} />
+                                {showTooltip === 'detailRead' && (
+                                  <div className={styles.tooltip}>{isSelectedRead ? "Mark as unread" : "Mark as read"}</div>
+                                )}
+                              </button>
+                              <button 
+                                className={styles.detailActionBtn}
+                                onClick={() => toggleNotificationPin(selectedId)}
+                                onMouseEnter={() => setShowTooltip('detailPin')}
+                                onMouseLeave={() => setShowTooltip(null)}
+                              >
+                                <img src={isSelectedPinned ? "/Assets/pinned.svg" : "/Assets/pin.svg"} alt={isSelectedPinned ? "Unpin" : "Pin"} />
+                                {showTooltip === 'detailPin' && (
+                                  <div className={styles.tooltip}>{isSelectedPinned ? "Unpin notification" : "Pin notification"}</div>
+                                )}
+                              </button>
+                              <button 
+                                className={styles.detailActionBtn}
+                                onClick={() => archiveNotification(selectedId)}
+                                onMouseEnter={() => setShowTooltip('detailArchive')}
+                                onMouseLeave={() => setShowTooltip(null)}
+                              >
+                                <img src="/Assets/archive.svg" alt="Archive" />
+                                {showTooltip === 'detailArchive' && (
+                                  <div className={styles.tooltip}>Archive</div>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                          <div className={styles.detailsBody}>
+                            <p>{selectedNotification.content}</p>
+                          </div>
+                        </div>
+                      );
+                    })() : (
+                      <div className={styles.emptyState}>
+                        <img src="/Assets/inbox.svg" alt="No notification selected" />
+                        <h3>No notification selected</h3>
+                        <p>Select a notification to view its details</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Header */}
+                <div className={styles.header}>
+                  <div className={styles.headerLeft}>
+                    <h1 className={styles.pageTitle}>
+                      {currentSection === 'account' && 'Account'}
+                      {currentSection === 'notices' && 'Notices'}
+                      {currentSection === 'calendar' && 'Calendar'}
+                      {currentSection === 'timetable' && 'Timetable'}
+                      {currentSection === 'attendance' && 'Attendance'}
+                      {currentSection === 'homework' && 'Homework'}
+                      {currentSection === 'grades' && 'Grades'}
+                      {currentSection === 'resources' && 'Resources'}
+                      {currentSection === 'reports' && 'Reports'}
+                      {currentSection === 'preferences' && 'Preferences'}
+                      {!currentSection && 'Dashboard'}
+                    </h1>
+                  </div>
+                  <div className={styles.headerRight}>
+                    <button 
+                      className={styles.headerActionBtn} 
+                      onClick={() => setShowSearchModal(true)}
+                      title="Search"
+                    >
+                      <img src="/Assets/search.svg" alt="Search" />
+                    </button>
+                    <button 
+                      className={styles.headerActionBtn} 
+                      onClick={() => handleSectionClick('preferences')}
+                      title="Preferences"
+                    >
+                      <img src="/Assets/preferences-icon.svg" alt="Preferences" />
+                    </button>
+                  </div>
+                </div>
+
+                {renderCurrentSection()}
+              </>
+            )}
+          </div>
         </div>
 
         {/* Search modal */}
@@ -931,7 +1164,18 @@ export default function Dashboard() {
               {/* Left sidebar - Spark inspired */}
               <div className={styles.notificationsSidebar}>
                 <div className={styles.sidebarHeader}>
-                      </div>
+                  <button 
+                    className={styles.backBtn}
+                    onClick={() => setShowNotificationsModal(false)}
+                    onMouseEnter={() => setShowTooltip('back')}
+                    onMouseLeave={() => setShowTooltip(null)}
+                  >
+                    <img src="/Assets/arrow-left.svg" alt="Back" />
+                    {showTooltip === 'back' && (
+                      <div className={styles.tooltip}>Back to Dashboard</div>
+                    )}
+                  </button>
+                </div>
                 
                 <div className={styles.sidebarContent}>
                   <div className={styles.categoryList}>
@@ -1082,7 +1326,7 @@ export default function Dashboard() {
                                   className={styles.notificationActionBtn}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleNotificationRead(notificationId);
+                                    toggleRead(getNotificationId(notice, index));
                                   }}
                                   onMouseEnter={() => setShowTooltip(`read-${originalIndex}`)}
                                   onMouseLeave={() => setShowTooltip(null)}
@@ -1106,20 +1350,6 @@ export default function Dashboard() {
                                     <div className={styles.tooltip}>{isPinned ? "Unpin notification" : "Pin notification"}</div>
                                   )}
                                 </button>
-                                <button 
-                                  className={styles.notificationActionBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleNotificationRead(notificationId);
-                                  }}
-                                  onMouseEnter={() => setShowTooltip(`archive-${originalIndex}`)}
-                                  onMouseLeave={() => setShowTooltip(null)}
-                                >
-                                  <img src="/Assets/archive.svg" alt="Archive" />
-                                  {showTooltip === `archive-${originalIndex}` && (
-                                    <div className={styles.tooltip}>Archive</div>
-                                  )}
-                                </button>
                               </div>
                             </div>
                           );
@@ -1139,7 +1369,7 @@ export default function Dashboard() {
               {/* Right panel - notification details */}
               <div className={styles.notificationDetails}>
                 {selectedNotification ? (() => {
-                  const selectedIndex = portalData?.notices?.findIndex(n => n === selectedNotification) ?? 0;
+                  const selectedIndex = portalData?.notices?.findIndex(n => n === selectedNotification) || 0;
                   const selectedId = getNotificationId(selectedNotification, selectedIndex);
                   const isSelectedRead = notificationStates[selectedId]?.read || false;
                   const isSelectedPinned = notificationStates[selectedId]?.pinned || false;
@@ -1147,11 +1377,11 @@ export default function Dashboard() {
                   return (
                     <div className={styles.detailsContent}>
                       <div className={styles.detailsHeader}>
-                        <h3>{selectedNotification?.title}</h3>
+                        <h3>{selectedNotification.title}</h3>
                         <div className={styles.detailsActions}>
                           <button 
                             className={styles.detailActionBtn}
-                            onClick={() => toggleNotificationRead(selectedId)}
+                            onClick={() => toggleRead(getNotificationId(selectedNotification, selectedIndex))}
                             onMouseEnter={() => setShowTooltip('detailRead')}
                             onMouseLeave={() => setShowTooltip(null)}
                           >
@@ -1173,6 +1403,7 @@ export default function Dashboard() {
                           </button>
                           <button 
                             className={styles.detailActionBtn}
+                            onClick={() => archiveNotification(selectedId)}
                             onMouseEnter={() => setShowTooltip('detailArchive')}
                             onMouseLeave={() => setShowTooltip(null)}
                           >
@@ -1184,7 +1415,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className={styles.detailsBody}>
-                        <p>{selectedNotification?.content}</p>
+                        <p>{selectedNotification.content}</p>
                       </div>
                     </div>
                   );

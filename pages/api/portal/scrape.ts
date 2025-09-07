@@ -260,23 +260,9 @@ export default async function handler(
     // Use real data if found, otherwise empty array (don't provide mock data for weekends)
     const finalTimetable = timetable;
 
-    const finalNotices = notices.length > 0 ? notices : [
-      { 
-        title: 'Portal Maintenance Notice', 
-        preview: 'Scheduled maintenance will occur this weekend. Please save your work before Friday 8 PM.', 
-        content: 'Dear Students, We will be performing scheduled maintenance on the portal this weekend. Please ensure all assignments are submitted before Friday 8 PM. Thank you for your understanding.' 
-      },
-      { 
-        title: 'New Assignment Posted', 
-        preview: 'Mathematics assignment on functions has been posted. Due next Monday.', 
-        content: 'A new mathematics assignment covering quadratic functions has been posted. Please complete all exercises and submit by Monday.' 
-      }
-    ];
+    const finalNotices = notices;
 
-    const finalDiary = diary.length > 0 ? diary : [
-      { date: 'Thu 4 SEP', title: 'Assembly - Main Hall', description: '10:00 AM' },
-      { date: 'Fri 5 SEP', title: 'Sports Day Preparation', description: '2:00 PM' }
-    ];
+    const finalDiary = diary;
 
     const portalData: PortalData = {
       user: {
