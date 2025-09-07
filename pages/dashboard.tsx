@@ -309,35 +309,12 @@ export default function Dashboard() {
               {/* Recent activity */}
               <div className={styles.listSection}>
                 <h2 className={styles.sectionTitle}>Recent Activity</h2>
-                <ul className={styles.activityList}>
-                  <li className={styles.activityItem}>
-                    <div className={styles.activityIcon}>
-                      <img src="/Assets/activity-icon.svg" alt="Activity" />
-                    </div>
-                    <div className={styles.activityContent}>
-                      <div className={styles.activityTitle}>Portal Data Synced</div>
-                      <div className={styles.activityTime}>Just now</div>
-                    </div>
-                  </li>
-                  <li className={styles.activityItem}>
-                    <div className={styles.activityIcon}>
-                      <img src="/Assets/activity-icon.svg" alt="Activity" />
-                    </div>
-                    <div className={styles.activityContent}>
-                      <div className={styles.activityTitle}>Logged into Dashboard</div>
-                      <div className={styles.activityTime}>Today</div>
-                    </div>
-                  </li>
-                  <li className={styles.activityItem}>
-                    <div className={styles.activityIcon}>
-                      <img src="/Assets/activity-icon.svg" alt="Activity" />
-                    </div>
-                    <div className={styles.activityContent}>
-                      <div className={styles.activityTitle}>Account Settings Updated</div>
-                      <div className={styles.activityTime}>Yesterday</div>
-                    </div>
-                  </li>
-                </ul>
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyStateIcon}>
+                    <img src="/Assets/activity-icon.svg" alt="No activity" />
+                  </div>
+                  <div className={styles.emptyStateText}>No recent activity</div>
+                </div>
               </div>
 
               {/* Classes list (linear style) */}
@@ -674,7 +651,7 @@ export default function Dashboard() {
 
         {/* Search modal */}
         {showSearchModal && (
-          <div className={styles.searchModal} onClick={(e) => e.target === e.currentTarget && setShowSearchModal(false)}>
+          <div className={`${styles.searchModal} ${showSearchModal ? styles.active : ''}`} onClick={(e) => e.target === e.currentTarget && setShowSearchModal(false)}>
             <div className={styles.searchModalContainer}>
               <div className={styles.searchModalHeader}>
                 <input 
@@ -760,35 +737,30 @@ export default function Dashboard() {
                         <img src="/Assets/inbox.svg" alt="Inbox" />
                       </div>
                       <span>Inbox</span>
-                      <span className={styles.unreadCount}>12</span>
                     </li>
                     <li className={styles.categoryItem} data-category="pinned">
                       <div className={styles.categoryIcon}>
                         <img src="/Assets/pinned.svg" alt="Pinned" />
                       </div>
                       <span>Pinned</span>
-                      <span className={styles.unreadCount}>3</span>
                     </li>
                     <li className={styles.categoryItem} data-category="alerts">
                       <div className={styles.categoryIcon}>
                         <img src="/Assets/alert.svg" alt="Alerts" />
                       </div>
                       <span>Alerts</span>
-                      <span className={styles.unreadCount}>5</span>
                     </li>
                     <li className={styles.categoryItem} data-category="calendar">
                       <div className={styles.categoryIcon}>
                         <img src="/Assets/calendar-icon.svg" alt="Calendar" />
                       </div>
                       <span>Events</span>
-                      <span className={styles.unreadCount}>2</span>
                     </li>
                     <li className={styles.categoryItem} data-category="homework">
                       <div className={styles.categoryIcon}>
                         <img src="/Assets/homework-icon.svg" alt="Homework" />
                       </div>
                       <span>Assignments</span>
-                      <span className={styles.unreadCount}>4</span>
                     </li>
                     <li className={styles.categoryItem} data-category="archive">
                       <div className={styles.categoryIcon}>
