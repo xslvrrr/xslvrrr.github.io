@@ -1056,9 +1056,55 @@
   transform: scale(1);
 }
 
+/* Notifications Full Page */
+.notificationsPage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notificationsTopBar {
+  height: 60px;
+  background: var(--content-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-xl);
+  flex-shrink: 0;
+}
+
+.notificationsTopBar h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.notificationsContainer {
+  width: 100%;
+  height: calc(100% - 60px);
+  display: flex;
+  overflow: hidden;
+}
+
 /* Notifications Sidebar */
 .notificationsSidebar {
-  width: 240px;
+  width: 80px;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -1069,19 +1115,12 @@
 .sidebarHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-lg);
+  justify-content: center;
+  padding: var(--space-lg) var(--space-md);
   border-bottom: 1px solid var(--border-color);
 }
 
-.sidebarHeader h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.closeBtn {
+.backBtn {
   background: none;
   border: none;
   padding: 8px;
@@ -1089,13 +1128,16 @@
   cursor: pointer;
   transition: var(--transition-fast);
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.closeBtn:hover {
+.backBtn:hover {
   background: var(--hover-bg);
 }
 
-.closeBtn img {
+.backBtn img {
   width: 16px;
   height: 16px;
   opacity: 0.7;
@@ -1117,16 +1159,16 @@
 .categoryItem {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: 10px var(--space-md);
+  justify-content: center;
+  padding: var(--space-md);
   border: none;
   background: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition-fast);
-  text-align: left;
   width: 100%;
   position: relative;
+  min-height: 44px;
 }
 
 .categoryItem:hover {
@@ -1134,7 +1176,7 @@
 }
 
 .categoryItem.active {
-  background: var(--primary-color);
+  background: var(--accent-color);
   color: white;
 }
 
@@ -1144,12 +1186,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .categoryIcon img {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
+  transition: var(--transition-fast);
+}
+
+.categoryItem:hover .categoryIcon img {
+  opacity: 0.8;
 }
 
 .categoryItem.active .categoryIcon img {
@@ -1157,37 +1205,34 @@
   filter: brightness(0) invert(1);
 }
 
-.categoryLabel {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.categoryItem.active .categoryLabel {
-  color: white;
-}
-
 .categoryCount {
+  position: absolute;
+  top: 6px;
+  right: 6px;
   background: var(--accent-color);
   color: white;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-  text-align: center;
+  padding: 2px 5px;
+  border-radius: 8px;
+  min-width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .categoryItem.active .categoryCount {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
 }
 
 .sidebarFooter {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
+  gap: 4px;
   padding: var(--space-md);
   border-top: 1px solid var(--border-color);
 }
@@ -1214,7 +1259,7 @@
 
 /* Notifications List Panel */
 .notificationsList {
-  width: 350px;
+  width: 400px;
   background: var(--content-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -1505,10 +1550,73 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 10000;
   pointer-events: none;
   opacity: 0;
   animation: tooltipFadeIn 0.2s ease-out forwards;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Tooltip positioning for sidebar items */
+.categoryItem .tooltip {
+  left: calc(100% + 12px);
+  bottom: 50%;
+  transform: translateY(50%);
+}
+
+.categoryItem .tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 4px solid transparent;
+  border-right-color: rgba(0, 0, 0, 0.9);
+}
+
+@keyframes tooltipSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(50%) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(50%) translateX(0);
+  }
+}
+
+.categoryItem .tooltip {
+  animation: tooltipSlideIn 0.2s ease-out forwards;
+}
+
+/* Footer button tooltips */
+.footerBtn .tooltip,
+.backBtn .tooltip {
+  left: calc(100% + 12px);
+  bottom: 50%;
+  transform: translateY(50%);
+  animation: tooltipSlideIn 0.2s ease-out forwards;
+}
+
+.footerBtn .tooltip::before,
+.backBtn .tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 4px solid transparent;
+  border-right-color: rgba(0, 0, 0, 0.9);
 }
 
 .tooltip::after {
@@ -1862,8 +1970,20 @@
 }
 
 .notificationItem.selected {
-  background: var(--active-bg);
-  border-left: 3px solid var(--priority-medium);
+  background: var(--hover-bg);
+  border-left: 3px solid var(--accent-color);
+}
+
+.notificationItem.read {
+  opacity: 0.7;
+}
+
+.notificationItem.read .notificationTitle {
+  font-weight: 400;
+}
+
+.notificationItem.read .unreadDot {
+  display: none;
 }
 
 .notificationStatus {
