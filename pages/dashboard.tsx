@@ -320,35 +320,47 @@ export default function Dashboard() {
               {/* Classes list (linear style) */}
               <div className={styles.listSection}>
                 <h2 className={styles.sectionTitle}>Your Classes</h2>
-                <table className={styles.listTable}>
-                  <thead className={styles.listTableHeader}>
-                    <tr>
-                      <th>Subject</th>
-                      <th>Teacher</th>
-                      <th>Room</th>
-                      <th>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {portalData?.timetable && portalData.timetable.length > 0 ? (
-                      portalData.timetable.map((item, index) => (
-                        <tr key={index} className={styles.listTableRow}>
-                          <td>{item.subject}</td>
-                          <td>{item.teacher}</td>
-                          <td>{item.room}</td>
-                          <td>{item.period}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr className={styles.listTableRow}>
-                        <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                          {dataLoading ? 'Loading classes...' : 
-                           new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No data to display'}
-                        </td>
+                {dataLoading ? (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.loadingSpinner}></div>
+                    <span>Loading classes...</span>
+                  </div>
+                ) : (
+                  <table className={styles.listTable}>
+                    <thead className={styles.listTableHeader}>
+                      <tr>
+                        <th>Status</th>
+                        <th>Subject</th>
+                        <th>Teacher</th>
+                        <th>Room</th>
+                        <th>Time</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {portalData?.timetable && portalData.timetable.length > 0 ? (
+                        portalData.timetable.map((item, index) => (
+                          <tr key={index} className={`${styles.listTableRow} ${item.isActive ? styles.activeClass : ''}`}>
+                            <td>
+                              <div className={`${styles.attendanceIndicator} ${item.isActive ? styles.active : styles.inactive}`}>
+                                {item.isActive ? '●' : '○'}
+                              </div>
+                            </td>
+                            <td>{item.subject}</td>
+                            <td>{item.teacher}</td>
+                            <td>{item.room}</td>
+                            <td>{item.period}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr className={styles.listTableRow}>
+                          <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                            {new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No data to display'}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           </div>
@@ -360,20 +372,30 @@ export default function Dashboard() {
             <div className={styles.contentWrapperInner}>
               <div className={`${styles.card} ${styles.noticesCard}`}>
                 <h2>Student Notices</h2>
-                <div className={styles.noticesList}>
-                  {portalData?.notices && portalData.notices.length > 0 ? (
-                    portalData.notices.map((notice, index) => (
-                      <div key={index} className={styles.noticeItem}>
-                        <div className={styles.noticeTitle}>{notice.title}</div>
-                        <div className={styles.noticePreview}>{notice.preview}</div>
+                {dataLoading ? (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.loadingSpinner}></div>
+                    <span>Loading notices...</span>
+                  </div>
+                ) : (
+                  <div className={styles.noticesList}>
+                    {portalData?.notices && portalData.notices.length > 0 ? (
+                      portalData.notices.map((notice, index) => (
+                        <div key={index} className={styles.noticeItem}>
+                          <div className={styles.noticeTitle}>{notice.title}</div>
+                          <div className={styles.noticePreview}>{notice.preview}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <div className={styles.emptyStateIcon}>
+                          <img src="/Assets/notification-icon.svg" alt="No notices" />
+                        </div>
+                        <div className={styles.emptyStateText}>No notices available</div>
                       </div>
-                    ))
-                  ) : (
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      {dataLoading ? 'Loading notices...' : 'No data to display'}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -385,23 +407,37 @@ export default function Dashboard() {
             <div className={styles.contentWrapperInner}>
               <div className={`${styles.card} ${styles.timetableCard}`}>
                 <h2>Today&apos;s Timetable</h2>
-                <div className={styles.timetableList}>
-                  {portalData?.timetable && portalData.timetable.length > 0 ? (
-                    portalData.timetable.map((item, index) => (
-                      <div key={index} className={`${styles.timetableItem} ${item.isActive ? styles.active : ''}`}>
-                        <span className={styles.timetablePeriod}>{item.period}</span>
-                        <span className={styles.timetableSubject}>{item.subject}</span>
-                        <span className={styles.timetableTeacher}>{item.teacher}</span>
-                        <span className={styles.timetableRoom}>{item.room}</span>
+                {dataLoading ? (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.loadingSpinner}></div>
+                    <span>Loading timetable...</span>
+                  </div>
+                ) : (
+                  <div className={styles.timetableList}>
+                    {portalData?.timetable && portalData.timetable.length > 0 ? (
+                      portalData.timetable.map((item, index) => (
+                        <div key={index} className={`${styles.timetableItem} ${item.isActive ? styles.active : ''}`}>
+                          <span className={styles.timetablePeriod}>{item.period}</span>
+                          <span className={styles.timetableSubject}>{item.subject}</span>
+                          <span className={styles.timetableTeacher}>{item.teacher}</span>
+                          <span className={styles.timetableRoom}>{item.room}</span>
+                          {item.isActive && (
+                            <span className={styles.activeIndicator}>● Current</span>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <div className={styles.emptyStateIcon}>
+                          <img src="/Assets/today-icon.svg" alt="No classes" />
+                        </div>
+                        <div className={styles.emptyStateText}>
+                          {new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No timetable data available'}
+                        </div>
                       </div>
-                    ))
-                  ) : (
-                    <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      {dataLoading ? 'Loading timetable...' : 
-                       new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No data to display'}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

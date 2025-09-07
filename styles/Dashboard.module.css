@@ -661,6 +661,60 @@
   font-size: 14px;
 }
 
+/* Loading animations */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  gap: var(--space-md);
+}
+
+.loadingSpinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Attendance indicators */
+.attendanceIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.attendanceIndicator.active {
+  color: #20e020;
+}
+
+.attendanceIndicator.inactive {
+  color: var(--text-tertiary);
+}
+
+.activeClass {
+  background-color: rgba(32, 224, 32, 0.1);
+}
+
+.activeIndicator {
+  color: #20e020;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
 /* List tables */
 .listTable {
   width: 100%;

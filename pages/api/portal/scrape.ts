@@ -68,9 +68,34 @@ export default async function handler(
 
     const $ = cheerio.load(portalResponse.data);
     
-    // Debug logging
+    // Debug logging and verification
     console.log(`Scraping portal for ${session.username} at ${session.school}`);
     console.log(`Portal response length: ${portalResponse.data.length} characters`);
+    
+    // Verify we're actually on the portal page and not redirected to login
+    const isLoggedIn = portalResponse.data.includes('Student & Parent Portal') || 
+                      portalResponse.data.includes('Welcome to Millennium') ||
+                      portalResponse.data.includes('jdash-widget') ||
+                      portalResponse.data.includes('table.grey');
+    
+    const isLoginPage = portalResponse.data.includes('login') || 
+                       portalResponse.data.includes('username') || 
+                       portalResponse.data.includes('password');
+    
+    console.log(`Portal verification: isLoggedIn=${isLoggedIn}, isLoginPage=${isLoginPage}`);
+    
+    if (!isLoggedIn || isLoginPage) {
+      console.error('Portal scraping failed: Not properly logged in or redirected to login page');
+      return res.status(401).json({ 
+        message: 'Session expired or invalid. Please log in again.',
+        expired: true,
+        debug: {
+          responseLength: portalResponse.data.length,
+          containsPortalElements: isLoggedIn,
+          containsLoginElements: isLoginPage
+        }
+      });
+    }
     
     // Extract user information
     const userInfoText = $('table.grey td:first-child b').text() || '';
@@ -79,15 +104,26 @@ export default async function handler(
     const userName = userParts[1] || session.username || 'Unknown User';
     
     console.log(`Extracted user info: "${userInfoText}", School: "${schoolName}", User: "${userName}"`);
+    
+    // Additional verification - check for specific portal elements
+    const hasPortalElements = {
+      dashboard: $('#dashboard').length > 0,
+      timetable: $('#timetable').length > 0,
+      notices: $('#notices').length > 0,
+      diary: $('#mydiary').length > 0,
+      jdashWidget: $('.jdash-widget').length > 0
+    };
+    
+    console.log('Portal elements found:', hasPortalElements);
 
-    // Extract timetable data - based on the provided HTML structure
+    // Extract timetable data - based on the actual portal HTML structure
     const timetable: TimetableEntry[] = [];
     
-    // Look for timetable in various possible locations
+    // Look specifically for the timetable widget structure from the portal
     const timetableSelectors = [
-      'table tr', // Direct table rows
-      '#timetable table tr',
-      '.jdash-body table tr',
+      '#timetable .jdash-body table.table1 tr',
+      '.jdash-widget .jdash-body table.table1 tr',
+      'table.table1 tr',
       '#dashboard table tr'
     ];
     
@@ -95,32 +131,22 @@ export default async function handler(
     for (const selector of timetableSelectors) {
       $(selector).each((i, el) => {
         const cells = $(el).find('td');
-        if (cells.length >= 4 && !foundTimetable) {
-          const firstCellText = $(cells[0]).text().trim();
+        if (cells.length >= 4) {
+          const firstCellText = $(cells[0]).find('b').text().trim() || $(cells[0]).text().trim();
           
-          // Check if this looks like a timetable row (starts with P1, P2, etc.)
-          if (firstCellText.match(/^P\d+[AB]?$/)) {
-            foundTimetable = true;
-          }
-        }
-      });
-      
-      if (foundTimetable) {
-        $(selector).each((i, el) => {
-          const cells = $(el).find('td');
-          if (cells.length >= 4) {
-            const period = $(cells[0]).find('b').text().trim() || $(cells[0]).text().trim();
+          // Check if this looks like a timetable row (starts with P1, P2, P3b, etc.)
+          if (firstCellText.match(/^P\d+[ab]?$/i)) {
+            const period = firstCellText;
             const room = $(cells[1]).text().trim();
             const subject = $(cells[2]).text().trim();
             const teacher = $(cells[3]).text().trim();
             
-            // Check if period is currently active (has green background)
-            // Look for span with green background color in the 5th cell (attendance)
+            // Check if period is currently active (has green background #20e020)
             const isActive = cells.length >= 5 && 
               $(cells[4]).find('span[style*="background-color:#20e020"], span[style*="#20e020"]').length > 0;
             
             // Only add if it looks like a valid timetable entry
-            if (period.match(/^P\d+[AB]?$/) && subject) {
+            if (subject && teacher) {
               timetable.push({
                 period,
                 room,
@@ -128,45 +154,58 @@ export default async function handler(
                 teacher,
                 isActive
               });
+              foundTimetable = true;
             }
           }
-        });
-        break; // Found timetable, stop looking
-      }
+        }
+      });
+      
+      if (foundTimetable) break; // Found timetable, stop looking
     }
     
     console.log(`Found ${timetable.length} timetable entries`);
 
-    // Extract notices - look in various possible locations
+    // Extract notices - based on the actual portal structure
     const notices: Notice[] = [];
     const noticeSelectors = [
+      '#notices .jdash-body table.table1 li a',
       '#notices .jdash-body li a',
-      '#notices li a',
-      '.jdash-body li a',
-      'ul li a',
-      'table td a'
+      '.jdash-widget .jdash-body table li a',
+      '.jdash-body table li a'
     ];
     
     for (const selector of noticeSelectors) {
       $(selector).each((i, el) => {
         const $link = $(el);
         const title = $link.text().trim();
-        const fullContent = $link.attr('title') || $link.attr('href') || '';
+        const fullContent = $link.attr('title') || '';
         
         // Skip if we already have this notice or if it's not a real notice
         const isDuplicate = notices.some(n => n.title === title);
-        const isRealNotice = title.length > 5 && !title.match(/^(home|portal|logout|settings)/i);
+        const isRealNotice = title.length > 5 && 
+          !title.match(/^(home|portal|logout|settings|view|click)/i) &&
+          !title.includes('href=') && 
+          !title.includes('javascript:');
         
-        if (title && !isDuplicate && isRealNotice) {
-          // Create preview from content (first 100 characters)
-          const preview = fullContent.length > 100 
-            ? fullContent.substring(0, 100) + '...'
-            : fullContent || 'No preview available';
+        if (title && !isDuplicate && isRealNotice && fullContent) {
+          // Clean up HTML content and create preview
+          const cleanContent = fullContent
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          const preview = cleanContent.length > 150 
+            ? cleanContent.substring(0, 150) + '...'
+            : cleanContent || 'No preview available';
           
           notices.push({
             title,
             preview,
-            content: fullContent
+            content: cleanContent
           });
         }
       });
