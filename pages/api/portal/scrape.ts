@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../../lib/session';
-import axios from 'axios';
+import { logger } from '../../../lib/logger';
+import { fetchHTML } from '../../../lib/http';
 import * as cheerio from 'cheerio';
 
 interface TimetableEntry {
@@ -59,20 +60,14 @@ export default async function handler(
     const cookieHeader = session.sessionCookies.join('; ');
 
     // Scrape the main portal page
-    const portalResponse = await axios.get('https://millennium.education/portal/', {
-      headers: {
-        'Cookie': cookieHeader,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
-
-    const $ = cheerio.load(portalResponse.data);
+    const portalHTML = await fetchHTML('https://millennium.education/portal/', cookieHeader);
+    const $ = cheerio.load(portalHTML);
     
-    console.log(`Scraping portal for ${session.username} at ${session.school}`);
+    logger.debug(`Scraping portal for ${session.username} at ${session.school}`);
     
     // Verify we're on the portal page (not login page)
-    const isLoggedIn = portalResponse.data.includes('Student & Parent Portal') || 
-                      portalResponse.data.includes('jdash-widget');
+    const isLoggedIn = portalHTML.includes('Student & Parent Portal') || 
+                      portalHTML.includes('jdash-widget');
     
     if (!isLoggedIn) {
       return res.status(401).json({ 
@@ -130,20 +125,14 @@ export default async function handler(
       });
     }
     
-    console.log(`Found ${timetable.length} timetable entries${isWeekend ? ' (weekend)' : ''}${isHoliday ? ' (holiday)' : ''}`);
+    logger.debug(`Found ${timetable.length} timetable entries${isWeekend ? ' (weekend)' : ''}${isHoliday ? ' (holiday)' : ''}`);
 
     // Scrape notices from /portal/notices.asp - simplified
     let notices: Notice[] = [];
     
     try {
-      const noticesResponse = await axios.get('https://millennium.education/portal/notices.asp', {
-        headers: {
-          'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-      
-      const $notices = cheerio.load(noticesResponse.data);
+      const noticesHTML = await fetchHTML('https://millennium.education/portal/notices.asp', cookieHeader);
+      const $notices = cheerio.load(noticesHTML);
       
       // Extract notices - each h4 followed by .notice div
       $notices('h4').each((i, el) => {
@@ -163,9 +152,9 @@ export default async function handler(
         }
       });
       
-      console.log(`Found ${notices.length} notices`);
+      logger.debug(`Found ${notices.length} notices`);
     } catch (error) {
-      console.log('Error fetching notices:', error);
+      logger.error('Error fetching notices:', error);
     }
 
     // Extract diary entries
@@ -203,7 +192,7 @@ export default async function handler(
       lastUpdated: new Date().toISOString()
     };
 
-    console.log(`Portal data: ${timetable.length} classes, ${notices.length} notices, ${diary.length} diary entries`);
+    logger.info(`Portal data: ${timetable.length} classes, ${notices.length} notices, ${diary.length} diary entries`);
 
     // Store scraped data in session for caching
     session.portalData = portalData;
@@ -212,12 +201,21 @@ export default async function handler(
     return res.status(200).json(portalData);
 
   } catch (error: any) {
-    console.error('Portal scraping error:', error);
+    logger.error('Portal scraping error:', error);
     
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    // Check if it's an authentication error
+    if (error.message?.includes('401') || error.message?.includes('403')) {
       return res.status(401).json({ 
         message: 'Session expired. Please log in again.',
         expired: true 
+      });
+    }
+    
+    // Check if it's a network error
+    if (error.name === 'TypeError' || error.message?.includes('fetch')) {
+      return res.status(503).json({ 
+        message: 'Unable to connect to portal. Please try again later.',
+        error: 'Network error'
       });
     }
     

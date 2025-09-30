@@ -1,48 +1,33 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import styles from '../styles/Dashboard.module.css';
+import { UserSession, TimetableEntry, Notice, DiaryEntry } from '../types/portal';
+import { useDashboardData } from '../hooks/useDashboardData';
+import { useNotifications } from '../hooks/useNotifications';
 
-interface UserSession {
-  loggedIn: boolean;
-  username?: string;
-  school?: string;
-  timestamp?: string;
-}
-
-interface TimetableEntry {
-  period: string;
-  room: string;
-  subject: string;
-  teacher: string;
-  attendanceStatus: 'present' | 'absent' | 'partial' | 'unmarked';
-}
-
-interface Notice {
-  title: string;
-  preview: string;
-  content: string;
-}
-
-interface DiaryEntry {
-  date: string;
-  title: string;
-  description?: string;
-}
+// Dynamically import heavy components for code splitting
+const LoadingSkeleton = dynamic(() => import('../components/LoadingSkeleton').then(mod => ({ default: mod.LoadingSkeleton })), {
+  ssr: false
+});
 
 export default function Dashboard() {
   const router = useRouter();
-  const [session, setSession] = useState<UserSession | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [portalData, setPortalData] = useState<{
-    user: { name: string; school: string };
-    timetable: TimetableEntry[];
-    notices: Notice[];
-    diary: DiaryEntry[];
-    lastUpdated: string;
-  } | null>(null);
-  const [dataLoading, setDataLoading] = useState(false);
+  
+  // Use custom hooks for better organization
+  const {
+    session,
+    isLoading,
+    portalData,
+    dataLoading,
+    checkSession,
+    loadPortalData,
+    handleLogout
+  } = useDashboardData();
+  
+  const notificationHooks = useNotifications(portalData?.notices);
   
   // Enhanced dashboard state
   const [currentSection, setCurrentSection] = useState('home');
@@ -51,130 +36,30 @@ export default function Dashboard() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
-  
-  // Notifications modal state
-  const [selectedCategory, setSelectedCategory] = useState('inbox');
-  const [selectedNotification, setSelectedNotification] = useState<Notice | null>(null);
-  const [notificationSearchQuery, setNotificationSearchQuery] = useState('');
-  const [showTooltip, setShowTooltip] = useState<string | null>(null);
-  const [notificationCounts, setNotificationCounts] = useState({
-    inbox: 0,
-    pinned: 0,
-    alerts: 0,
-    events: 0,
-    assignments: 0,
-    archive: 0,
-    trash: 0
-  });
-  
-  // Notification state management
-  const [notificationStates, setNotificationStates] = useState<Record<string, { read: boolean; pinned: boolean; archived: boolean }>>({});
-  
-  // View state for different sections (dashboard/notifications)
   const [currentView, setCurrentView] = useState<string>('dashboard');
+  
+  // Destructure notification hooks
+  const {
+    selectedCategory,
+    setSelectedCategory,
+    selectedNotification,
+    setSelectedNotification,
+    notificationSearchQuery,
+    setNotificationSearchQuery,
+    showTooltip,
+    setShowTooltip,
+    notificationCounts,
+    toggleRead,
+    togglePin,
+    toggleArchive,
+    getFilteredNotifications,
+    getNotificationId
+  } = notificationHooks;
 
-  // Functions to handle notification state changes
-  const toggleRead = useCallback((notificationId: string) => {
-    setNotificationStates(prev => ({
-      ...prev,
-      [notificationId]: {
-        ...prev[notificationId],
-        read: !prev[notificationId]?.read
-      }
-    }));
-  }, []);
-
-  const archiveNotification = useCallback((notificationId: string) => {
-    setNotificationStates(prev => ({
-      ...prev,
-      [notificationId]: {
-        ...prev[notificationId],
-        read: true,
-        archived: true
-      }
-    }));
-  }, []);
-
-  const toggleNotificationPin = (notificationId: string) => {
-    setNotificationStates(prev => ({
-      ...prev,
-      [notificationId]: {
-        ...prev[notificationId],
-        pinned: !prev[notificationId]?.pinned
-      }
-    }));
-  };
-
-  const getNotificationId = (notice: Notice, index: number) => {
-    return `${notice.title}-${index}`;
-  };
-
-  // Filter notifications based on selected category
-  const getFilteredNotifications = () => {
-    if (!portalData?.notices) return [];
-    
-    return portalData.notices.filter((notice, index) => {
-      const notificationId = getNotificationId(notice, index);
-      const isRead = notificationStates[notificationId]?.read || false;
-      const isPinned = notificationStates[notificationId]?.pinned || false;
-      
-      // Apply search filter first
-      const matchesSearch = notificationSearchQuery === '' || 
-        notice.title.toLowerCase().includes(notificationSearchQuery.toLowerCase()) ||
-        notice.preview.toLowerCase().includes(notificationSearchQuery.toLowerCase());
-      
-      if (!matchesSearch) return false;
-      
-      // Apply category filter
-      switch (selectedCategory) {
-        case 'inbox':
-          return !isPinned; // Inbox shows unpinned notifications
-        case 'pinned':
-          return isPinned;
-        case 'alerts':
-          return notice.title.toLowerCase().includes('alert') || notice.title.toLowerCase().includes('urgent');
-        case 'events':
-          return notice.title.toLowerCase().includes('event') || notice.title.toLowerCase().includes('meeting');
-        case 'assignments':
-          return notice.title.toLowerCase().includes('assignment') || notice.title.toLowerCase().includes('homework');
-        case 'archive':
-          return notificationStates[notificationId]?.archived || false; // Archive shows archived notifications
-        case 'trash':
-          return false; // No trash functionality yet
-        default:
-          return true;
-      }
-    });
-  };
-
-  // Update notification counts when states change
+  // Check session on mount
   useEffect(() => {
-    if (!portalData?.notices) return;
-    
-    const counts = {
-      inbox: 0,
-      pinned: 0,
-      alerts: 0,
-      events: 0,
-      assignments: 0,
-      archive: 0,
-      trash: 0
-    };
-    
-    portalData.notices.forEach((notice, index) => {
-      const notificationId = getNotificationId(notice, index);
-      const isRead = notificationStates[notificationId]?.read || false;
-      const isPinned = notificationStates[notificationId]?.pinned || false;
-      
-      if (isPinned) counts.pinned++;
-      if (!isPinned) counts.inbox++;
-      if (notificationStates[notificationId]?.archived) counts.archive++;
-      if (notice.title.toLowerCase().includes('event') || notice.title.toLowerCase().includes('meeting')) counts.events++;
-      if (notice.title.toLowerCase().includes('assignment') || notice.title.toLowerCase().includes('homework')) counts.assignments++;
-    });
-    
-    setNotificationCounts(counts);
-  }, [portalData?.notices, session?.loggedIn]);
+    checkSession();
+  }, []);
 
   // Handle hash-based navigation
   useEffect(() => {
@@ -207,79 +92,7 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
-  // Update notification counts when portal data changes
-  useEffect(() => {
-    if (portalData?.notices) {
-      setNotificationCounts(prev => ({
-        ...prev,
-        inbox: portalData.notices.length,
-        alerts: portalData.notices.filter(n => n.title.toLowerCase().includes('alert')).length
-      }));
-    }
-  }, [portalData]);
-
-  const checkSession = async () => {
-    try {
-      const response = await fetch('/api/auth/session');
-      const sessionData = await response.json();
-      
-      if (!sessionData.loggedIn) {
-        router.push('/login');
-        return;
-      }
-      
-      setSession(sessionData);
-    } catch (error) {
-      console.error('Session check failed:', error);
-      router.push('/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadPortalData = async (force = false) => {
-    if (dataLoading) return;
-    
-    // Check if we have recent data (less than 2 minutes old) and not forcing refresh
-    if (!force && portalData?.lastUpdated) {
-      const lastUpdate = new Date(portalData.lastUpdated);
-      const now = new Date();
-      const diffMinutes = (now.getTime() - lastUpdate.getTime()) / (1000 * 60);
-      
-      if (diffMinutes < 2) {
-        console.log('Using cached portal data (less than 2 minutes old)');
-        return;
-      }
-    }
-    
-    setDataLoading(true);
-    try {
-      const response = await fetch('/api/portal/scrape');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setPortalData(data);
-      } else if (data.expired) {
-        // Session expired, redirect to login
-        router.push('/login');
-      } else {
-        console.error('Failed to load portal data:', data.message);
-      }
-    } catch (error) {
-      console.error('Error loading portal data:', error);
-    } finally {
-      setDataLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
+  // Removed duplicate notification count update - handled above
 
   const getUserInitials = (username?: string) => {
     if (!username) return 'U';
@@ -966,8 +779,8 @@ export default function Dashboard() {
                             {filteredNotifications.map((notice, index) => {
                               const originalIndex = portalData?.notices?.findIndex(n => n === notice) || 0;
                               const notificationId = getNotificationId(notice, originalIndex);
-                              const isRead = notificationStates[notificationId]?.read || false;
-                              const isPinned = notificationStates[notificationId]?.pinned || false;
+                              const isRead = notificationHooks.notificationStates[notificationId]?.read || false;
+                              const isPinned = notificationHooks.notificationStates[notificationId]?.pinned || false;
                               
                               return (
                                 <div 
@@ -1007,7 +820,7 @@ export default function Dashboard() {
                                       className={styles.notificationActionBtn}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        toggleNotificationPin(notificationId);
+                                        togglePin(notificationId);
                                       }}
                                       onMouseEnter={() => setShowTooltip(`pin-${originalIndex}`)}
                                       onMouseLeave={() => setShowTooltip(null)}
@@ -1038,8 +851,8 @@ export default function Dashboard() {
                     {selectedNotification ? (() => {
                       const selectedIndex = portalData?.notices?.findIndex(n => n === selectedNotification) || 0;
                       const selectedId = getNotificationId(selectedNotification, selectedIndex);
-                      const isSelectedRead = notificationStates[selectedId]?.read || false;
-                      const isSelectedPinned = notificationStates[selectedId]?.pinned || false;
+                      const isSelectedRead = notificationHooks.notificationStates[selectedId]?.read || false;
+                      const isSelectedPinned = notificationHooks.notificationStates[selectedId]?.pinned || false;
                       
                       return (
                         <div className={styles.detailsContent}>
@@ -1059,7 +872,7 @@ export default function Dashboard() {
                               </button>
                               <button 
                                 className={styles.detailActionBtn}
-                                onClick={() => toggleNotificationPin(selectedId)}
+                                onClick={() => togglePin(selectedId)}
                                 onMouseEnter={() => setShowTooltip('detailPin')}
                                 onMouseLeave={() => setShowTooltip(null)}
                               >
@@ -1070,7 +883,7 @@ export default function Dashboard() {
                               </button>
                               <button 
                                 className={styles.detailActionBtn}
-                                onClick={() => archiveNotification(selectedId)}
+                                onClick={() => toggleArchive(selectedId)}
                                 onMouseEnter={() => setShowTooltip('detailArchive')}
                                 onMouseLeave={() => setShowTooltip(null)}
                               >
