@@ -1,0 +1,8 @@
+# Robots.txt for Millennium Portal
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://your-domain.com/sitemap.xml
