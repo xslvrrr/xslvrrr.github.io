@@ -13,6 +13,11 @@ interface LoginResponse {
   success: boolean;
   message: string;
   sessionId?: string;
+  debug?: {
+    status: number;
+    hasRedirect: boolean;
+    redirectUrl: string;
+  };
 }
 
 export default async function handler(
@@ -126,14 +131,32 @@ export default async function handler(
       });
     }
     
-    // Login failed
+    // Login failed - provide more details
+    logger.error('Login failed:', {
+      status: loginResponse.status,
+      redirectUrl,
+      username,
+      school
+    });
+    
     return res.status(401).json({
       success: false,
-      message: 'Invalid credentials. Please check your username, password, and school name.'
+      message: 'Invalid credentials. Please check your username, password, and school name.',
+      debug: process.env.NODE_ENV === 'development' ? {
+        status: loginResponse.status,
+        hasRedirect: !!redirectUrl,
+        redirectUrl: redirectUrl
+      } : undefined
     });
 
   } catch (error: any) {
     logger.error('Login error:', error);
+    logger.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText
+    });
 
     if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       return res.status(503).json({
@@ -142,9 +165,14 @@ export default async function handler(
       });
     }
 
+    // Provide more detailed error for debugging
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? `Error: ${error.message}` 
+      : 'An unexpected error occurred during login. Please try again.';
+
     return res.status(500).json({
       success: false,
-      message: 'An unexpected error occurred during login. Please try again.'
+      message: errorMessage
     });
   }
 }
