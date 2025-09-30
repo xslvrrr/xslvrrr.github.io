@@ -66,7 +66,11 @@ export default function Dashboard() {
     archive: 0,
     trash: 0
   });
-  const [notificationStates, setNotificationStates] = useState<{[key: string]: {read: boolean, pinned: boolean, archived: boolean}}>({});
+  
+  // Notification state management
+  const [notificationStates, setNotificationStates] = useState<Record<string, { read: boolean; pinned: boolean; archived: boolean }>>({});
+  
+  // View state for different sections (dashboard/notifications)
   const [currentView, setCurrentView] = useState<string>('dashboard');
 
   // Functions to handle notification state changes
@@ -165,16 +169,35 @@ export default function Dashboard() {
       if (isPinned) counts.pinned++;
       if (!isPinned) counts.inbox++;
       if (notificationStates[notificationId]?.archived) counts.archive++;
-      if (notice.title.toLowerCase().includes('alert') || notice.title.toLowerCase().includes('urgent')) counts.alerts++;
       if (notice.title.toLowerCase().includes('event') || notice.title.toLowerCase().includes('meeting')) counts.events++;
       if (notice.title.toLowerCase().includes('assignment') || notice.title.toLowerCase().includes('homework')) counts.assignments++;
     });
     
     setNotificationCounts(counts);
-  }, [portalData?.notices, notificationStates]);
+  }, [portalData?.notices, session?.loggedIn]);
 
+  // Handle hash-based navigation
   useEffect(() => {
-    checkSession();
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1); // Remove #
+      if (hash === 'notifications') {
+        setCurrentView('notifications');
+        setCurrentSection('');
+      } else if (hash) {
+        setCurrentSection(hash);
+        setCurrentView('dashboard');
+      } else {
+        setCurrentSection('home');
+        setCurrentView('dashboard');
+      }
+    };
+
+    // Handle initial hash
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   useEffect(() => {
@@ -286,8 +309,7 @@ export default function Dashboard() {
   }, []);
 
   const handleSectionClick = useCallback((section: string) => {
-    setCurrentSection(section);
-    setCurrentView(''); // Clear currentView when navigating to sections
+    window.location.hash = section;
     setShowUserDropdown(false);
   }, []);
 
@@ -827,13 +849,6 @@ export default function Dashboard() {
                       title="Search"
                     >
                       <img src="/Assets/search.svg" alt="Search" />
-                    </button>
-                    <button 
-                      className={styles.headerActionBtn} 
-                      onClick={() => handleSectionClick('preferences')}
-                      title="Preferences"
-                    >
-                      <img src="/Assets/preferences-icon.svg" alt="Preferences" />
                     </button>
                     <button 
                       className={styles.headerActionBtn} 
