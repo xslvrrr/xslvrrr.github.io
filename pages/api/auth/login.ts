@@ -56,11 +56,15 @@ export default async function handler(
     // Check for successful login (302 redirect to portal)
     const isSuccess = loginResponse.status === 302;
     const redirectUrl = loginResponse.headers.get('location') || '';
+    
+    logger.debug(`Login response status: ${loginResponse.status}, Redirect URL: ${redirectUrl}`);
 
     if (isSuccess && redirectUrl.includes('portal')) {
-      // Extract and parse session cookies
-      const rawCookies = loginResponse.headers.get('set-cookie')?.split(', ') || [];
-      const cookies = parseCookies(rawCookies);
+      // Extract and parse session cookies - use getSetCookie() for proper cookie handling
+      const rawCookies = loginResponse.headers.getSetCookie ? 
+        loginResponse.headers.getSetCookie() : 
+        loginResponse.headers.get('set-cookie')?.split(', ') || [];
+      const cookies = parseCookies(rawCookies as string[]);
       
       logger.debug(`Login successful for ${username} at ${school}. Cookies: ${cookies.length}`);
       
@@ -93,9 +97,11 @@ export default async function handler(
         logger.debug('Portal verification successful');
         
         // If portal check returned additional cookies, add them
-        const additionalCookieHeader = portalCheckResponse.headers.get('set-cookie');
-        if (additionalCookieHeader) {
-          const additionalCookies = parseCookies(additionalCookieHeader.split(', '));
+        const additionalRawCookies = portalCheckResponse.headers.getSetCookie ? 
+          portalCheckResponse.headers.getSetCookie() : 
+          portalCheckResponse.headers.get('set-cookie')?.split(', ') || [];
+        if (additionalRawCookies.length > 0) {
+          const additionalCookies = parseCookies(additionalRawCookies as string[]);
           cookies.push(...additionalCookies);
           logger.debug(`Added ${additionalCookies.length} additional cookies from portal`);
         }

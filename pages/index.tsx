@@ -16,17 +16,19 @@ export default function Home() {
 
       <div className={styles.page}>
         <header className={styles.navbar} role="banner">
-          <div className={styles.navLeft}>
-            <img src="/Assets/Millennium Logo 2.png" alt="Millennium Logo" className={styles.logo} />
-          </div>
-          <div className={styles.navRight}>
-            <button 
-              onClick={() => router.push('/login')} 
-              className={styles.loginBtn}
-              type="button"
-            >
-              Log in
-            </button>
+          <div className={styles.navbarInner}>
+            <div className={styles.navLeft}>
+              <img src="/Assets/Millennium Logo 2.png" alt="Millennium Logo" className={styles.logo} />
+            </div>
+            <div className={styles.navRight}>
+              <button 
+                onClick={() => router.push('/login')} 
+                className={styles.loginBtn}
+                type="button"
+              >
+                Log in
+              </button>
+            </div>
           </div>
         </header>
 
