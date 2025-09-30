@@ -42,21 +42,31 @@ export default async function handler(
     formData.append('sitename', school);
 
     // Make request to millennium.education with axios
-    const loginResponse = await axios.post('https://millennium.education/login.asp', formData.toString(), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      },
-      maxRedirects: 0,
-      validateStatus: (status) => status === 302
-    });
+    let loginResponse;
+    try {
+      loginResponse = await axios.post('https://millennium.education/login.asp', formData.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        maxRedirects: 0,
+        validateStatus: (status) => status >= 200 && status < 400
+      });
+    } catch (error: any) {
+      // Axios throws on 3xx when maxRedirects is 0, but we need the redirect
+      if (error.response && error.response.status === 302) {
+        loginResponse = error.response;
+      } else {
+        throw error;
+      }
+    }
 
     // Check for successful login (302 redirect to portal)
     const redirectUrl = loginResponse.headers['location'] || '';
     
     logger.debug(`Login response status: ${loginResponse.status}, Redirect URL: ${redirectUrl}`);
 
-    if (redirectUrl.includes('portal')) {
+    if (loginResponse.status === 302 && redirectUrl.includes('portal')) {
       // Extract and parse session cookies
       const rawCookies = loginResponse.headers['set-cookie'] || [];
       const cookies = rawCookies.map((cookie: string) => cookie.split(';')[0].trim());
