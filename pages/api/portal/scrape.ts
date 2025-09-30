@@ -52,62 +52,32 @@ export default async function handler(
 
     // Scrape the portal
     if (!session.sessionCookies || session.sessionCookies.length === 0) {
-      console.error('No session cookies available for scraping');
       return res.status(400).json({ message: 'No session cookies available for scraping' });
     }
 
     // Create cookie header from stored session cookies
     const cookieHeader = session.sessionCookies.join('; ');
-    console.log(`Using ${session.sessionCookies.length} cookies for scraping`);
-    console.log('Cookie header (first 100 chars):', cookieHeader.substring(0, 100));
 
     // Scrape the main portal page
     const portalResponse = await axios.get('https://millennium.education/portal/', {
       headers: {
         'Cookie': cookieHeader,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://millennium.education/login.asp',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5'
-      },
-      maxRedirects: 5,
-      validateStatus: (status) => status < 400
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
     });
 
-    console.log(`Portal response status: ${portalResponse.status}`);
-    console.log(`Portal response length: ${portalResponse.data.length} characters`);
-    console.log(`Portal response URL: ${portalResponse.request?.res?.responseUrl || 'unknown'}`);
-    
     const $ = cheerio.load(portalResponse.data);
     
-    // Debug logging and verification
     console.log(`Scraping portal for ${session.username} at ${session.school}`);
     
-    // Verify we're actually on the portal page and not redirected to login
+    // Verify we're on the portal page (not login page)
     const isLoggedIn = portalResponse.data.includes('Student & Parent Portal') || 
-                      portalResponse.data.includes('Welcome to Millennium') ||
-                      portalResponse.data.includes('jdash-widget') ||
-                      portalResponse.data.includes('table.grey') ||
-                      portalResponse.data.includes('Millennium Schools Pty Ltd');
+                      portalResponse.data.includes('jdash-widget');
     
-    const isLoginPage = portalResponse.data.includes('<input') && 
-                       (portalResponse.data.includes('username') || 
-                        portalResponse.data.includes('password') ||
-                        portalResponse.data.includes('login'));
-    
-    console.log(`Portal verification: isLoggedIn=${isLoggedIn}, isLoginPage=${isLoginPage}`);
-    
-    // Only fail if we're clearly on a login page, not just because there's no timetable data
-    if (isLoginPage && !isLoggedIn) {
-      console.error('Portal scraping failed: Redirected to login page');
+    if (!isLoggedIn) {
       return res.status(401).json({ 
-        message: 'Session expired or invalid. Please log in again.',
-        expired: true,
-        debug: {
-          responseLength: portalResponse.data.length,
-          containsPortalElements: isLoggedIn,
-          containsLoginElements: isLoginPage
-        }
+        message: 'Session expired. Please log in again.',
+        expired: true
       });
     }
     
@@ -117,40 +87,27 @@ export default async function handler(
     const schoolName = userParts[0] || session.school || 'Unknown School';
     const userName = userParts[1] || session.username || 'Unknown User';
     
-    console.log(`Extracted user info: "${userInfoText}", School: "${schoolName}", User: "${userName}"`);
+    // Check if it's a holiday or weekend
+    const calendarWidget = $('#calendar .jdash-body').html() || '';
+    const isHoliday = calendarWidget.includes('[ Holiday ]') || calendarWidget.includes('Holiday');
     
-    // Additional verification - check for specific portal elements
-    const hasPortalElements = {
-      dashboard: $('#dashboard').length > 0,
-      timetable: $('#timetable').length > 0,
-      notices: $('#notices').length > 0,
-      diary: $('#mydiary').length > 0,
-      jdashWidget: $('.jdash-widget').length > 0
-    };
-    
-    console.log('Portal elements found:', hasPortalElements);
+    // Check day of week
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // Extract timetable data - based on the actual portal HTML structure
+    // Extract timetable data - simplified and clean
     const timetable: TimetableEntry[] = [];
     
-    // Look specifically for the timetable widget structure from the portal
-    const timetableSelectors = [
-      '#timetable .jdash-body table.table1 tr',
-      '.jdash-widget .jdash-body table.table1 tr',
-      'table.table1 tr',
-      '#dashboard table tr'
-    ];
-    
-    let foundTimetable = false;
-    for (const selector of timetableSelectors) {
-      $(selector).each((i, el) => {
+    // Only scrape if it's not a weekend or holiday
+    if (!isWeekend && !isHoliday) {
+      $('#timetable .jdash-body table.table1 tr').each((i, el) => {
         const cells = $(el).find('td');
         if (cells.length >= 4) {
-          const firstCellText = $(cells[0]).find('b').text().trim() || $(cells[0]).text().trim();
+          const period = $(cells[0]).find('b').text().trim() || $(cells[0]).text().trim();
           
-          // Check if this looks like a timetable row (starts with P1, P2, P3b, etc.)
-          if (firstCellText.match(/^P\d+[ab]?$/i)) {
-            const period = firstCellText;
+          // Check if this is a valid period (P1, P2, P3a, etc.)
+          if (period.match(/^P\d+[ab]?$/i)) {
             const room = $(cells[1]).text().trim();
             const subject = $(cells[2]).text().trim();
             const teacher = $(cells[3]).text().trim();
@@ -158,122 +115,58 @@ export default async function handler(
             // Check attendance status from the periods column
             let attendanceStatus: 'present' | 'absent' | 'partial' | 'unmarked' = 'unmarked';
             if (cells.length >= 5) {
-              const periodCell = $(cells[4]);
-              const span = periodCell.find('span');
-              if (span.length > 0) {
-                const style = span.attr('style') || '';
-                if (style.includes('#20e020') || style.includes('background-color:#20e020')) {
-                  attendanceStatus = 'present';
-                } else if (style.includes('#ff0000') || style.includes('background-color:#ff0000')) {
-                  attendanceStatus = 'absent';
-                } else if (style.includes('#ffa500') || style.includes('background-color:#ffa500')) {
-                  attendanceStatus = 'partial';
-                } else if (span.text().trim() === '' && !style.includes('background-color')) {
-                  attendanceStatus = 'unmarked';
-                }
-              }
+              const span = $(cells[4]).find('span');
+              const style = span.attr('style') || '';
+              if (style.includes('#20e020')) attendanceStatus = 'present';
+              else if (style.includes('#ff0000')) attendanceStatus = 'absent';
+              else if (style.includes('#ffa500')) attendanceStatus = 'partial';
             }
             
-            // Only add if it looks like a valid timetable entry
             if (subject && teacher) {
-              timetable.push({
-                period,
-                room,
-                subject,
-                teacher,
-                attendanceStatus
-              });
-              foundTimetable = true;
+              timetable.push({ period, room, subject, teacher, attendanceStatus });
             }
           }
         }
       });
-      
-      if (foundTimetable) break; // Found timetable, stop looking
     }
     
-    console.log(`Found ${timetable.length} timetable entries`);
+    console.log(`Found ${timetable.length} timetable entries${isWeekend ? ' (weekend)' : ''}${isHoliday ? ' (holiday)' : ''}`);
 
-    // Scrape notices from /portal/notices.asp
+    // Scrape notices from /portal/notices.asp - simplified
     let notices: Notice[] = [];
     
     try {
-      console.log('Fetching notices page...');
       const noticesResponse = await axios.get('https://millennium.education/portal/notices.asp', {
         headers: {
           'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Referer': 'https://millennium.education/portal/',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5'
-        },
-        maxRedirects: 5,
-        validateStatus: (status) => status < 400
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
       });
       
-      console.log(`Notices response status: ${noticesResponse.status}, length: ${noticesResponse.data.length}`);
+      const $notices = cheerio.load(noticesResponse.data);
       
-      if (noticesResponse.status === 200) {
-        const noticesHtml = noticesResponse.data;
-        const $notices = cheerio.load(noticesHtml);
+      // Extract notices - each h4 followed by .notice div
+      $notices('h4').each((i, el) => {
+        const title = $notices(el).text().trim();
+        const $noticeDiv = $notices(el).next('.notice');
         
-        // Extract notices based on the actual notices page structure
-        $notices('h4').each((i, el) => {
-          const $heading = $notices(el);
-          const title = $heading.text().trim();
+        if ($noticeDiv.length > 0 && title) {
+          const content = $noticeDiv.html() || '';
+          const textContent = $noticeDiv.text().trim();
+          const preview = textContent.length > 150 
+            ? textContent.substring(0, 150) + '...'
+            : textContent;
           
-          // Get the notice content from the following .notice div
-          const $noticeDiv = $heading.next('.notice');
-          let content = '';
-          let preview = '';
-          
-          if ($noticeDiv.length > 0) {
-            content = $noticeDiv.html() || '';
-            // Create preview from text content
-            const textContent = $noticeDiv.text().trim();
-            preview = textContent.length > 150 
-              ? textContent.substring(0, 150) + '...'
-              : textContent;
-          } else {
-            // Fallback: get content from next sibling elements until next h4
-            let $current = $heading.next();
-            const contentParts: string[] = [];
-            
-            while ($current.length > 0 && !$current.is('h4')) {
-              if ($current.hasClass('notice')) {
-                contentParts.push($current.html() || '');
-                const textContent = $current.text().trim();
-                if (!preview && textContent) {
-                  preview = textContent.length > 150
-                    ? textContent.substring(0, 150) + '...'
-                    : textContent;
-                }
-              }
-              $current = $current.next();
-            }
-            
-            content = contentParts.join('\n');
+          if (preview) {
+            notices.push({ title, preview, content });
           }
-          
-          // Skip empty or invalid notices
-          if (title && title.length > 3 && preview) {
-            notices.push({
-              title: title.replace(/[\u1F300-\u1F9FF]/g, '').trim(), // Remove emojis for cleaner titles
-              preview,
-              content
-            });
-          }
-        });
-        
-        console.log(`Found ${notices.length} notices from notices page`);
-      } else {
-        console.log('Failed to fetch notices page, status:', noticesResponse.status);
-      }
+        }
+      });
+      
+      console.log(`Found ${notices.length} notices`);
     } catch (error) {
       console.log('Error fetching notices:', error);
     }
-    
-    console.log(`Found ${notices.length} notices`);
 
     // Extract diary entries
     const diary: DiaryEntry[] = [];
@@ -299,35 +192,18 @@ export default async function handler(
       }
     });
 
-    // Use real data if found, otherwise empty array (don't provide mock data for weekends)
-    const finalTimetable = timetable;
-
-    const finalNotices = notices;
-
-    const finalDiary = diary;
-
     const portalData: PortalData = {
       user: {
         name: userName,
         school: schoolName
       },
-      timetable: finalTimetable,
-      notices: finalNotices,
-      diary: finalDiary,
+      timetable,
+      notices,
+      diary,
       lastUpdated: new Date().toISOString()
     };
 
-    console.log(`Final portal data: ${finalTimetable.length} timetable, ${finalNotices.length} notices, ${finalDiary.length} diary entries`);
-    
-    // Add debug info for troubleshooting
-    console.log('Debug info:', {
-      cookieHeader: cookieHeader ? 'Present' : 'Missing',
-      userName,
-      schoolName,
-      noticesCount: notices.length,
-      timetableCount: timetable.length,
-      diaryCount: diary.length
-    });
+    console.log(`Portal data: ${timetable.length} classes, ${notices.length} notices, ${diary.length} diary entries`);
 
     // Store scraped data in session for caching
     session.portalData = portalData;

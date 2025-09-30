@@ -488,7 +488,11 @@ export default function Dashboard() {
                       ) : (
                         <tr className={styles.listTableRow}>
                           <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                            {new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No data to display'}
+                            {(() => {
+                              const day = new Date().getDay();
+                              if (day === 0 || day === 6) return 'No classes - Weekend';
+                              return 'No classes today - School holiday';
+                            })()}
                           </td>
                         </tr>
                       )}
@@ -568,7 +572,11 @@ export default function Dashboard() {
                           <img src="/Assets/today-icon.svg" alt="No classes" />
                         </div>
                         <div className={styles.emptyStateText}>
-                          {new Date().getDay() === 0 || new Date().getDay() === 6 ? 'No classes today' : 'No timetable data available'}
+                          {(() => {
+                            const day = new Date().getDay();
+                            if (day === 0 || day === 6) return 'No classes - Weekend';
+                            return 'No classes - School holiday';
+                          })()}
                         </div>
                       </div>
                     )}
@@ -688,9 +696,11 @@ export default function Dashboard() {
                 </div>
                 <ul className={styles.navList}>
                   <li className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
-                    <button 
+                    <a 
+                      href="#notifications"
                       className={styles.navLink}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
                         setCurrentView('notifications');
                         setCurrentSection('');
                       }}
@@ -702,15 +712,15 @@ export default function Dashboard() {
                         )}
                       </span>
                       <span>Notifications</span>
-                    </button>
+                    </a>
                   </li>
-                  <li className={styles.navItem}>
-                    <Link href="/" className={styles.navLink}>
-                      <div className={styles.navIcon}>
+                  <li className={`${styles.navItem} ${currentSection === 'home' ? styles.active : ''}`}>
+                    <a href="#home" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('home'); }}>
+                      <span className={styles.navIcon}>
                         <img src="/Assets/home-icon.svg" alt="Home" />
-                      </div>
+                      </span>
                       <span>Home</span>
-                    </Link>
+                    </a>
                   </li>
 
                   <li className={`${styles.navItem} ${currentSection === 'account' ? styles.active : ''}`}>
