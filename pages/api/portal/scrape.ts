@@ -52,25 +52,36 @@ export default async function handler(
 
     // Scrape the portal
     if (!session.sessionCookies || session.sessionCookies.length === 0) {
+      console.error('No session cookies available for scraping');
       return res.status(400).json({ message: 'No session cookies available for scraping' });
     }
 
     // Create cookie header from stored session cookies
     const cookieHeader = session.sessionCookies.join('; ');
+    console.log(`Using ${session.sessionCookies.length} cookies for scraping`);
+    console.log('Cookie header (first 100 chars):', cookieHeader.substring(0, 100));
 
     // Scrape the main portal page
     const portalResponse = await axios.get('https://millennium.education/portal/', {
       headers: {
         'Cookie': cookieHeader,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://millennium.education/login.asp',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+      },
+      maxRedirects: 5,
+      validateStatus: (status) => status < 400
     });
 
+    console.log(`Portal response status: ${portalResponse.status}`);
+    console.log(`Portal response length: ${portalResponse.data.length} characters`);
+    console.log(`Portal response URL: ${portalResponse.request?.res?.responseUrl || 'unknown'}`);
+    
     const $ = cheerio.load(portalResponse.data);
     
     // Debug logging and verification
     console.log(`Scraping portal for ${session.username} at ${session.school}`);
-    console.log(`Portal response length: ${portalResponse.data.length} characters`);
     
     // Verify we're actually on the portal page and not redirected to login
     const isLoggedIn = portalResponse.data.includes('Student & Parent Portal') || 
@@ -187,12 +198,20 @@ export default async function handler(
     let notices: Notice[] = [];
     
     try {
+      console.log('Fetching notices page...');
       const noticesResponse = await axios.get('https://millennium.education/portal/notices.asp', {
         headers: {
           'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Referer': 'https://millennium.education/portal/',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5'
+        },
+        maxRedirects: 5,
+        validateStatus: (status) => status < 400
       });
+      
+      console.log(`Notices response status: ${noticesResponse.status}, length: ${noticesResponse.data.length}`);
       
       if (noticesResponse.status === 200) {
         const noticesHtml = noticesResponse.data;

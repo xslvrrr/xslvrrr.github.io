@@ -35,12 +35,24 @@ export default async function handler(
 
 
   try {
+    // Create axios instance that maintains cookies across requests
+    const cookieJar: string[] = [];
+    
     // Create form data for millennium.education login
     const formData = new URLSearchParams();
     formData.append('account', '2'); // Student account
     formData.append('email', username);
     formData.append('password', password);
     formData.append('sitename', school);
+
+    // Helper function to parse cookies from set-cookie header
+    const parseCookies = (setCookieArray: string[] = []): string[] => {
+      return setCookieArray.map(cookie => {
+        // Extract just the cookie name=value part (before the first semicolon)
+        const cookiePart = cookie.split(';')[0].trim();
+        return cookiePart;
+      });
+    };
 
     // Make request to millennium.education
     const loginResponse = await axios.post(
@@ -62,8 +74,52 @@ export default async function handler(
                       loginResponse.headers.location.includes('portal'));
 
     if (isSuccess) {
-      // Extract session cookies if available
-      const cookies = loginResponse.headers['set-cookie'] || [];
+      // Extract and parse session cookies
+      const rawCookies = loginResponse.headers['set-cookie'] || [];
+      const cookies = parseCookies(rawCookies);
+      
+      console.log(`Login successful for ${username} at ${school}. Raw cookies: ${rawCookies.length}, Parsed: ${cookies.length}`);
+      console.log('Parsed cookies:', cookies);
+      
+      // Follow the redirect to establish the session properly
+      const redirectUrl = loginResponse.headers.location || 'https://millennium.education/portal/';
+      console.log('Following redirect to:', redirectUrl);
+      
+      try {
+        // Make a request to the portal to verify the cookies work
+        const portalCheckResponse = await axios.get(redirectUrl, {
+          headers: {
+            'Cookie': cookies.join('; '),
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          },
+          maxRedirects: 5,
+          validateStatus: (status) => status < 400
+        });
+        
+        // Check if we successfully accessed the portal
+        const isPortalPage = portalCheckResponse.data.includes('Student & Parent Portal') || 
+                            portalCheckResponse.data.includes('Welcome to Millennium');
+        
+        if (!isPortalPage) {
+          console.error('Portal verification failed: Not on portal page after redirect');
+          return res.status(401).json({
+            success: false,
+            message: 'Login failed: Could not establish session with portal'
+          });
+        }
+        
+        console.log('Portal verification successful');
+        
+        // If portal check returned additional cookies, add them
+        if (portalCheckResponse.headers['set-cookie']) {
+          const additionalCookies = parseCookies(portalCheckResponse.headers['set-cookie']);
+          cookies.push(...additionalCookies);
+          console.log('Added additional cookies from portal:', additionalCookies);
+        }
+      } catch (verifyError: any) {
+        console.error('Portal verification request failed:', verifyError.message);
+        // Continue anyway - cookies might still work
+      }
       
       // Save session
       const session = await getSession(req, res);
@@ -73,8 +129,6 @@ export default async function handler(
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
       await session.save();
-
-      console.log(`Login successful for ${username} at ${school}. Cookies: ${cookies.length > 0 ? 'Available' : 'None'}`);
 
       return res.status(200).json({
         success: true,
@@ -97,8 +151,39 @@ export default async function handler(
     
     // Handle specific error cases
     if (error.response?.status === 302) {
-      // Redirect means successful login
-      const cookies = error.response.headers['set-cookie'] || [];
+      // Redirect means successful login - parse cookies properly
+      const parseCookies = (setCookieArray: string[] = []): string[] => {
+        return setCookieArray.map(cookie => {
+          const cookiePart = cookie.split(';')[0].trim();
+          return cookiePart;
+        });
+      };
+      
+      const rawCookies = error.response.headers['set-cookie'] || [];
+      const cookies = parseCookies(rawCookies);
+      
+      console.log(`Login successful (302 redirect) for ${username} at ${school}. Raw cookies: ${rawCookies.length}, Parsed: ${cookies.length}`);
+      console.log('Parsed cookies:', cookies);
+      
+      // Follow redirect to verify session
+      const redirectUrl = error.response.headers.location || 'https://millennium.education/portal/';
+      try {
+        const portalCheckResponse = await axios.get(redirectUrl, {
+          headers: {
+            'Cookie': cookies.join('; '),
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          },
+          maxRedirects: 5
+        });
+        
+        // Add any additional cookies from portal
+        if (portalCheckResponse.headers['set-cookie']) {
+          const additionalCookies = parseCookies(portalCheckResponse.headers['set-cookie']);
+          cookies.push(...additionalCookies);
+        }
+      } catch (verifyError) {
+        console.error('Portal verification in catch block failed:', verifyError);
+      }
       
       const session = await getSession(req, res);
       session.loggedIn = true;
@@ -107,8 +192,6 @@ export default async function handler(
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
       await session.save();
-
-      console.log(`Login successful (302 redirect) for ${username} at ${school}. Cookies: ${cookies.length > 0 ? 'Available' : 'None'}`);
 
       return res.status(200).json({
         success: true,
