@@ -166,9 +166,9 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Log In - Millennium</title>
-        <link rel="icon" href="/Assets/Millennium Logo.png" type="image/png" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <title>Log In - Millennium Portal</title>
+        <meta name="description" content="Sign in to your Millennium student portal" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className={styles.loginBody}>

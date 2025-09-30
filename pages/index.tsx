@@ -9,26 +9,24 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Millennium</title>
-        <link rel="icon" href="/Assets/Millennium Logo.png" type="image/png" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <title>Millennium Portal - Modern Student Portal</title>
+        <meta name="description" content="Access your student portal with a modern, fast, and intuitive interface" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className={styles.page}>
         <header className={styles.navbar} role="banner">
-          <div className={styles.navbarInner}>
-            <div className={styles.navLeft}>
-              <img src="/Assets/Millennium Logo 2.png" alt="Millennium Logo" className={styles.logo} />
-            </div>
-            <div className={styles.navRight}>
-              <button 
-                onClick={() => router.push('/login')} 
-                className={styles.loginBtn}
-                type="button"
-              >
-                Log in
-              </button>
-            </div>
+          <div className={styles.navLeft}>
+            <img src="/Assets/Millennium Logo 2.png" alt="Millennium Logo" className={styles.logo} />
+          </div>
+          <div className={styles.navRight}>
+            <button 
+              onClick={() => router.push('/login')} 
+              className={styles.loginBtn}
+              type="button"
+            >
+              Log in
+            </button>
           </div>
         </header>
 

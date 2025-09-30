@@ -1,4 +1,4 @@
-import { getIronSession } from 'iron-session';
+import { getIronSession, SessionOptions } from 'iron-session';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export interface SessionData {
@@ -7,16 +7,16 @@ export interface SessionData {
   school?: string;
   sessionCookies?: string[];
   timestamp?: string;
-  portalData?: any; // Stores scraped portal data
+  portalData?: any;
 }
 
 const defaultSession: SessionData = {
   loggedIn: false,
 };
 
-const sessionOptions = {
-  password: process.env.SESSION_SECRET || 'development-secret-key-minimum-32-characters-long',
-  cookieName: 'millennium-session',
+export const sessionOptions: SessionOptions = {
+  password: process.env.SESSION_SECRET || 'this-is-a-development-secret-change-in-production-minimum-32-chars',
+  cookieName: 'millennium_session',
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,

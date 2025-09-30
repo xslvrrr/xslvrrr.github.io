@@ -7,6 +7,7 @@ import styles from '../styles/Dashboard.module.css';
 import { UserSession, TimetableEntry, Notice, DiaryEntry } from '../types/portal';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useNotifications } from '../hooks/useNotifications';
+import { useKeyboardShortcuts, createDashboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 // Dynamically import heavy components for code splitting
 const LoadingSkeleton = dynamic(() => import('../components/LoadingSkeleton').then(mod => ({ default: mod.LoadingSkeleton })), {
@@ -56,10 +57,26 @@ export default function Dashboard() {
     getNotificationId
   } = notificationHooks;
 
+  // Keyboard shortcuts
+  const shortcuts = createDashboardShortcuts({
+    onSearch: () => setShowSearchModal(true),
+    onHome: () => {
+      window.location.hash = 'home';
+      setCurrentView('dashboard');
+    },
+    onNotifications: () => {
+      window.location.hash = 'notifications';
+      setCurrentView('notifications');
+    },
+    onRefresh: () => loadPortalData(true)
+  });
+  
+  useKeyboardShortcuts(shortcuts);
+
   // Check session on mount
   useEffect(() => {
     checkSession();
-  }, []);
+  }, [checkSession]);
 
   // Handle hash-based navigation
   useEffect(() => {
@@ -493,9 +510,10 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>Dashboard - Millennium</title>
-        <link rel="icon" href="/Assets/Millennium Logo.png" type="image/png" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <title>{currentSection === 'home' ? 'Dashboard' : `${currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}`} - Millennium Portal</title>
+        <meta name="description" content="Your student dashboard - access timetable, notices, and more" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
 
       <div className={styles.dashboardBody}>

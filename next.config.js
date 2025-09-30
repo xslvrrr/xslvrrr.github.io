@@ -23,11 +23,6 @@ const nextConfig = {
   // Gzip compression
   compress: true,
   
-  // Enable SWC for faster builds
-  experimental: {
-    optimizeCss: true,
-  },
-  
   // Headers for security and performance
   async headers() {
     return [
