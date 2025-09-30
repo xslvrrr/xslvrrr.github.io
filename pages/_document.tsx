@@ -14,17 +14,26 @@ export default function Document() {
           rel="stylesheet"
         />
         
+        {/* Preload critical assets */}
+        <link rel="preload" href="/Assets/Millennium Logo 2.png" as="image" />
+        
         {/* PWA Support */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#050505" />
         
         {/* Favicon */}
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/Assets/Millennium Logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/Assets/Millennium Logo.png" />
         
         {/* SEO Meta Tags */}
         <meta name="description" content="Modern, fast, and intuitive redesign of the Millennium Portal for students" />
         <meta name="keywords" content="millennium, portal, student, education, school" />
+        <meta name="author" content="Millennium Portal Team" />
+        
+        {/* Open Graph / Social Media */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Millennium Portal - Modern Student Portal" />
+        <meta property="og:description" content="A modern, fast, and intuitive student portal experience" />
         
         {/* Performance Hints */}
         <link rel="dns-prefetch" href="https://millennium.education" />

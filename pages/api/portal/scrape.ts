@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../../lib/session';
 import { logger } from '../../../lib/logger';
-import { fetchHTML } from '../../../lib/http';
+import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 interface TimetableEntry {
@@ -60,7 +60,13 @@ export default async function handler(
     const cookieHeader = session.sessionCookies.join('; ');
 
     // Scrape the main portal page
-    const portalHTML = await fetchHTML('https://millennium.education/portal/', cookieHeader);
+    const portalResponse = await axios.get('https://millennium.education/portal/', {
+      headers: {
+        'Cookie': cookieHeader,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    const portalHTML = portalResponse.data;
     const $ = cheerio.load(portalHTML);
     
     logger.debug(`Scraping portal for ${session.username} at ${session.school}`);
@@ -131,7 +137,13 @@ export default async function handler(
     let notices: Notice[] = [];
     
     try {
-      const noticesHTML = await fetchHTML('https://millennium.education/portal/notices.asp', cookieHeader);
+      const noticesResponse = await axios.get('https://millennium.education/portal/notices.asp', {
+        headers: {
+          'Cookie': cookieHeader,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+      const noticesHTML = noticesResponse.data;
       const $notices = cheerio.load(noticesHTML);
       
       // Extract notices - each h4 followed by .notice div
