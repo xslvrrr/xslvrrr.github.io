@@ -17,7 +17,6 @@ interface LoginResponse {
     status: number;
     hasRedirect: boolean;
     redirectUrl: string;
-    bodyPreview?: string;
   };
 }
 
@@ -53,18 +52,13 @@ export default async function handler(
     // Using maxRedirects: 0 to capture the redirect and cookies
     let loginResponse: AxiosResponse;
     try {
-      loginResponse = await axios.post('https://millennium.education/login.asp', formData.toString(), {
+      loginResponse = await axios.post('https://millennium.education/login.asp', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Referer': 'https://millennium.education/',
-          'Origin': 'https://millennium.education',
-          'DNT': '1'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         },
         maxRedirects: 0,
-        validateStatus: (status) => status >= 200 && status < 400
+        validateStatus: (status) => status < 400
       });
     } catch (error: any) {
       // Axios throws on 3xx when maxRedirects is 0, but we need the redirect
@@ -82,117 +76,23 @@ export default async function handler(
     const responseStatus = loginResponse.status;
     
     logger.debug(`Login response status: ${responseStatus}, Redirect URL: ${redirectUrl}`);
-    logger.debug(`Response headers:`, Object.keys(loginResponse.headers));
 
-    // Check if redirect indicates success (portal or dashboard)
-    const isSuccessRedirect = (responseStatus === 302 || responseStatus === 301) && 
-                              (redirectUrl.includes('portal') || redirectUrl.includes('dashboard') || redirectUrl.includes('home'));
+    // Check if redirect indicates success
+    const isSuccess = responseStatus === 302 || 
+                     (redirectUrl && redirectUrl.includes('portal'));
     
-    if (isSuccessRedirect) {
-      // Extract and parse session cookies - preserve full cookie strings
-      const rawCookies = loginResponse.headers['set-cookie'] || [];
-      const cookieMap = new Map<string, string>();
+    if (isSuccess) {
+      // Extract session cookies - KEEP FULL COOKIE STRINGS
+      const cookies = loginResponse.headers['set-cookie'] || [];
       
-      // Parse cookies properly, keeping only the name=value part
-      rawCookies.forEach((cookie: string) => {
-        const cookieParts = cookie.split(';')[0].trim();
-        const [name, ...valueParts] = cookieParts.split('=');
-        if (name && valueParts.length > 0) {
-          cookieMap.set(name, valueParts.join('='));
-        }
-      });
+      logger.debug(`Login successful for ${username} at ${school}. Cookies: ${cookies.length}`);
       
-      logger.debug(`Login successful for ${username} at ${school}. Cookies received: ${cookieMap.size}`);
-      logger.debug(`Cookie names: ${Array.from(cookieMap.keys()).join(', ')}`);
-      logger.debug('Following redirect to:', redirectUrl);
-      
-      // Build the full portal URL if redirect is relative
-      let fullPortalUrl = redirectUrl;
-      if (!redirectUrl.startsWith('http')) {
-        fullPortalUrl = `https://millennium.education${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
-      }
-      
-      try {
-        // Make a request to the portal to verify the cookies work
-        const cookieHeader = Array.from(cookieMap.entries())
-          .map(([name, value]) => `${name}=${value}`)
-          .join('; ');
-          
-        const portalCheckResponse = await axios.get(fullPortalUrl, {
-          headers: {
-            'Cookie': cookieHeader,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Referer': 'https://millennium.education/'
-          },
-          maxRedirects: 5,
-          validateStatus: (status) => status < 400
-        });
-        
-        const portalHTML = portalCheckResponse.data;
-        
-        // Check if we successfully accessed the portal - updated detection
-        const isPortalPage = portalHTML.includes('Student & Parent Portal') || 
-                            portalHTML.includes('Welcome to Millennium') ||
-                            portalHTML.includes('jdash-widget') ||
-                            portalHTML.includes('portal/notices') ||
-                            (portalHTML.includes('timetable') && portalHTML.includes('notices'));
-        
-        // Check if we got redirected back to login
-        const isLoginPage = portalHTML.includes('login.asp') || 
-                           portalHTML.includes('name="email"') ||
-                           portalHTML.includes('name="password"');
-        
-        if (isLoginPage) {
-          logger.error('Portal verification failed: Redirected back to login page');
-          return res.status(401).json({
-            success: false,
-            message: 'Invalid credentials. Please check your username, password, and school name.'
-          });
-        }
-        
-        if (!isPortalPage) {
-          logger.warn('Portal verification uncertain: Page structure not recognized, continuing anyway');
-        } else {
-          logger.debug('Portal verification successful - recognized portal page');
-        }
-        
-        // If portal check returned additional cookies, merge them
-        const additionalCookies = portalCheckResponse.headers['set-cookie'] || [];
-        if (additionalCookies.length > 0) {
-          additionalCookies.forEach((cookie: string) => {
-            const cookieParts = cookie.split(';')[0].trim();
-            const [name, ...valueParts] = cookieParts.split('=');
-            if (name && valueParts.length > 0) {
-              cookieMap.set(name, valueParts.join('='));
-            }
-          });
-          logger.debug(`Merged ${additionalCookies.length} additional cookies from portal`);
-        }
-      } catch (verifyError: any) {
-        logger.error('Portal verification request failed:', verifyError.message);
-        if (verifyError.response?.status === 401 || verifyError.response?.status === 403) {
-          return res.status(401).json({
-            success: false,
-            message: 'Login failed: Could not establish session with portal'
-          });
-        }
-        // Continue anyway for other errors - cookies might still work
-        logger.warn('Continuing despite verification error');
-      }
-      
-      // Save session with properly formatted cookies
-      const cookieStrings = Array.from(cookieMap.entries())
-        .map(([name, value]) => `${name}=${value}`);
-      
-      logger.debug(`Saving ${cookieStrings.length} cookies to session`);
-      
+      // Save session
       const session = await getSession(req, res);
       session.loggedIn = true;
       session.username = username;
       session.school = school;
-      session.sessionCookies = cookieStrings;
+      session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
       await session.save();
 
@@ -202,42 +102,47 @@ export default async function handler(
       });
     }
     
-    // Login failed - check why
-    const responseBody = typeof loginResponse.data === 'string' 
-      ? loginResponse.data.substring(0, 500) 
-      : JSON.stringify(loginResponse.data).substring(0, 500);
-    
+    // Login failed
     logger.error('Login failed:', {
       status: responseStatus,
       redirectUrl,
       username,
-      school,
-      bodyPreview: responseBody
+      school
     });
-    
-    // Check if response indicates wrong credentials
-    const bodyLower = typeof loginResponse.data === 'string' 
-      ? loginResponse.data.toLowerCase() 
-      : '';
-    const hasErrorMessage = bodyLower.includes('incorrect') || 
-                           bodyLower.includes('invalid') || 
-                           bodyLower.includes('error');
     
     return res.status(401).json({
       success: false,
-      message: hasErrorMessage 
-        ? 'Invalid credentials. Please check your username, password, and school name.'
-        : 'Login failed. Please verify your credentials and try again.',
+      message: 'Invalid credentials. Please check your username, password, and school name.',
       debug: process.env.NODE_ENV === 'development' ? {
         status: responseStatus,
         hasRedirect: !!redirectUrl,
-        redirectUrl: redirectUrl,
-        bodyPreview: responseBody
+        redirectUrl: redirectUrl
       } : undefined
     });
 
   } catch (error: any) {
     logger.error('Login error:', error);
+    
+    // Handle 302 redirect in catch (when maxRedirects: 0)
+    if (error.response?.status === 302 || error.response?.status === 301) {
+      const cookies = error.response.headers['set-cookie'] || [];
+      
+      logger.debug(`Login successful (redirect caught) for ${username} at ${school}. Cookies: ${cookies.length}`);
+      
+      const session = await getSession(req, res);
+      session.loggedIn = true;
+      session.username = username;
+      session.school = school;
+      session.sessionCookies = cookies;
+      session.timestamp = new Date().toISOString();
+      await session.save();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful! You can now use the redesigned interface.'
+      });
+    }
+    
     logger.error('Error details:', {
       message: error.message,
       code: error.code,
