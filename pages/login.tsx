@@ -86,21 +86,60 @@ export default function Login() {
   };
 
   // Handle username submission with smart detection
-  const handleUsernameSubmit = () => {
+  const handleUsernameSubmit = async () => {
     const username = state.loginData.username.trim();
     
     // If DoE email detected, skip password and school (DoE SSO doesn't need password)
     if (isDoEEmail(username)) {
+      // Update state first, then submit with the updated data
+      const loginData = {
+        username: username,
+        password: '', // DoE login doesn't use password
+        school: 'NSW Department of Education'
+      };
+      
       setState(prev => ({
         ...prev,
-        loginData: { 
-          ...prev.loginData, 
-          password: '', // DoE login doesn't use password
-          school: 'NSW Department of Education' 
-        }
+        loginData,
+        isLoading: true,
+        step: 'completion',
+        notification: { type: null, message: '' }
       }));
-      // Go directly to completion for DoE login
-      handleSubmitLogin();
+
+      // Submit login with DoE credentials
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(loginData),
+        });
+
+        const result = await response.json();
+        
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          notification: {
+            type: result.success ? 'success' : 'error',
+            message: result.message
+          }
+        }));
+
+        if (result.success) {
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 1500);
+        }
+      } catch (error) {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          notification: {
+            type: 'error',
+            message: 'An unexpected error occurred. Please try again.'
+          }
+        }));
+      }
     } else {
       transition('password');
     }
@@ -234,10 +273,12 @@ export default function Login() {
             <div className={styles.fieldLabel}>Username/Email</div>
             <div className={styles.fieldValue}>{state.loginData.username}</div>
           </div>
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldLabel}>Password</div>
-            <div className={styles.fieldValue}>{'•'.repeat(state.loginData.password.length)}</div>
-          </div>
+          {state.loginData.password && (
+            <div className={styles.fieldRow}>
+              <div className={styles.fieldLabel}>Password</div>
+              <div className={styles.fieldValue}>{'•'.repeat(state.loginData.password.length)}</div>
+            </div>
+          )}
           <div className={styles.fieldRow}>
             <div className={styles.fieldLabel}>School</div>
             <div className={styles.fieldValue}>{state.loginData.school}</div>
@@ -284,7 +325,7 @@ export default function Login() {
               <h2 className={styles.questionTitle}>What&apos;s your username or email?</h2>
               {showDoeHint && (
                 <div className={styles.doeHint}>
-                  <p>💡 Enter your NSW DoE email (e.g., firstname.lastname@education.nsw.gov.au)</p>
+                  <p>💡 Enter your NSW DoE email (e.g., john.doe1@education.nsw.gov.au)</p>
                   <p>No password required for DoE accounts!</p>
                 </div>
               )}
@@ -429,7 +470,7 @@ export default function Login() {
                 {state.notification.type === 'error' && (
                   <button 
                     onClick={resetToStart} 
-                    className={styles.submitBtn}
+                    className={styles.tryAgainBtn}
                     type="button"
                   >
                     Try again
@@ -437,7 +478,7 @@ export default function Login() {
                 )}
                 <button 
                   onClick={() => router.push('/')} 
-                  className={styles.returnBtn}
+                  className={styles.returnLinkBtn}
                   type="button"
                 >
                   Return to main page

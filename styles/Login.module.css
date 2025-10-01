@@ -275,7 +275,7 @@
   width: 100%;
 }
 
-.submitBtn, .backBtn, .returnBtn {
+.submitBtn, .backBtn, .returnBtn, .tryAgainBtn, .returnLinkBtn {
   background-color: #F7F8F8;
   color: #08090A;
   border: none;
@@ -296,9 +296,32 @@
 
 .backBtn {
   flex: 1;
-  background-color: #101316;
+  background-color: transparent;
   color: #F7F8F8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tryAgainBtn {
+  background-color: transparent;
+  color: #F7F8F8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tryAgainBtn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.returnLinkBtn {
+  background-color: transparent;
+  color: #A1A5A9;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.returnLinkBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #F7F8F8;
 }
 
 .returnBtn {
