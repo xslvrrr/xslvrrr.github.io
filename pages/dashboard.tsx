@@ -58,7 +58,7 @@ export default function Dashboard() {
     getNotificationId
   } = notificationHooks;
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (removed Cmd+R to avoid browser refresh override)
   const shortcuts = createDashboardShortcuts({
     onSearch: () => setShowSearchModal(true),
     onHome: () => {
@@ -68,8 +68,7 @@ export default function Dashboard() {
     onNotifications: () => {
       window.location.hash = 'notifications';
       setCurrentView('notifications');
-    },
-    onRefresh: () => loadPortalData(true)
+    }
   });
   
   useKeyboardShortcuts(shortcuts);
@@ -147,7 +146,7 @@ export default function Dashboard() {
 
   // Get filtered search results
   const getSearchResults = useCallback(() => {
-    const sections = ['home', 'account', 'notices', 'calendar', 'classes', 'timetable', 'reports', 'attendance'];
+    const sections = ['home', 'account', 'notifications', 'calendar', 'classes', 'timetable', 'reports', 'attendance'];
     return sections.filter(item => 
       item.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -258,16 +257,7 @@ export default function Dashboard() {
                       <p className={styles.quickCardText}>View your schedule for today</p>
                     </div>
                   </div>
-                  <div className={styles.quickCard} onClick={() => handleSectionClick('notices')}>
-                    <div className={styles.quickCardContent}>
-                      <div className={styles.quickCardIcon}>
-                        <img src="/Assets/notices-icon.svg" alt="Notices" />
-                      </div>
-                      <h3 className={styles.quickCardTitle}>Notices</h3>
-                      <p className={styles.quickCardText}>Check school notices</p>
-                    </div>
-                  </div>
-                  <div className={styles.quickCard} onClick={() => { setCurrentView('notifications'); setCurrentSection(''); }}>
+                  <div className={styles.quickCard} onClick={() => { window.location.hash = 'notifications'; setCurrentView('notifications'); setCurrentSection(''); }}>
                     <div className={styles.quickCardContent}>
                       <div className={styles.quickCardIcon}>
                         <img src="/Assets/notification-icon.svg" alt="Notifications" />
@@ -348,41 +338,6 @@ export default function Dashboard() {
                       )}
                     </tbody>
                   </table>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'notices':
-        return (
-          <div className={styles.contentWrapper}>
-            <div className={styles.contentWrapperInner}>
-              <div className={`${styles.card} ${styles.noticesCard}`}>
-                <h2>Student Notices</h2>
-                {dataLoading ? (
-                  <div className={styles.loadingContainer}>
-                    <div className={styles.loadingSpinner}></div>
-                    <span>Loading notices...</span>
-                  </div>
-                ) : (
-                  <div className={styles.noticesList}>
-                    {portalData?.notices && portalData.notices.length > 0 ? (
-                      portalData.notices.map((notice, index) => (
-                        <div key={index} className={styles.noticeItem}>
-                          <div className={styles.noticeTitle}>{notice.title}</div>
-                          <div className={styles.noticePreview}>{notice.preview}</div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className={styles.emptyState}>
-                        <div className={styles.emptyStateIcon}>
-                          <img src="/Assets/notification-icon.svg" alt="No notices" />
-                        </div>
-                        <div className={styles.emptyStateText}>No notices available</div>
-                      </div>
-                    )}
-                  </div>
                 )}
               </div>
             </div>
@@ -508,8 +463,8 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>{currentSection === 'home' ? 'Dashboard' : `${currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}`} - Millennium Portal</title>
-        <meta name="description" content="Your student dashboard - access timetable, notices, and more" />
+        <title>{currentView === 'notifications' ? 'Notifications' : currentSection === 'home' ? 'Dashboard' : `${currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}`}</title>
+        <meta name="description" content="Your student dashboard - access timetable, notifications, and more" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex, nofollow" />
       </Head>
@@ -575,14 +530,6 @@ export default function Dashboard() {
                         <img src="/Assets/account-icon.svg" alt="Account" />
                       </span>
                       <span>Account</span>
-                    </a>
-                  </li>
-                  <li className={`${styles.navItem} ${currentSection === 'notices' ? styles.active : ''}`}>
-                    <a href="#notices" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('notices'); }}>
-                      <span className={styles.navIcon}>
-                        <img src="/Assets/notices-icon.svg" alt="Notices" />
-                      </span>
-                      <span>Notices</span>
                     </a>
                   </li>
                   <li className={`${styles.navItem} ${currentSection === 'calendar' ? styles.active : ''}`}>
@@ -909,8 +856,8 @@ export default function Dashboard() {
                 <div className={styles.header}>
                   <div className={styles.headerLeft}>
                     <h1 className={styles.pageTitle}>
+                      {currentSection === 'home' && 'Home'}
                       {currentSection === 'account' && 'Account'}
-                      {currentSection === 'notices' && 'Notices'}
                       {currentSection === 'calendar' && 'Calendar'}
                       {currentSection === 'timetable' && 'Timetable'}
                       {currentSection === 'attendance' && 'Attendance'}
@@ -919,8 +866,6 @@ export default function Dashboard() {
                       {currentSection === 'resources' && 'Resources'}
                       {currentSection === 'reports' && 'Reports'}
                       {currentSection === 'preferences' && 'Preferences'}
-                      {currentView === 'notifications' && 'Notifications'}
-                      {!currentSection && !currentView && 'Dashboard'}
                     </h1>
                   </div>
                   <div className={styles.headerRight}>
@@ -971,7 +916,13 @@ export default function Dashboard() {
                         key={item} 
                         className={`${styles.searchResult} ${index === selectedSearchIndex ? styles.selected : ''}`} 
                         onClick={() => {
-                          handleSectionClick(item);
+                          if (item === 'notifications') {
+                            window.location.hash = 'notifications';
+                            setCurrentView('notifications');
+                            setCurrentSection('');
+                          } else {
+                            handleSectionClick(item);
+                          }
                           setShowSearchModal(false);
                           setSearchQuery('');
                           setSelectedSearchIndex(0);
