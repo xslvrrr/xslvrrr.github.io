@@ -31,6 +31,18 @@ export default function Login() {
     isTransitioning: false,
     showPassword: false
   });
+  const [showDoeHint, setShowDoeHint] = useState(false);
+
+  // Check if user came from DoE SSO button
+  useEffect(() => {
+    if (router.query.doe === 'true') {
+      setShowDoeHint(true);
+      setState(prev => ({ ...prev, step: 'username' }));
+      // Clean up URL
+      const { doe, ...rest } = router.query;
+      router.replace({ pathname: '/login', query: rest }, undefined, { shallow: true });
+    }
+  }, [router.query.doe, router]);
 
 
 
@@ -270,6 +282,12 @@ export default function Login() {
           {state.step === 'username' && (
             <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
               <h2 className={styles.questionTitle}>What&apos;s your username or email?</h2>
+              {showDoeHint && (
+                <div className={styles.doeHint}>
+                  <p>💡 Enter your NSW DoE email (e.g., firstname.lastname@education.nsw.gov.au)</p>
+                  <p>No password required for DoE accounts!</p>
+                </div>
+              )}
               <input
                 type="text"
                 className={styles.questionInput}
@@ -407,11 +425,11 @@ export default function Login() {
               {renderVerificationDisplay()}
               {renderNotification()}
               
-              <div className={styles.questionButtons}>
+              <div className={styles.completionButtons}>
                 {state.notification.type === 'error' && (
                   <button 
                     onClick={resetToStart} 
-                    className={styles.backBtn}
+                    className={styles.submitBtn}
                     type="button"
                   >
                     Try again

@@ -54,7 +54,12 @@ export default async function handler(
     const formData = new URLSearchParams();
     formData.append('account', '2'); // Student account type
     formData.append('email', username);
-    formData.append('password', password);
+    
+    // Only add password if it's provided (DoE emails don't need password)
+    if (password) {
+      formData.append('password', password);
+    }
+    
     formData.append('sitename', school);
     
     logger.debug(`Attempting login for ${username} at ${school}`);
