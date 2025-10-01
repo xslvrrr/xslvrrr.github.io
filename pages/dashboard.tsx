@@ -626,6 +626,13 @@ export default function Dashboard() {
                     >
                       <img src="/Assets/search.svg" alt="Search" />
                     </button>
+                    <button 
+                      className={styles.headerActionBtn} 
+                      onClick={() => handleSectionClick('preferences')}
+                      title="Preferences"
+                    >
+                      <img src="/Assets/preferences-icon.svg" alt="Preferences" />
+                    </button>
                   </div>
                 </div>
                 <div className={styles.notificationsContainer}>
