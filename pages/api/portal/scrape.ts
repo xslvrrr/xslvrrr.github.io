@@ -44,7 +44,9 @@ export default async function handler(
   }
 
   try {
+    const startTime = Date.now();
     const session = await getSession(req, res);
+    logger.debug(`Session fetch: ${Date.now() - startTime}ms`);
     
     if (!session.loggedIn) {
       return res.status(401).json({ message: 'Not authenticated' });
@@ -59,31 +61,49 @@ export default async function handler(
     // Create cookie header from stored session cookies
     const cookieHeader = session.sessionCookies.join('; ');
 
-    // Scrape the main portal page
-    const portalResponse = await axios.get('https://millennium.education/portal/', {
+    // Configure axios with timeout for faster failures
+    const axiosConfig = {
       headers: {
         'Cookie': cookieHeader,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
+      },
+      timeout: 8000 // 8 second timeout
+    };
 
-    const $ = cheerio.load(portalResponse.data);
+    // Parallelize both portal requests for faster loading
+    const requestStart = Date.now();
+    const [portalResponse, noticesResponse] = await Promise.allSettled([
+      axios.get('https://millennium.education/portal/', axiosConfig),
+      axios.get('https://millennium.education/portal/notices.asp', axiosConfig)
+    ]);
+    logger.debug(`Parallel requests: ${Date.now() - requestStart}ms`);
+
+    // Handle portal response
+    if (portalResponse.status === 'rejected') {
+      logger.error('Portal main page request failed:', portalResponse.reason);
+      return res.status(500).json({ message: 'Failed to load portal data' });
+    }
+
+    const parseStart = Date.now();
+    const portalHtml = portalResponse.value.data;
+    const $ = cheerio.load(portalHtml);
+    logger.debug(`HTML parsing: ${Date.now() - parseStart}ms`);
     
     // Debug logging and verification
     logger.debug(`Scraping portal for ${session.username} at ${session.school}`);
-    logger.debug(`Portal response length: ${portalResponse.data.length} characters`);
+    logger.debug(`Portal response length: ${portalHtml.length} characters`);
     
     // Verify we're actually on the portal page and not redirected to login
-    const isLoggedIn = portalResponse.data.includes('Student & Parent Portal') || 
-                      portalResponse.data.includes('Welcome to Millennium') ||
-                      portalResponse.data.includes('jdash-widget') ||
-                      portalResponse.data.includes('table.grey') ||
-                      portalResponse.data.includes('Millennium Schools Pty Ltd');
+    const isLoggedIn = portalHtml.includes('Student & Parent Portal') || 
+                      portalHtml.includes('Welcome to Millennium') ||
+                      portalHtml.includes('jdash-widget') ||
+                      portalHtml.includes('table.grey') ||
+                      portalHtml.includes('Millennium Schools Pty Ltd');
     
-    const isLoginPage = portalResponse.data.includes('<input') && 
-                       (portalResponse.data.includes('username') || 
-                        portalResponse.data.includes('password') ||
-                        portalResponse.data.includes('login'));
+    const isLoginPage = portalHtml.includes('<input') && 
+                       (portalHtml.includes('username') || 
+                        portalHtml.includes('password') ||
+                        portalHtml.includes('login'));
     
     logger.debug(`Portal verification: isLoggedIn=${isLoggedIn}, isLoginPage=${isLoginPage}`);
     
@@ -94,7 +114,7 @@ export default async function handler(
         message: 'Session expired or invalid. Please log in again.',
         expired: true,
         debug: {
-          responseLength: portalResponse.data.length,
+          responseLength: portalHtml.length,
           containsPortalElements: isLoggedIn,
           containsLoginElements: isLoginPage
         }
@@ -184,19 +204,12 @@ export default async function handler(
     
     logger.debug(`Found ${timetable.length} timetable entries`);
 
-    // Scrape notices from /portal/notices.asp
+    // Process notices from parallel request
     let notices: Notice[] = [];
     
-    try {
-      const noticesResponse = await axios.get('https://millennium.education/portal/notices.asp', {
-        headers: {
-          'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-      
-      if (noticesResponse.status === 200) {
-        const noticesHtml = noticesResponse.data;
+    if (noticesResponse.status === 'fulfilled' && noticesResponse.value.status === 200) {
+      try {
+        const noticesHtml = noticesResponse.value.data;
         const $notices = cheerio.load(noticesHtml);
         
         // Extract notices based on the actual notices page structure
@@ -248,11 +261,11 @@ export default async function handler(
         });
         
         logger.debug(`Found ${notices.length} notices from notices page`);
-      } else {
-        logger.debug('Failed to fetch notices page, status:', noticesResponse.status);
+      } catch (error) {
+        logger.debug('Error parsing notices:', error);
       }
-    } catch (error) {
-      logger.debug('Error fetching notices:', error);
+    } else {
+      logger.debug('Failed to fetch notices page:', noticesResponse.status === 'rejected' ? noticesResponse.reason : `status ${noticesResponse.value?.status}`);
     }
     
     logger.debug(`Found ${notices.length} notices`);
@@ -311,10 +324,16 @@ export default async function handler(
       diaryCount: diary.length
     });
 
-    // Store scraped data in session for caching
-    session.portalData = portalData;
-    await session.save();
+    // Store scraped data in session for caching (optional - skip to improve performance)
+    // Only save if there's meaningful data to cache
+    const saveStart = Date.now();
+    if (finalNotices.length > 0 || finalTimetable.length > 0) {
+      session.portalData = portalData;
+      await session.save();
+      logger.debug(`Session save: ${Date.now() - saveStart}ms`);
+    }
 
+    logger.info(`Total scrape time: ${Date.now() - startTime}ms`);
     return res.status(200).json(portalData);
 
   } catch (error: any) {

@@ -628,7 +628,7 @@ export default function Dashboard() {
 
           {/* Main Content */}
           <div className={styles.mainContent}>
-            <PageTransition isLoading={pageTransitioning || dataLoading}>
+            <PageTransition isLoading={pageTransitioning}>
             {currentView === 'notifications' ? (
               <>
                 {/* Header */}
