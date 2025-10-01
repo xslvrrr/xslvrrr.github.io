@@ -1,0 +1,60 @@
+/* Professional Page Transition - Lightweight and Clean */
+
+.pageTransition {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pageTransition.active {
+  opacity: 1;
+}
+
+.pageTransition.fadeOut {
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loadingBar {
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  overflow: hidden;
+  position: relative;
+}
+
+.loadingBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(59, 130, 246, 0.8) 50%, 
+    transparent 100%
+  );
+  width: 40%;
+  position: absolute;
+  top: 0;
+  left: -40%;
+  animation: loadingProgress 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+@keyframes loadingProgress {
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Ensure no layout shift */
+.pageTransition::before {
+  content: '';
+  display: block;
+  height: 0;
+}

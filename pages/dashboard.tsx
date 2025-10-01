@@ -8,6 +8,7 @@ import { UserSession, TimetableEntry, Notice, DiaryEntry } from '../types/portal
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useNotifications } from '../hooks/useNotifications';
 import { useKeyboardShortcuts, createDashboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { PageTransition } from '../components/PageTransition';
 
 // Dynamically import heavy components for code splitting
 const LoadingSkeleton = dynamic(() => import('../components/LoadingSkeleton').then(mod => ({ default: mod.LoadingSkeleton })), {
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
   const [currentView, setCurrentView] = useState<string>('dashboard');
+  const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   
   // Destructure notification hooks
   const {
@@ -78,20 +80,24 @@ export default function Dashboard() {
     checkSession();
   }, [checkSession]);
 
-  // Handle hash-based navigation
+  // Handle hash-based navigation with page transition
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.slice(1);
-      if (hash === 'notifications') {
-        setCurrentView('notifications');
-        setCurrentSection('');
-      } else if (hash) {
-        setCurrentSection(hash);
-        setCurrentView('dashboard');
-      } else {
-        setCurrentSection('home');
-        setCurrentView('dashboard');
-      }
+      setIsPageTransitioning(true);
+      setTimeout(() => {
+        const hash = window.location.hash.slice(1);
+        if (hash === 'notifications') {
+          setCurrentView('notifications');
+          setCurrentSection('');
+        } else if (hash) {
+          setCurrentSection(hash);
+          setCurrentView('dashboard');
+        } else {
+          setCurrentSection('home');
+          setCurrentView('dashboard');
+        }
+        setTimeout(() => setIsPageTransitioning(false), 100);
+      }, 100);
     };
 
     handleHashChange();
@@ -136,8 +142,14 @@ export default function Dashboard() {
   }, []);
 
   const handleSectionClick = useCallback((section: string) => {
-    window.location.hash = section;
-    setShowUserDropdown(false);
+    setIsPageTransitioning(true);
+    setTimeout(() => {
+      setCurrentSection(section);
+      setCurrentView('dashboard');
+      window.location.hash = section;
+      setShowUserDropdown(false);
+      setTimeout(() => setIsPageTransitioning(false), 100);
+    }, 100);
   }, []);
 
   const toggleUserDropdown = useCallback(() => {
@@ -264,6 +276,15 @@ export default function Dashboard() {
                       </div>
                       <h3 className={styles.quickCardTitle}>Notifications</h3>
                       <p className={styles.quickCardText}>View recent notifications</p>
+                    </div>
+                  </div>
+                  <div className={styles.quickCard} onClick={() => handleSectionClick('attendance')}>
+                    <div className={styles.quickCardContent}>
+                      <div className={styles.quickCardIcon}>
+                        <img src="/Assets/attendance-icon.svg" alt="Attendance" />
+                      </div>
+                      <h3 className={styles.quickCardTitle}>Attendance</h3>
+                      <p className={styles.quickCardText}>Check your attendance</p>
                     </div>
                   </div>
                   <div className={styles.quickCard} onClick={() => handleSectionClick('reports')}>
@@ -469,6 +490,8 @@ export default function Dashboard() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
+      <PageTransition isLoading={isPageTransitioning} />
+
       <div className={styles.dashboardBody}>
         <div className={styles.dashboardContainer}>
           {/* Left sidebar */}
@@ -521,6 +544,21 @@ export default function Dashboard() {
                         <img src="/Assets/home-icon.svg" alt="Home" />
                       </span>
                       <span>Home</span>
+                    </a>
+                  </li>
+
+                  <li className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
+                    <a 
+                      href="#notifications"
+                      className={styles.navLink}
+                    >
+                      <span className={styles.navIcon}>
+                        <img src="/Assets/notification-icon.svg" alt="Notifications" />
+                        {notificationCounts.inbox > 0 && (
+                          <span className={styles.notificationBadge}>{notificationCounts.inbox}</span>
+                        )}
+                      </span>
+                      <span>Notifications</span>
                     </a>
                   </li>
 
@@ -916,16 +954,20 @@ export default function Dashboard() {
                         key={item} 
                         className={`${styles.searchResult} ${index === selectedSearchIndex ? styles.selected : ''}`} 
                         onClick={() => {
-                          if (item === 'notifications') {
-                            window.location.hash = 'notifications';
-                            setCurrentView('notifications');
-                            setCurrentSection('');
-                          } else {
-                            handleSectionClick(item);
-                          }
-                          setShowSearchModal(false);
-                          setSearchQuery('');
-                          setSelectedSearchIndex(0);
+                          setIsPageTransitioning(true);
+                          setTimeout(() => {
+                            if (item === 'notifications') {
+                              window.location.hash = 'notifications';
+                              setCurrentView('notifications');
+                              setCurrentSection('');
+                            } else {
+                              handleSectionClick(item);
+                            }
+                            setShowSearchModal(false);
+                            setSearchQuery('');
+                            setSelectedSearchIndex(0);
+                            setTimeout(() => setIsPageTransitioning(false), 100);
+                          }, 100);
                         }}
                       >
                         <div className={styles.searchResultIcon}>
