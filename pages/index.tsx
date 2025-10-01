@@ -1,15 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
   const router = useRouter();
+  const [showLoginError, setShowLoginError] = useState(false);
 
-  // Check for invalid_login and redirect to login page with error
+  // Detect invalid login from URL parameter
   useEffect(() => {
     if (router.query.invalid_login !== undefined) {
-      router.replace('/login?invalid_login');
+      setShowLoginError(true);
+      // Remove the parameter from URL without page reload
+      const { invalid_login, ...rest } = router.query;
+      router.replace({ pathname: '/', query: rest }, undefined, { shallow: true });
     }
   }, [router]);
 
@@ -40,6 +44,23 @@ export default function Home() {
         </header>
 
         <main className={styles.content} role="main">
+          {showLoginError && (
+            <div className={styles.errorBanner}>
+              <img src="/Assets/triangle-warning.svg" alt="Warning" className={styles.errorIcon} />
+              <div className={styles.errorContent}>
+                <strong>Login Failed</strong>
+                <p>Your login attempt was unsuccessful. Please check your credentials and try again.</p>
+              </div>
+              <button 
+                onClick={() => setShowLoginError(false)} 
+                className={styles.errorClose}
+                aria-label="Close notification"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
           <div className={styles.heroContainer}>
             <h1 className={styles.title}>
               <span>Millennium redesigned with a</span>

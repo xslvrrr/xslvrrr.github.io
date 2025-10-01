@@ -30,11 +30,22 @@ export default async function handler(
 
   const { username, password, school }: LoginRequest = req.body;
 
+  // Check if this is a DoE email login (no password required)
+  const isDoEEmail = username && username.toLowerCase().endsWith('@education.nsw.gov.au');
+
   // Validate input
-  if (!username || !password || !school) {
+  if (!username || !school) {
     return res.status(400).json({
       success: false,
-      message: 'All fields are required'
+      message: 'Username and school are required'
+    });
+  }
+
+  // For non-DoE logins, password is required
+  if (!isDoEEmail && !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password is required for non-DoE logins'
     });
   }
 
