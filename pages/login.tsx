@@ -85,64 +85,24 @@ export default function Login() {
     }));
   };
 
-  // Handle username submission with smart detection
-  const handleUsernameSubmit = async () => {
+  // Handle username submission
+  const handleUsernameSubmit = () => {
     const username = state.loginData.username.trim();
     
-    // If DoE email detected, skip password and school (DoE SSO doesn't need password)
+    // Auto-detect school for DoE emails
     if (isDoEEmail(username)) {
-      // Update state first, then submit with the updated data
-      const loginData = {
-        username: username,
-        password: '', // DoE login doesn't use password
-        school: 'NSW Department of Education'
-      };
-      
       setState(prev => ({
         ...prev,
-        loginData,
-        isLoading: true,
-        step: 'completion',
-        notification: { type: null, message: '' }
-      }));
-
-      // Submit login with DoE credentials
-      try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginData),
-        });
-
-        const result = await response.json();
-        
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          notification: {
-            type: result.success ? 'success' : 'error',
-            message: result.message
-          }
-        }));
-
-        if (result.success) {
-          setTimeout(() => {
-            router.push('/dashboard');
-          }, 1500);
+        loginData: { 
+          ...prev.loginData, 
+          school: 'NSW Department of Education' 
         }
-      } catch (error) {
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          notification: {
-            type: 'error',
-            message: 'An unexpected error occurred. Please try again.'
-          }
-        }));
-      }
-    } else {
-      transition('password');
+      }));
     }
+    
+    // Always go to password step for questionnaire login
+    // (DoE SSO is handled separately via the SSO button)
+    transition('password');
   };
 
   // Handle Enter key press
@@ -325,8 +285,8 @@ export default function Login() {
               <h2 className={styles.questionTitle}>What&apos;s your username or email?</h2>
               {showDoeHint && (
                 <div className={styles.doeHint}>
-                  <p>💡 Enter your NSW DoE email (e.g., john.doe1@education.nsw.gov.au)</p>
-                  <p>No password required for DoE accounts!</p>
+                  <p>💡 To use DoE SSO, enter your NSW DoE email below</p>
+                  <p>You'll still need your password for the questionnaire login</p>
                 </div>
               )}
               <input
@@ -412,6 +372,12 @@ export default function Login() {
                   Submit
                 </button>
               </div>
+              <a 
+                href="/forgot-password" 
+                className={styles.forgotPasswordLink}
+              >
+                Forgot your password?
+              </a>
             </div>
           )}
 

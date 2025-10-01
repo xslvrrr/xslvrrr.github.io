@@ -358,6 +358,21 @@
   color: #F7F8F8;
 }
 
+.forgotPasswordLink {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+  color: #A1A5A9;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.forgotPasswordLink:hover {
+  color: #F7F8F8;
+  text-decoration: underline;
+}
+
 /* Return link container at the bottom */
 .returnLinkContainer {
   margin-top: 40px;
