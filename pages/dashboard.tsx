@@ -8,7 +8,7 @@ import { UserSession, TimetableEntry, Notice, DiaryEntry } from '../types/portal
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useNotifications } from '../hooks/useNotifications';
 import { useKeyboardShortcuts, createDashboardShortcuts } from '../hooks/useKeyboardShortcuts';
-import { PageTransition } from '../components/PageTransition';
+import { PageTransition, InlineLoader } from '../components/PageTransition';
 
 // Dynamically import heavy components for code splitting
 const LoadingSkeleton = dynamic(() => import('../components/LoadingSkeleton').then(mod => ({ default: mod.LoadingSkeleton })), {
@@ -39,7 +39,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
   const [currentView, setCurrentView] = useState<string>('dashboard');
-  const [isPageTransitioning, setIsPageTransitioning] = useState(false);
+  const [pageTransitioning, setPageTransitioning] = useState(false);
   
   // Destructure notification hooks
   const {
@@ -80,24 +80,20 @@ export default function Dashboard() {
     checkSession();
   }, [checkSession]);
 
-  // Handle hash-based navigation with page transition
+  // Handle hash-based navigation
   useEffect(() => {
     const handleHashChange = () => {
-      setIsPageTransitioning(true);
-      setTimeout(() => {
-        const hash = window.location.hash.slice(1);
-        if (hash === 'notifications') {
-          setCurrentView('notifications');
-          setCurrentSection('');
-        } else if (hash) {
-          setCurrentSection(hash);
-          setCurrentView('dashboard');
-        } else {
-          setCurrentSection('home');
-          setCurrentView('dashboard');
-        }
-        setTimeout(() => setIsPageTransitioning(false), 100);
-      }, 100);
+      const hash = window.location.hash.slice(1);
+      if (hash === 'notifications') {
+        setCurrentView('notifications');
+        setCurrentSection('');
+      } else if (hash) {
+        setCurrentSection(hash);
+        setCurrentView('dashboard');
+      } else {
+        setCurrentSection('home');
+        setCurrentView('dashboard');
+      }
     };
 
     handleHashChange();
@@ -142,14 +138,12 @@ export default function Dashboard() {
   }, []);
 
   const handleSectionClick = useCallback((section: string) => {
-    setIsPageTransitioning(true);
+    setPageTransitioning(true);
     setTimeout(() => {
-      setCurrentSection(section);
-      setCurrentView('dashboard');
       window.location.hash = section;
       setShowUserDropdown(false);
-      setTimeout(() => setIsPageTransitioning(false), 100);
-    }, 100);
+      setPageTransitioning(false);
+    }, 50);
   }, []);
 
   const toggleUserDropdown = useCallback(() => {
@@ -278,15 +272,6 @@ export default function Dashboard() {
                       <p className={styles.quickCardText}>View recent notifications</p>
                     </div>
                   </div>
-                  <div className={styles.quickCard} onClick={() => handleSectionClick('attendance')}>
-                    <div className={styles.quickCardContent}>
-                      <div className={styles.quickCardIcon}>
-                        <img src="/Assets/attendance-icon.svg" alt="Attendance" />
-                      </div>
-                      <h3 className={styles.quickCardTitle}>Attendance</h3>
-                      <p className={styles.quickCardText}>Check your attendance</p>
-                    </div>
-                  </div>
                   <div className={styles.quickCard} onClick={() => handleSectionClick('reports')}>
                     <div className={styles.quickCardContent}>
                       <div className={styles.quickCardIcon}>
@@ -294,6 +279,15 @@ export default function Dashboard() {
                       </div>
                       <h3 className={styles.quickCardTitle}>Reports</h3>
                       <p className={styles.quickCardText}>Access your reports</p>
+                    </div>
+                  </div>
+                  <div className={styles.quickCard} onClick={() => handleSectionClick('attendance')}>
+                    <div className={styles.quickCardContent}>
+                      <div className={styles.quickCardIcon}>
+                        <img src="/Assets/attendance-icon.svg" alt="Attendance" />
+                      </div>
+                      <h3 className={styles.quickCardTitle}>Attendance</h3>
+                      <p className={styles.quickCardText}>Check attendance records</p>
                     </div>
                   </div>
                 </div>
@@ -314,10 +308,7 @@ export default function Dashboard() {
               <div className={styles.listSection}>
                 <h2 className={styles.sectionTitle}>Your Classes</h2>
                 {dataLoading ? (
-                  <div className={styles.loadingContainer}>
-                    <div className={styles.loadingSpinner}></div>
-                    <span>Loading classes...</span>
-                  </div>
+                  <InlineLoader />
                 ) : (
                   <table className={styles.listTable}>
                     <thead className={styles.listTableHeader}>
@@ -490,8 +481,6 @@ export default function Dashboard() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <PageTransition isLoading={isPageTransitioning} />
-
       <div className={styles.dashboardBody}>
         <div className={styles.dashboardContainer}>
           {/* Left sidebar */}
@@ -538,30 +527,7 @@ export default function Dashboard() {
                       <span>Notifications</span>
                     </a>
                   </li>
-                  <li className={`${styles.navItem} ${currentSection === 'home' ? styles.active : ''}`}>
-                    <a href="#home" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('home'); }}>
-                      <span className={styles.navIcon}>
-                        <img src="/Assets/home-icon.svg" alt="Home" />
-                      </span>
-                      <span>Home</span>
-                    </a>
-                  </li>
-
-                  <li className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
-                    <a 
-                      href="#notifications"
-                      className={styles.navLink}
-                    >
-                      <span className={styles.navIcon}>
-                        <img src="/Assets/notification-icon.svg" alt="Notifications" />
-                        {notificationCounts.inbox > 0 && (
-                          <span className={styles.notificationBadge}>{notificationCounts.inbox}</span>
-                        )}
-                      </span>
-                      <span>Notifications</span>
-                    </a>
-                  </li>
-
+                  
                   <li className={`${styles.navItem} ${currentSection === 'account' ? styles.active : ''}`}>
                     <a href="#account" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('account'); }}>
                       <span className={styles.navIcon}>
@@ -644,6 +610,7 @@ export default function Dashboard() {
 
           {/* Main Content */}
           <div className={styles.mainContent}>
+            <PageTransition isLoading={pageTransitioning || dataLoading}>
             {currentView === 'notifications' ? (
               <>
                 {/* Header */}
@@ -927,6 +894,7 @@ export default function Dashboard() {
                 {renderCurrentSection()}
               </>
             )}
+            </PageTransition>
           </div>
         </div>
 
@@ -954,20 +922,16 @@ export default function Dashboard() {
                         key={item} 
                         className={`${styles.searchResult} ${index === selectedSearchIndex ? styles.selected : ''}`} 
                         onClick={() => {
-                          setIsPageTransitioning(true);
-                          setTimeout(() => {
-                            if (item === 'notifications') {
-                              window.location.hash = 'notifications';
-                              setCurrentView('notifications');
-                              setCurrentSection('');
-                            } else {
-                              handleSectionClick(item);
-                            }
-                            setShowSearchModal(false);
-                            setSearchQuery('');
-                            setSelectedSearchIndex(0);
-                            setTimeout(() => setIsPageTransitioning(false), 100);
-                          }, 100);
+                          if (item === 'notifications') {
+                            window.location.hash = 'notifications';
+                            setCurrentView('notifications');
+                            setCurrentSection('');
+                          } else {
+                            handleSectionClick(item);
+                          }
+                          setShowSearchModal(false);
+                          setSearchQuery('');
+                          setSelectedSearchIndex(0);
                         }}
                       >
                         <div className={styles.searchResultIcon}>

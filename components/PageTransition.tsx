@@ -1,30 +1,25 @@
-import { useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import styles from '../styles/PageTransition.module.css';
 
 interface PageTransitionProps {
-  isLoading: boolean;
+  children: ReactNode;
+  isLoading?: boolean;
 }
 
-export function PageTransition({ isLoading }: PageTransitionProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (isLoading) {
-      setIsVisible(true);
-    } else {
-      // Small delay before hiding to ensure smooth transition
-      const timer = setTimeout(() => setIsVisible(false), 200);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading]);
-
-  if (!isVisible && !isLoading) return null;
-
+export const PageTransition = ({ children, isLoading }: PageTransitionProps) => {
   return (
-    <div className={`${styles.pageTransition} ${isLoading ? styles.active : styles.fadeOut}`}>
-      <div className={styles.loadingBar}>
-        <div className={styles.loadingBarFill}></div>
-      </div>
+    <div className={`${styles.pageTransition} ${isLoading ? styles.loading : styles.loaded}`}>
+      {children}
     </div>
   );
-}
+};
+
+export const InlineLoader = () => {
+  return (
+    <div className={styles.inlineLoader}>
+      <div className={styles.inlineLoaderDot}></div>
+      <div className={styles.inlineLoaderDot}></div>
+      <div className={styles.inlineLoaderDot}></div>
+    </div>
+  );
+};

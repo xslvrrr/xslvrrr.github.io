@@ -86,7 +86,7 @@
 
 /* Sidebar - No bounding box, Linear-inspired */
 .sidebar {
-  width: 260px;
+  width: 240px;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -95,8 +95,7 @@
   flex-shrink: 0;
   height: calc(100vh - 24px);
   overflow-y: auto;
-  padding-right: 8px;
-  padding-left: 12px;
+  padding-right: 16px;
 }
 
 .sidebarTop {
@@ -165,7 +164,7 @@
 /* Navigation sections */
 .navSection {
   margin-bottom: var(--space-sm);
-  padding: 0 var(--space-lg);
+  padding: 0 16px;
 }
 
 .navSection.collapsed .navList {
@@ -721,19 +720,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-md);
-  gap: var(--space-sm);
-  min-height: 60px;
-  background: transparent;
+  padding: var(--space-xl);
+  gap: var(--space-md);
 }
 
 .loadingSpinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border-color);
-  border-top: 2px solid var(--accent-color);
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--accent-color);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -1121,17 +1118,9 @@
   bottom: 0;
   background: var(--bg-primary);
   z-index: 1000;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes slideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .notificationsTopBar {
@@ -1165,7 +1154,6 @@
   overflow: hidden;
   flex: 1;
   position: relative;
-  isolation: isolate;
 }
 
 /* Notifications Sidebar */
@@ -1180,7 +1168,6 @@
   padding: var(--space-md) 0;
   height: 100%;
   position: relative;
-  overflow: visible;
   z-index: 100;
 }
 
@@ -1247,6 +1234,7 @@
   width: 44px;
   height: 44px;
   user-select: none;
+  z-index: 10;
 }
 
 .categoryItem:hover {
@@ -1313,7 +1301,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-md) 0 0 0;
+  padding: var(--space-md) 0;
   margin-top: auto;
   flex-shrink: 0;
 }
@@ -1326,6 +1314,7 @@
   cursor: pointer;
   transition: var(--transition-fast);
   position: relative;
+  z-index: 10;
 }
 
 .footerBtn:hover {
@@ -1347,7 +1336,6 @@
   flex-direction: column;
   flex-shrink: 0;
   height: 100%;
-  z-index: 50;
 }
 
 .listHeader {
@@ -1370,7 +1358,7 @@
   left: 12px;
   width: 16px;
   height: 16px;
-  opacity: 0.5;
+  opacity: 0.6;
   z-index: 1;
 }
 
@@ -1570,7 +1558,6 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  z-index: 10;
 }
 
 .detailsContent {
@@ -2244,16 +2231,7 @@
   color: var(--text-secondary);
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* Animations removed - using PageTransition component instead */
 
 /* Light theme specific styles */
 .lightTheme .navIcon img,
