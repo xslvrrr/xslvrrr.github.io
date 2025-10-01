@@ -51,6 +51,24 @@ export function useNotifications(notices: Notice[] | undefined) {
     }));
   }, []);
 
+  const markAllAsRead = useCallback(() => {
+    if (!notices) return;
+    
+    const newStates: Record<string, NotificationState> = {};
+    notices.forEach((notice, index) => {
+      const notificationId = getNotificationId(notice, index);
+      newStates[notificationId] = {
+        ...notificationStates[notificationId],
+        read: true
+      };
+    });
+    
+    setNotificationStates(prev => ({
+      ...prev,
+      ...newStates
+    }));
+  }, [notices, notificationStates, getNotificationId]);
+
   const getFilteredNotifications = useCallback(() => {
     if (!notices) return [];
 
@@ -131,6 +149,7 @@ export function useNotifications(notices: Notice[] | undefined) {
     toggleRead,
     togglePin,
     toggleArchive,
+    markAllAsRead,
     getFilteredNotifications,
     getNotificationId
   };

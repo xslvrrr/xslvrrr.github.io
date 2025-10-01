@@ -53,6 +53,7 @@ export default function Dashboard() {
     toggleRead,
     togglePin,
     toggleArchive,
+    markAllAsRead,
     getFilteredNotifications,
     getNotificationId
   } = notificationHooks;
@@ -81,7 +82,7 @@ export default function Dashboard() {
   // Handle hash-based navigation
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.slice(1); // Remove #
+      const hash = window.location.hash.slice(1);
       if (hash === 'notifications') {
         setCurrentView('notifications');
         setCurrentSection('');
@@ -94,10 +95,7 @@ export default function Dashboard() {
       }
     };
 
-    // Handle initial hash
     handleHashChange();
-
-    // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -552,11 +550,6 @@ export default function Dashboard() {
                     <a 
                       href="#notifications"
                       className={styles.navLink}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentView('notifications');
-                        setCurrentSection('');
-                      }}
                     >
                       <span className={styles.navIcon}>
                         <img src="/Assets/notification-icon.svg" alt="Notifications" />
@@ -681,13 +674,6 @@ export default function Dashboard() {
                     >
                       <img src="/Assets/search.svg" alt="Search" />
                     </button>
-                    <button 
-                      className={styles.headerActionBtn} 
-                      onClick={() => loadPortalData(true)}
-                      title="Refresh"
-                    >
-                      <img src="/Assets/refresh-icon.svg" alt="Refresh" />
-                    </button>
                   </div>
                 </div>
                 <div className={styles.notificationsContainer}>
@@ -729,17 +715,6 @@ export default function Dashboard() {
                     <div className={styles.sidebarFooter}>
                       <button 
                         className={styles.footerBtn}
-                        onMouseEnter={() => setShowTooltip('preferences')}
-                        onMouseLeave={() => setShowTooltip(null)}
-                        onClick={() => handleSectionClick('preferences')}
-                      >
-                        <img src="/Assets/preferences-icon.svg" alt="Preferences" />
-                        {showTooltip === 'preferences' && (
-                          <div className={styles.tooltip}>Preferences</div>
-                        )}
-                      </button>
-                      <button 
-                        className={styles.footerBtn}
                         onClick={() => loadPortalData(true)}
                         onMouseEnter={() => setShowTooltip('refresh')}
                         onMouseLeave={() => setShowTooltip(null)}
@@ -769,6 +744,7 @@ export default function Dashboard() {
                       <div className={styles.listActions}>
                         <button 
                           className={styles.actionBtn}
+                          onClick={markAllAsRead}
                           onMouseEnter={() => setShowTooltip('markAll')}
                           onMouseLeave={() => setShowTooltip(null)}
                         >
@@ -824,7 +800,7 @@ export default function Dashboard() {
                                       className={styles.notificationActionBtn}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        toggleRead(getNotificationId(notice, index));
+                                        toggleRead(notificationId);
                                       }}
                                       onMouseEnter={() => setShowTooltip(`read-${originalIndex}`)}
                                       onMouseLeave={() => setShowTooltip(null)}
@@ -879,7 +855,7 @@ export default function Dashboard() {
                             <div className={styles.detailsActions}>
                               <button 
                                 className={styles.detailActionBtn}
-                                onClick={() => toggleRead(getNotificationId(selectedNotification, selectedIndex))}
+                                onClick={() => toggleRead(selectedId)}
                                 onMouseEnter={() => setShowTooltip('detailRead')}
                                 onMouseLeave={() => setShowTooltip(null)}
                               >
