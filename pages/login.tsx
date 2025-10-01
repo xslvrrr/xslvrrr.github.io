@@ -18,6 +18,7 @@ interface LoginState {
     message: string;
   };
   isTransitioning: boolean;
+  showPassword: boolean;
 }
 
 export default function Login() {
@@ -27,10 +28,35 @@ export default function Login() {
     loginData: { username: '', password: '', school: '' },
     isLoading: false,
     notification: { type: null, message: '' },
-    isTransitioning: false
+    isTransitioning: false,
+    showPassword: false
   });
 
 
+
+  // Parse username to extract first/last name
+  const parseDisplayName = (username: string): string => {
+    // Handle email format: firstname.lastnamenumber@education.nsw.gov.au
+    const emailMatch = username.match(/^([a-z]+)\.([a-z]+)\d*@/i);
+    if (emailMatch) {
+      const [, first, last] = emailMatch;
+      return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+    }
+    
+    // Handle username format: firstname.lastnamenumber
+    const usernameMatch = username.match(/^([a-z]+)\.([a-z]+)\d*$/i);
+    if (usernameMatch) {
+      const [, first, last] = usernameMatch;
+      return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+    }
+    
+    return username;
+  };
+
+  // Check if username is a DoE email
+  const isDoEEmail = (username: string): boolean => {
+    return username.toLowerCase().endsWith('@education.nsw.gov.au');
+  };
 
   const transition = (newStep: LoginState['step'], delay = 400) => {
     setState(prev => ({ ...prev, isTransitioning: true }));
@@ -45,6 +71,47 @@ export default function Login() {
       ...prev,
       loginData: { ...prev.loginData, [field]: value }
     }));
+  };
+
+  // Handle username submission with smart detection
+  const handleUsernameSubmit = () => {
+    const username = state.loginData.username.trim();
+    
+    // If DoE email detected, skip school question
+    if (isDoEEmail(username)) {
+      setState(prev => ({
+        ...prev,
+        loginData: { ...prev.loginData, school: 'NSW Department of Education' }
+      }));
+      transition('password');
+    } else {
+      transition('password');
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent, nextAction: () => void) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      nextAction();
+    }
+  };
+
+  // Reset to questionnaire start on failed login
+  const resetToStart = () => {
+    setState({
+      step: 'username',
+      loginData: { username: '', password: '', school: '' },
+      isLoading: false,
+      notification: { type: null, message: '' },
+      isTransitioning: false,
+      showPassword: false
+    });
+  };
+
+  // Handle DoE SSO login
+  const handleDoELogin = async () => {
+    window.location.href = '/api/auth/sso-login';
   };
 
   const handleSubmitLogin = async () => {
@@ -182,7 +249,7 @@ export default function Login() {
             <div className={`${styles.loginOptions} ${state.isTransitioning ? styles.fadeOut : ''}`}>
               <button 
                 className={styles.loginOptionBtn}
-                onClick={() => alert('NSW DoE login is not implemented yet.')}
+                onClick={handleDoELogin}
               >
                 Continue with NSW DoE
               </button>
@@ -204,12 +271,14 @@ export default function Login() {
                 placeholder="Enter your username or email"
                 value={state.loginData.username}
                 onChange={(e) => handleInputChange('username', e.target.value)}
+                onKeyPress={(e) => handleKeyPress(e, handleUsernameSubmit)}
                 autoComplete="username"
+                autoFocus
               />
               <div className={styles.questionButtons}>
                 <button 
                   className={styles.submitBtn}
-                  onClick={() => transition('password')}
+                  onClick={handleUsernameSubmit}
                 >
                   Submit
                 </button>
@@ -230,14 +299,35 @@ export default function Login() {
           {state.step === 'password' && (
             <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
               <h2 className={styles.questionTitle}>What&apos;s your password?</h2>
-              <input
-                type="password"
-                className={styles.questionInput}
-                placeholder="Enter your password"
-                value={state.loginData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                autoComplete="current-password"
-              />
+              <div className={styles.passwordInputContainer}>
+                <input
+                  type={state.showPassword ? "text" : "password"}
+                  className={styles.questionInput}
+                  placeholder="Enter your password"
+                  value={state.loginData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onKeyPress={(e) => handleKeyPress(e, () => {
+                    if (isDoEEmail(state.loginData.username)) {
+                      handleSubmitLogin();
+                    } else {
+                      transition('school');
+                    }
+                  })}
+                  autoComplete="current-password"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className={styles.passwordToggle}
+                  onClick={() => setState(prev => ({ ...prev, showPassword: !prev.showPassword }))}
+                  aria-label={state.showPassword ? "Hide password" : "Show password"}
+                >
+                  <img 
+                    src={state.showPassword ? "/Assets/eye-crossed.svg" : "/Assets/eye.svg"} 
+                    alt={state.showPassword ? "Hide" : "Show"}
+                  />
+                </button>
+              </div>
               <div className={styles.questionButtons}>
                 <button 
                   className={styles.backBtn}
@@ -247,7 +337,13 @@ export default function Login() {
                 </button>
                 <button 
                   className={styles.submitBtn}
-                  onClick={() => transition('school')}
+                  onClick={() => {
+                    if (isDoEEmail(state.loginData.username)) {
+                      handleSubmitLogin();
+                    } else {
+                      transition('school');
+                    }
+                  }}
                 >
                   Submit
                 </button>
@@ -264,6 +360,8 @@ export default function Login() {
                 placeholder="Enter your school name"
                 value={state.loginData.school}
                 onChange={(e) => handleInputChange('school', e.target.value)}
+                onKeyPress={(e) => handleKeyPress(e, handleSubmitLogin)}
+                autoFocus
               />
               <div className={styles.questionButtons}>
                 <button 
@@ -305,6 +403,15 @@ export default function Login() {
               {renderNotification()}
               
               <div className={styles.questionButtons}>
+                {state.notification.type === 'error' && (
+                  <button 
+                    onClick={resetToStart} 
+                    className={styles.backBtn}
+                    type="button"
+                  >
+                    Try again
+                  </button>
+                )}
                 <button 
                   onClick={() => router.push('/')} 
                   className={styles.returnBtn}

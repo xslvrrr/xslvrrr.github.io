@@ -119,6 +119,25 @@ export default function Dashboard() {
 
   // Removed duplicate notification count update - handled above
 
+  // Parse username to extract display name
+  const parseDisplayName = useCallback((username: string): string => {
+    // Handle email format: firstname.lastnamenumber@education.nsw.gov.au
+    const emailMatch = username.match(/^([a-z]+)\.([a-z]+)\d*@/i);
+    if (emailMatch) {
+      const [, first, last] = emailMatch;
+      return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+    }
+    
+    // Handle username format: firstname.lastnamenumber
+    const usernameMatch = username.match(/^([a-z]+)\.([a-z]+)\d*$/i);
+    if (usernameMatch) {
+      const [, first, last] = usernameMatch;
+      return `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+    }
+    
+    return username;
+  }, []);
+
   const getUserInitials = (username?: string) => {
     if (!username) return 'U';
     const names = username.split(' ');
@@ -130,8 +149,13 @@ export default function Dashboard() {
 
   // Memoized calculations for better performance
   const displayName = useMemo(() => {
-    return portalData?.user.name || session?.username || 'User';
-  }, [portalData?.user.name, session?.username]);
+    const rawName = portalData?.user.name || session?.username || 'User';
+    // If it's a username format, parse it to display name
+    if (rawName.includes('.') || rawName.includes('@')) {
+      return parseDisplayName(rawName);
+    }
+    return rawName;
+  }, [portalData?.user.name, session?.username, parseDisplayName]);
 
   const displaySchool = useMemo(() => {
     return portalData?.user.school || session?.school || 'School';

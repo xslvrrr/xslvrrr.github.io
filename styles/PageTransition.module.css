@@ -1,32 +1,17 @@
-/* Professional page transition - fade in and rise up */
+/* Professional page transition - removed problematic animations */
 .pageTransition {
-  animation: none;
-  opacity: 1;
-  transform: translateY(0);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
+  opacity: 1;
 }
 
 .pageTransition.loading {
-  opacity: 0;
-  transform: translateY(8px);
+  opacity: 1;
 }
 
 .pageTransition.loaded {
-  animation: pageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes pageEnter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 1;
 }
 
 /* Lightweight inline loader for small content areas */
