@@ -53,18 +53,26 @@ export default async function handler(
 
     // Scrape the portal
     if (!session.sessionCookies || session.sessionCookies.length === 0) {
+      logger.warn('No session cookies available for scraping');
       return res.status(400).json({ message: 'No session cookies available for scraping' });
     }
 
     // Create cookie header from stored session cookies
     const cookieHeader = session.sessionCookies.join('; ');
+    
+    logger.debug(`Scraping portal with ${session.sessionCookies.length} cookies`);
 
     // Scrape the main portal page
     const portalResponse = await axios.get('https://millennium.education/portal/', {
       headers: {
         'Cookie': cookieHeader,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://millennium.education/'
+      },
+      maxRedirects: 5,
+      validateStatus: (status) => status < 400
     });
     const portalHTML = portalResponse.data;
     const $ = cheerio.load(portalHTML);
@@ -73,14 +81,24 @@ export default async function handler(
     
     // Verify we're on the portal page (not login page)
     const isLoggedIn = portalHTML.includes('Student & Parent Portal') || 
-                      portalHTML.includes('jdash-widget');
+                      portalHTML.includes('jdash-widget') ||
+                      portalHTML.includes('portal/notices') ||
+                      (portalHTML.includes('timetable') && portalHTML.includes('diary'));
     
-    if (!isLoggedIn) {
+    // Check if we got redirected to login
+    const isLoginPage = portalHTML.includes('login.asp') || 
+                       portalHTML.includes('name="email"') ||
+                       portalHTML.includes('name="password"');
+    
+    if (isLoginPage || !isLoggedIn) {
+      logger.error('Session expired - user needs to login again');
       return res.status(401).json({ 
         message: 'Session expired. Please log in again.',
         expired: true
       });
     }
+    
+    logger.debug('Successfully verified portal access');
     
     // Extract user information
     const userInfoText = $('table.grey td:first-child b').text() || '';
@@ -140,8 +158,13 @@ export default async function handler(
       const noticesResponse = await axios.get('https://millennium.education/portal/notices.asp', {
         headers: {
           'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Referer': 'https://millennium.education/portal/'
+        },
+        maxRedirects: 5,
+        validateStatus: (status) => status < 400
       });
       const noticesHTML = noticesResponse.data;
       const $notices = cheerio.load(noticesHTML);
@@ -213,18 +236,36 @@ export default async function handler(
     return res.status(200).json(portalData);
 
   } catch (error: any) {
-    logger.error('Portal scraping error:', error);
+    logger.error('Portal scraping error:', error.message || error);
+    logger.error('Error details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      code: error.code
+    });
     
     // Check if it's an authentication error
-    if (error.message?.includes('401') || error.message?.includes('403')) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      logger.error('Authentication error - session likely expired');
       return res.status(401).json({ 
         message: 'Session expired. Please log in again.',
         expired: true 
       });
     }
     
+    // Check if we were redirected to login (means session expired)
+    if (error.response?.data && typeof error.response.data === 'string') {
+      const responseHTML = error.response.data;
+      if (responseHTML.includes('login.asp') || responseHTML.includes('name="email"')) {
+        logger.error('Redirected to login - session expired');
+        return res.status(401).json({ 
+          message: 'Session expired. Please log in again.',
+          expired: true 
+        });
+      }
+    }
+    
     // Check if it's a network error
-    if (error.name === 'TypeError' || error.message?.includes('fetch')) {
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
       return res.status(503).json({ 
         message: 'Unable to connect to portal. Please try again later.',
         error: 'Network error'
@@ -233,7 +274,7 @@ export default async function handler(
     
     return res.status(500).json({ 
       message: 'Failed to scrape portal data',
-      error: error.message 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 }
