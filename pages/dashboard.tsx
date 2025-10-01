@@ -9,6 +9,7 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import { useNotifications } from '../hooks/useNotifications';
 import { useKeyboardShortcuts, createDashboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { PageTransition, InlineLoader } from '../components/PageTransition';
+import { Tooltip } from '../components/Tooltip';
 
 // Dynamically import heavy components for code splitting
 const LoadingSkeleton = dynamic(() => import('../components/LoadingSkeleton').then(mod => ({ default: mod.LoadingSkeleton })), {
@@ -49,8 +50,6 @@ export default function Dashboard() {
     setSelectedNotification,
     notificationSearchQuery,
     setNotificationSearchQuery,
-    showTooltip,
-    setShowTooltip,
     notificationCounts,
     toggleRead,
     togglePin,
@@ -80,7 +79,7 @@ export default function Dashboard() {
     checkSession();
   }, [checkSession]);
 
-  // Handle hash-based navigation
+  // Handle hash-based navigation with initial load fix
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1);
@@ -96,10 +95,20 @@ export default function Dashboard() {
       }
     };
 
+    // Initial load - ensure we set the correct view immediately
     handleHashChange();
+    
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Force initial render after session loads
+  useEffect(() => {
+    if (session?.loggedIn && !window.location.hash) {
+      setCurrentSection('home');
+      setCurrentView('dashboard');
+    }
+  }, [session]);
 
   useEffect(() => {
     if (session?.loggedIn) {
@@ -513,6 +522,15 @@ export default function Dashboard() {
                   <h2 className={styles.navHeading}>Essentials</h2>
                 </div>
                 <ul className={styles.navList}>
+                  <li className={`${styles.navItem} ${currentSection === 'home' && currentView === 'dashboard' ? styles.active : ''}`}>
+                    <a href="#home" className={styles.navLink} onClick={(e) => { e.preventDefault(); handleSectionClick('home'); }}>
+                      <span className={styles.navIcon}>
+                        <img src="/Assets/home-icon.svg" alt="Home" />
+                      </span>
+                      <span>Home</span>
+                    </a>
+                  </li>
+                  
                   <li className={`${styles.navItem} ${currentView === 'notifications' ? styles.active : ''}`}>
                     <a 
                       href="#notifications"
@@ -650,39 +668,32 @@ export default function Dashboard() {
                           { id: 'archive', label: 'Archive', icon: 'archive.svg', count: notificationCounts.archive },
                           { id: 'trash', label: 'Trash', icon: 'trash.svg', count: notificationCounts.trash }
                         ].map((category) => (
-                          <button
-                            key={category.id}
-                            className={`${styles.categoryItem} ${selectedCategory === category.id ? styles.active : ''}`}
-                            onClick={() => setSelectedCategory(category.id)}
-                            onMouseEnter={() => setShowTooltip(category.id)}
-                            onMouseLeave={() => setShowTooltip(null)}
-                          >
-                            <div className={styles.categoryIcon}>
-                              <img src={`/Assets/${category.icon}`} alt={category.label} />
-                            </div>
-                            {category.count > 0 && (
-                              <span className={styles.categoryCount}>{category.count}</span>
-                            )}
-                            {showTooltip === category.id && (
-                              <div className={styles.tooltip}>{category.label}</div>
-                            )}
-                          </button>
+                          <Tooltip key={category.id} text={category.label} position="right">
+                            <button
+                              className={`${styles.categoryItem} ${selectedCategory === category.id ? styles.active : ''}`}
+                              onClick={() => setSelectedCategory(category.id)}
+                            >
+                              <div className={styles.categoryIcon}>
+                                <img src={`/Assets/${category.icon}`} alt={category.label} />
+                              </div>
+                              {category.count > 0 && (
+                                <span className={styles.categoryCount}>{category.count}</span>
+                              )}
+                            </button>
+                          </Tooltip>
                         ))}
                       </div>
                     </div>
                     
                     <div className={styles.sidebarFooter}>
-                      <button 
-                        className={styles.footerBtn}
-                        onClick={() => loadPortalData(true)}
-                        onMouseEnter={() => setShowTooltip('refresh')}
-                        onMouseLeave={() => setShowTooltip(null)}
-                      >
-                        <img src="/Assets/refresh-icon.svg" alt="Refresh" />
-                        {showTooltip === 'refresh' && (
-                          <div className={styles.tooltip}>Refresh</div>
-                        )}
-                      </button>
+                      <Tooltip text="Refresh" position="right">
+                        <button 
+                          className={styles.footerBtn}
+                          onClick={() => loadPortalData(true)}
+                        >
+                          <img src="/Assets/refresh-icon.svg" alt="Refresh" />
+                        </button>
+                      </Tooltip>
                     </div>
                   </div>
 
@@ -701,17 +712,14 @@ export default function Dashboard() {
                       </div>
                       
                       <div className={styles.listActions}>
-                        <button 
-                          className={styles.actionBtn}
-                          onClick={markAllAsRead}
-                          onMouseEnter={() => setShowTooltip('markAll')}
-                          onMouseLeave={() => setShowTooltip(null)}
-                        >
-                          <img src="/Assets/mark-read.svg" alt="Mark all as read" />
-                          {showTooltip === 'markAll' && (
-                            <div className={styles.tooltip}>Mark all as read</div>
-                          )}
-                        </button>
+                        <Tooltip text="Mark all as read" position="bottom">
+                          <button 
+                            className={styles.actionBtn}
+                            onClick={markAllAsRead}
+                          >
+                            <img src="/Assets/mark-read.svg" alt="Mark all as read" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </div>
                     
@@ -755,34 +763,28 @@ export default function Dashboard() {
                                     <div className={styles.notificationPreview}>{notice.preview}</div>
                                   </div>
                                   <div className={styles.notificationActions}>
-                                    <button 
-                                      className={styles.notificationActionBtn}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleRead(notificationId);
-                                      }}
-                                      onMouseEnter={() => setShowTooltip(`read-${originalIndex}`)}
-                                      onMouseLeave={() => setShowTooltip(null)}
-                                    >
-                                      <img src={isRead ? "/Assets/mark-unread.svg" : "/Assets/mark-read.svg"} alt={isRead ? "Mark as unread" : "Mark as read"} />
-                                      {showTooltip === `read-${originalIndex}` && (
-                                        <div className={styles.tooltip}>{isRead ? "Mark as unread" : "Mark as read"}</div>
-                                      )}
-                                    </button>
-                                    <button 
-                                      className={styles.notificationActionBtn}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        togglePin(notificationId);
-                                      }}
-                                      onMouseEnter={() => setShowTooltip(`pin-${originalIndex}`)}
-                                      onMouseLeave={() => setShowTooltip(null)}
-                                    >
-                                      <img src={isPinned ? "/Assets/pinned.svg" : "/Assets/pin.svg"} alt={isPinned ? "Unpin" : "Pin"} />
-                                      {showTooltip === `pin-${originalIndex}` && (
-                                        <div className={styles.tooltip}>{isPinned ? "Unpin notification" : "Pin notification"}</div>
-                                      )}
-                                    </button>
+                                    <Tooltip text={isRead ? "Mark as unread" : "Mark as read"} position="top">
+                                      <button 
+                                        className={styles.notificationActionBtn}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleRead(notificationId);
+                                        }}
+                                      >
+                                        <img src={isRead ? "/Assets/mark-unread.svg" : "/Assets/mark-read.svg"} alt={isRead ? "Mark as unread" : "Mark as read"} />
+                                      </button>
+                                    </Tooltip>
+                                    <Tooltip text={isPinned ? "Unpin notification" : "Pin notification"} position="top">
+                                      <button 
+                                        className={styles.notificationActionBtn}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          togglePin(notificationId);
+                                        }}
+                                      >
+                                        <img src={isPinned ? "/Assets/pinned.svg" : "/Assets/pin.svg"} alt={isPinned ? "Unpin" : "Pin"} />
+                                      </button>
+                                    </Tooltip>
                                   </div>
                                 </div>
                               );
@@ -812,39 +814,30 @@ export default function Dashboard() {
                           <div className={styles.detailsHeader}>
                             <h3>{selectedNotification.title}</h3>
                             <div className={styles.detailsActions}>
-                              <button 
-                                className={styles.detailActionBtn}
-                                onClick={() => toggleRead(selectedId)}
-                                onMouseEnter={() => setShowTooltip('detailRead')}
-                                onMouseLeave={() => setShowTooltip(null)}
-                              >
-                                <img src={isSelectedRead ? "/Assets/mark-unread.svg" : "/Assets/mark-read.svg"} alt={isSelectedRead ? "Mark as unread" : "Mark as read"} />
-                                {showTooltip === 'detailRead' && (
-                                  <div className={styles.tooltip}>{isSelectedRead ? "Mark as unread" : "Mark as read"}</div>
-                                )}
-                              </button>
-                              <button 
-                                className={styles.detailActionBtn}
-                                onClick={() => togglePin(selectedId)}
-                                onMouseEnter={() => setShowTooltip('detailPin')}
-                                onMouseLeave={() => setShowTooltip(null)}
-                              >
-                                <img src={isSelectedPinned ? "/Assets/pinned.svg" : "/Assets/pin.svg"} alt={isSelectedPinned ? "Unpin" : "Pin"} />
-                                {showTooltip === 'detailPin' && (
-                                  <div className={styles.tooltip}>{isSelectedPinned ? "Unpin notification" : "Pin notification"}</div>
-                                )}
-                              </button>
-                              <button 
-                                className={styles.detailActionBtn}
-                                onClick={() => toggleArchive(selectedId)}
-                                onMouseEnter={() => setShowTooltip('detailArchive')}
-                                onMouseLeave={() => setShowTooltip(null)}
-                              >
-                                <img src="/Assets/archive.svg" alt="Archive" />
-                                {showTooltip === 'detailArchive' && (
-                                  <div className={styles.tooltip}>Archive</div>
-                                )}
-                              </button>
+                              <Tooltip text={isSelectedRead ? "Mark as unread" : "Mark as read"} position="top">
+                                <button 
+                                  className={styles.detailActionBtn}
+                                  onClick={() => toggleRead(selectedId)}
+                                >
+                                  <img src={isSelectedRead ? "/Assets/mark-unread.svg" : "/Assets/mark-read.svg"} alt={isSelectedRead ? "Mark as unread" : "Mark as read"} />
+                                </button>
+                              </Tooltip>
+                              <Tooltip text={isSelectedPinned ? "Unpin notification" : "Pin notification"} position="top">
+                                <button 
+                                  className={styles.detailActionBtn}
+                                  onClick={() => togglePin(selectedId)}
+                                >
+                                  <img src={isSelectedPinned ? "/Assets/pinned.svg" : "/Assets/pin.svg"} alt={isSelectedPinned ? "Unpin" : "Pin"} />
+                                </button>
+                              </Tooltip>
+                              <Tooltip text="Archive" position="top">
+                                <button 
+                                  className={styles.detailActionBtn}
+                                  onClick={() => toggleArchive(selectedId)}
+                                >
+                                  <img src="/Assets/archive.svg" alt="Archive" />
+                                </button>
+                              </Tooltip>
                             </div>
                           </div>
                           <div className={styles.detailsBody}>

@@ -388,8 +388,10 @@
   background: var(--content-bg);
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  overflow-y: auto;
+  overflow: hidden;
   height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Content header */
@@ -509,12 +511,16 @@
   padding: var(--space-xl);
   background: transparent;
   animation: fadeIn 0.3s ease;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .contentWrapperInner {
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
+  min-height: 100%;
 }
 
 /* Cards */
@@ -1169,7 +1175,7 @@
   padding: var(--space-md) 0;
   align-self: stretch;
   position: relative;
-  z-index: 100;
+  z-index: 10;
   overflow: visible;
 }
 
@@ -1207,8 +1213,7 @@
 .sidebarContent {
   flex: 1;
   padding: var(--space-md) 0;
-  overflow-y: auto;
-  overflow-x: visible;
+  overflow: visible;
   width: 100%;
 }
 
@@ -1631,122 +1636,7 @@
   user-select: text;
 }
 
-/* Universal Tooltips - Rebuilt with proper arrow borders */
-.tooltip {
-  position: absolute;
-  background: rgba(30, 30, 35, 0.98);
-  color: #ffffff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  z-index: 9999999;
-  pointer-events: none;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  animation: tooltipFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Sidebar tooltips - appear to the right with arrow */
-.notificationsSidebar .tooltip,
-.sidebarFooter .tooltip {
-  left: calc(100% + 10px);
-  top: 50%;
-  transform: translateY(-50%) translateX(-4px);
-}
-
-.notificationsSidebar .tooltip::before,
-.sidebarFooter .tooltip::before {
-  content: '';
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  margin-top: -5px;
-  border: 5px solid transparent;
-  border-right: 5px solid rgba(30, 30, 35, 0.98);
-  border-left: 0;
-}
-
-/* List header tooltips - appear below near top of screen */
-.listActions .tooltip {
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-2px);
-}
-
-.listActions .tooltip::before {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border: 5px solid transparent;
-  border-bottom: 5px solid rgba(30, 30, 35, 0.98);
-  border-top: 0;
-}
-
-/* Details and notification action tooltips - appear above */
-.detailsActions .tooltip,
-.notificationActions .tooltip {
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(2px);
-}
-
-.detailsActions .tooltip::before,
-.notificationActions .tooltip::before {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border: 5px solid transparent;
-  border-top: 5px solid rgba(30, 30, 35, 0.98);
-  border-bottom: 0;
-}
-
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Animation for below tooltips */
-.listActions .tooltip {
-  animation: tooltipFadeInBelow 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes tooltipFadeInBelow {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-/* Animation for above tooltips */
-.detailsActions .tooltip,
-.notificationActions .tooltip {
-  animation: tooltipFadeInTop 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes tooltipFadeInTop {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
+/* Tooltips are now handled by the portal-based Tooltip component */
 
 /* Empty State */
 .emptyState {

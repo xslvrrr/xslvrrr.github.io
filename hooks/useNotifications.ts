@@ -5,7 +5,6 @@ export function useNotifications(notices: Notice[] | undefined) {
   const [selectedCategory, setSelectedCategory] = useState('inbox');
   const [selectedNotification, setSelectedNotification] = useState<Notice | null>(null);
   const [notificationSearchQuery, setNotificationSearchQuery] = useState('');
-  const [showTooltip, setShowTooltip] = useState<string | null>(null);
   const [notificationStates, setNotificationStates] = useState<Record<string, NotificationState>>({});
   const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>({
     inbox: 0,
@@ -142,8 +141,6 @@ export function useNotifications(notices: Notice[] | undefined) {
     setSelectedNotification,
     notificationSearchQuery,
     setNotificationSearchQuery,
-    showTooltip,
-    setShowTooltip,
     notificationStates,
     notificationCounts,
     toggleRead,
