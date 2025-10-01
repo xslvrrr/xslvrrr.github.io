@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
   const router = useRouter();
+
+  // Check for invalid_login and redirect to login page with error
+  useEffect(() => {
+    if (router.query.invalid_login !== undefined) {
+      router.replace('/login?invalid_login');
+    }
+  }, [router]);
 
   return (
     <>

@@ -32,6 +32,22 @@ export default function Login() {
     showPassword: false
   });
 
+  // Check for invalid_login parameter in URL
+  useEffect(() => {
+    if (router.query.invalid_login !== undefined) {
+      setState(prev => ({
+        ...prev,
+        notification: {
+          type: 'error',
+          message: 'DoE login failed. Please check your credentials and try again.'
+        }
+      }));
+      
+      // Clear the URL parameter
+      router.replace('/login', undefined, { shallow: true });
+    }
+  }, [router]);
+
 
 
   // Parse username to extract first/last name
@@ -77,16 +93,16 @@ export default function Login() {
   const handleUsernameSubmit = () => {
     const username = state.loginData.username.trim();
     
-    // If DoE email detected, skip school question
+    // If DoE email detected, auto-fill school and proceed to password
     if (isDoEEmail(username)) {
       setState(prev => ({
         ...prev,
         loginData: { ...prev.loginData, school: 'NSW Department of Education' }
       }));
-      transition('password');
-    } else {
-      transition('password');
     }
+    
+    // Always go to password step (DoE users still need portal password)
+    transition('password');
   };
 
   // Handle Enter key press
@@ -111,7 +127,14 @@ export default function Login() {
 
   // Handle DoE SSO login
   const handleDoELogin = async () => {
-    window.location.href = '/api/auth/sso-login';
+    // Inform user about SSO limitation
+    setState(prev => ({
+      ...prev,
+      notification: {
+        type: 'error',
+        message: 'DoE SSO login requires authentication on the original Millennium portal. Please use "Continue with login details" and enter your DoE email address instead.'
+      }
+    }));
   };
 
   const handleSubmitLogin = async () => {
@@ -246,20 +269,23 @@ export default function Login() {
           </div>
 
           {state.step === 'options' && (
-            <div className={`${styles.loginOptions} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <button 
-                className={styles.loginOptionBtn}
-                onClick={handleDoELogin}
-              >
-                Continue with NSW DoE
-              </button>
-              <button 
-                className={styles.loginOptionBtn}
-                onClick={() => transition('username')}
-              >
-                Continue with login details
-              </button>
-            </div>
+            <>
+              {renderNotification()}
+              <div className={`${styles.loginOptions} ${state.isTransitioning ? styles.fadeOut : ''}`}>
+                <button 
+                  className={styles.loginOptionBtn}
+                  onClick={handleDoELogin}
+                >
+                  Continue with NSW DoE
+                </button>
+                <button 
+                  className={styles.loginOptionBtn}
+                  onClick={() => transition('username')}
+                >
+                  Continue with login details
+                </button>
+              </div>
+            </>
           )}
 
           {state.step === 'username' && (
