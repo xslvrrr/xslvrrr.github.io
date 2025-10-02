@@ -48,15 +48,37 @@ export default async function handler(
     const session = await getSession(req, res);
     logger.debug(`Session fetch: ${Date.now() - startTime}ms`);
     
+    // Debug: Log session state
+    logger.debug('Session state:', {
+      loggedIn: session.loggedIn,
+      username: session.username,
+      school: session.school,
+      hasCookies: !!session.sessionCookies,
+      cookiesCount: session.sessionCookies?.length || 0
+    });
+    
     if (!session.loggedIn) {
+      logger.error('Session check failed: not logged in');
       return res.status(401).json({ message: 'Not authenticated' });
     }
-
 
     // Scrape the portal
     if (!session.sessionCookies || session.sessionCookies.length === 0) {
       logger.error('No session cookies available for scraping');
-      return res.status(400).json({ message: 'No session cookies available for scraping' });
+      logger.error('Session details:', JSON.stringify({
+        loggedIn: session.loggedIn,
+        username: session.username,
+        school: session.school,
+        timestamp: session.timestamp
+      }));
+      return res.status(400).json({ 
+        message: 'No session cookies available for scraping',
+        debug: {
+          loggedIn: session.loggedIn,
+          hasUsername: !!session.username,
+          hasSchool: !!session.school
+        }
+      });
     }
 
     logger.debug(`Session cookies count: ${session.sessionCookies.length}`);

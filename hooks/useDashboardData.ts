@@ -43,16 +43,29 @@ export function useDashboardData() {
     
     setDataLoading(true);
     try {
+      console.log('[Dashboard] Fetching portal data...');
       const response = await fetch('/api/portal/scrape');
       const data = await response.json();
       
+      console.log('[Dashboard] Scrape response:', { 
+        status: response.status, 
+        ok: response.ok,
+        hasUserData: !!data?.user,
+        userName: data?.user?.name,
+        timetableCount: data?.timetable?.length || 0
+      });
+      
       if (response.ok) {
         setPortalData(data);
+        console.log('[Dashboard] Portal data loaded successfully');
       } else if (data.expired) {
+        console.error('[Dashboard] Session expired, redirecting to login');
         router.push('/login');
+      } else {
+        console.error('[Dashboard] Failed to load portal data:', data);
       }
     } catch (error) {
-      // Error loading portal data
+      console.error('[Dashboard] Error loading portal data:', error);
     } finally {
       setDataLoading(false);
     }

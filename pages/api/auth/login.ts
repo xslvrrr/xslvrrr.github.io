@@ -101,6 +101,11 @@ export default async function handler(
       
       logger.debug(`Login successful for ${username} at ${school}. Cookies: ${cookies.length}`);
       
+      // Log cookie details
+      cookies.forEach((cookie: string, index: number) => {
+        logger.debug(`Cookie ${index}: ${cookie.substring(0, 50)}... (${cookie.length} chars)`);
+      });
+      
       // Save session (iron-session v8 auto-saves when you modify the object)
       const session = await getSession(req, res);
       session.loggedIn = true;
@@ -109,7 +114,8 @@ export default async function handler(
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
 
-      logger.debug(`Session saved with ${cookies.length} cookies`);
+      const totalSize = JSON.stringify(session).length;
+      logger.debug(`Session saved with ${cookies.length} cookies (total session size: ${totalSize} bytes)`);
 
       return res.status(200).json({
         success: true,
@@ -150,6 +156,11 @@ export default async function handler(
       
       logger.debug(`Login successful (redirect caught) for ${username} at ${school}. Cookies: ${cookies.length}`);
       
+      // Log cookie details
+      cookies.forEach((cookie: string, index: number) => {
+        logger.debug(`Cookie ${index}: ${cookie.substring(0, 50)}... (${cookie.length} chars)`);
+      });
+      
       // Save session (iron-session v8 auto-saves when you modify the object)
       const session = await getSession(req, res);
       session.loggedIn = true;
@@ -158,7 +169,8 @@ export default async function handler(
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
 
-      logger.debug(`Session saved with ${cookies.length} cookies`);
+      const totalSize = JSON.stringify(session).length;
+      logger.debug(`Session saved with ${cookies.length} cookies (total session size: ${totalSize} bytes)`);
 
       return res.status(200).json({
         success: true,
