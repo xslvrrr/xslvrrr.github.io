@@ -55,11 +55,16 @@ export default async function handler(
 
     // Scrape the portal
     if (!session.sessionCookies || session.sessionCookies.length === 0) {
+      logger.error('No session cookies available for scraping');
       return res.status(400).json({ message: 'No session cookies available for scraping' });
     }
 
+    logger.debug(`Session cookies count: ${session.sessionCookies.length}`);
+    logger.debug(`Session cookies: ${JSON.stringify(session.sessionCookies)}`);
+
     // Create cookie header from stored session cookies
     const cookieHeader = session.sessionCookies.join('; ');
+    logger.debug(`Cookie header for scraping: ${cookieHeader}`);
 
     // Configure axios with timeout for faster failures
     const axiosConfig = {
@@ -121,13 +126,23 @@ export default async function handler(
       });
     }
     
-    // Extract user information
+    // Extract user information from the portal
     const userInfoText = $('table.grey td:first-child b').text() || '';
-    const userParts = userInfoText.split(' : ');
-    const schoolName = userParts[0] || session.school || 'Unknown School';
-    const userName = userParts[1] || session.username || 'Unknown User';
+    logger.debug(`Raw user info text: "${userInfoText}"`);
     
-    logger.debug(`Extracted user info: "${userInfoText}", School: "${schoolName}", User: "${userName}"`);
+    const userParts = userInfoText.split(' : ');
+    logger.debug(`User parts after split: [${userParts.map(p => `"${p}"`).join(', ')}]`);
+    
+    // Only use scraped data if we actually got both parts, otherwise fallback
+    const schoolName = (userParts.length === 2 && userParts[0]) ? userParts[0].trim() : (session.school || 'Unknown School');
+    const userName = (userParts.length === 2 && userParts[1]) ? userParts[1].trim() : '';
+    
+    logger.debug(`Final extracted - School: "${schoolName}", User: "${userName}"`);
+    
+    // If userName is empty, log warning - frontend will use fallback parser
+    if (!userName) {
+      logger.warn('Could not extract user name from portal HTML - frontend will use fallback name parser');
+    }
     
     // Additional verification - check for specific portal elements
     const hasPortalElements = {
@@ -324,13 +339,12 @@ export default async function handler(
       diaryCount: diary.length
     });
 
-    // Store scraped data in session for caching (optional - skip to improve performance)
+    // Store scraped data in session for caching (iron-session v8 auto-saves)
     // Only save if there's meaningful data to cache
     const saveStart = Date.now();
     if (finalNotices.length > 0 || finalTimetable.length > 0) {
       session.portalData = portalData;
-      await session.save();
-      logger.debug(`Session save: ${Date.now() - saveStart}ms`);
+      logger.debug(`Session data cached: ${Date.now() - saveStart}ms`);
     }
 
     logger.info(`Total scrape time: ${Date.now() - startTime}ms`);

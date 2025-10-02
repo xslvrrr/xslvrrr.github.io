@@ -101,14 +101,15 @@ export default async function handler(
       
       logger.debug(`Login successful for ${username} at ${school}. Cookies: ${cookies.length}`);
       
-      // Save session
+      // Save session (iron-session v8 auto-saves when you modify the object)
       const session = await getSession(req, res);
       session.loggedIn = true;
       session.username = username;
       session.school = school;
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
-      await session.save();
+
+      logger.debug(`Session saved with ${cookies.length} cookies`);
 
       return res.status(200).json({
         success: true,
@@ -149,13 +150,15 @@ export default async function handler(
       
       logger.debug(`Login successful (redirect caught) for ${username} at ${school}. Cookies: ${cookies.length}`);
       
+      // Save session (iron-session v8 auto-saves when you modify the object)
       const session = await getSession(req, res);
       session.loggedIn = true;
       session.username = username;
       session.school = school;
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
-      await session.save();
+
+      logger.debug(`Session saved with ${cookies.length} cookies`);
 
       return res.status(200).json({
         success: true,

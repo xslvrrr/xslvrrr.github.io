@@ -130,6 +130,18 @@ export default function Login() {
   };
 
   const handleSubmitLogin = async () => {
+    // Validate all required fields before submission
+    if (!state.loginData.username || !state.loginData.password || !state.loginData.school) {
+      setState(prev => ({
+        ...prev,
+        notification: {
+          type: 'error',
+          message: 'Please fill in all required fields'
+        }
+      }));
+      return;
+    }
+
     setState(prev => ({ 
       ...prev, 
       isLoading: true,
