@@ -30,9 +30,6 @@ export default async function handler(
 
   const { username, password, school }: LoginRequest = req.body;
 
-  // Check if this is a DoE email login (no password required)
-  const isDoEEmail = username && username.toLowerCase().endsWith('@education.nsw.gov.au');
-
   // Validate input
   if (!username || !school) {
     return res.status(400).json({
@@ -41,11 +38,11 @@ export default async function handler(
     });
   }
 
-  // For non-DoE logins, password is required
-  if (!isDoEEmail && !password) {
+  // Password is always required for form-based login
+  if (!password) {
     return res.status(400).json({
       success: false,
-      message: 'Password is required for non-DoE logins'
+      message: 'Password is required'
     });
   }
 
@@ -54,12 +51,7 @@ export default async function handler(
     const formData = new URLSearchParams();
     formData.append('account', '2'); // Student account type
     formData.append('email', username);
-    
-    // Only add password if it's provided (DoE emails don't need password)
-    if (password) {
-      formData.append('password', password);
-    }
-    
+    formData.append('password', password);
     formData.append('sitename', school);
     
     logger.debug(`Attempting login for ${username} at ${school}`);
@@ -98,8 +90,14 @@ export default async function handler(
                      (redirectUrl && redirectUrl.includes('portal'));
     
     if (isSuccess) {
-      // Extract session cookies - KEEP FULL COOKIE STRINGS
-      const cookies = loginResponse.headers['set-cookie'] || [];
+      // Extract session cookies and parse them properly
+      const setCookieHeaders = loginResponse.headers['set-cookie'] || [];
+      
+      // Extract just the cookie name=value pairs, removing Path, HttpOnly, etc.
+      const cookies = setCookieHeaders.map((cookie: string) => {
+        // Split by semicolon to get the first part (name=value)
+        return cookie.split(';')[0].trim();
+      });
       
       logger.debug(`Login successful for ${username} at ${school}. Cookies: ${cookies.length}`);
       
@@ -141,7 +139,13 @@ export default async function handler(
     
     // Handle 302 redirect in catch (when maxRedirects: 0)
     if (error.response?.status === 302 || error.response?.status === 301) {
-      const cookies = error.response.headers['set-cookie'] || [];
+      const setCookieHeaders = error.response.headers['set-cookie'] || [];
+      
+      // Extract just the cookie name=value pairs, removing Path, HttpOnly, etc.
+      const cookies = setCookieHeaders.map((cookie: string) => {
+        // Split by semicolon to get the first part (name=value)
+        return cookie.split(';')[0].trim();
+      });
       
       logger.debug(`Login successful (redirect caught) for ${username} at ${school}. Cookies: ${cookies.length}`);
       

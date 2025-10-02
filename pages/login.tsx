@@ -100,8 +100,7 @@ export default function Login() {
       }));
     }
     
-    // Always go to password step for questionnaire login
-    // (DoE SSO is handled separately via the SSO button)
+    // Always go to password step
     transition('password');
   };
 
@@ -332,6 +331,7 @@ export default function Login() {
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   onKeyPress={(e) => handleKeyPress(e, () => {
                     if (isDoEEmail(state.loginData.username)) {
+                      // Auto-filled school, go directly to submit
                       handleSubmitLogin();
                     } else {
                       transition('school');
@@ -363,6 +363,7 @@ export default function Login() {
                   className={styles.submitBtn}
                   onClick={() => {
                     if (isDoEEmail(state.loginData.username)) {
+                      // Auto-filled school, go directly to submit
                       handleSubmitLogin();
                     } else {
                       transition('school');
