@@ -189,18 +189,27 @@ export default async function handler(
     ];
 
     let foundTimetable = false;
+    let selectorIndex = 0;
     for (const selector of timetableSelectors) {
+      logger.debug(`Trying timetable selector ${selectorIndex}: "${selector}"`);
+      let rowsFound = 0;
+      let rowsMatched = 0;
+
       $(selector).each((i, el) => {
+        rowsFound++;
         const cells = $(el).find('td');
         if (cells.length >= 4) {
           const firstCellText = $(cells[0]).find('b').text().trim() || $(cells[0]).text().trim();
 
           // Check if this looks like a timetable row (starts with P1, P2, P3b, etc.)
           if (firstCellText.match(/^P\d+[ab]?$/i)) {
+            rowsMatched++;
             const period = firstCellText;
             const room = $(cells[1]).text().trim();
             const subject = $(cells[2]).text().trim();
             const teacher = $(cells[3]).text().trim();
+
+            logger.debug(`Timetable row found: period=${period}, subject="${subject}", teacher="${teacher}", room="${room}"`);
 
             // Check attendance status from the periods column
             let attendanceStatus: 'present' | 'absent' | 'partial' | 'unmarked' = 'unmarked';
@@ -231,10 +240,16 @@ export default async function handler(
                 attendanceStatus
               });
               foundTimetable = true;
+              logger.debug(`Added timetable entry for ${period}`);
+            } else {
+              logger.debug(`Skipped timetable entry - missing subject or teacher: subject="${subject}", teacher="${teacher}"`);
             }
           }
         }
       });
+
+      logger.debug(`Selector ${selectorIndex}: found ${rowsFound} total rows, ${rowsMatched} matched period pattern, ${timetable.length} valid entries`);
+      selectorIndex++;
 
       if (foundTimetable) break; // Found timetable, stop looking
     }

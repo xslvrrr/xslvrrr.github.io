@@ -28,7 +28,12 @@ export function useDashboardData() {
   }, [router]);
 
   const loadPortalData = useCallback(async (force = false) => {
-    if (dataLoading) return;
+    console.log('[Dashboard] loadPortalData called', { force, dataLoading, hasPortalData: !!portalData });
+
+    if (dataLoading) {
+      console.log('[Dashboard] Already loading data, returning early');
+      return;
+    }
 
     // Check if we have recent data (less than 2 minutes old) and not forcing refresh
     if (!force && portalData?.lastUpdated) {
@@ -37,6 +42,7 @@ export function useDashboardData() {
       const diffMinutes = (now.getTime() - lastUpdate.getTime()) / (1000 * 60);
 
       if (diffMinutes < 2) {
+        console.log('[Dashboard] Using cached data (age:', diffMinutes.toFixed(2), 'minutes)');
         return;
       }
     }
