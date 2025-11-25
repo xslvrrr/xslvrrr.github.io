@@ -47,7 +47,7 @@ export default async function handler(
     const startTime = Date.now();
     const session = await getSession(req, res);
     logger.debug(`Session fetch: ${Date.now() - startTime}ms`);
-    
+
     // Debug: Log session state
     logger.debug('Session state:', {
       loggedIn: session.loggedIn,
@@ -56,7 +56,7 @@ export default async function handler(
       hasCookies: !!session.sessionCookies,
       cookiesCount: session.sessionCookies?.length || 0
     });
-    
+
     if (!session.loggedIn) {
       logger.error('Session check failed: not logged in');
       return res.status(401).json({ message: 'Not authenticated' });
@@ -71,7 +71,7 @@ export default async function handler(
         school: session.school,
         timestamp: session.timestamp
       }));
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'No session cookies available for scraping',
         debug: {
           loggedIn: session.loggedIn,
@@ -115,29 +115,29 @@ export default async function handler(
     const portalHtml = portalResponse.value.data;
     const $ = cheerio.load(portalHtml);
     logger.debug(`HTML parsing: ${Date.now() - parseStart}ms`);
-    
+
     // Debug logging and verification
     logger.debug(`Scraping portal for ${session.username} at ${session.school}`);
     logger.debug(`Portal response length: ${portalHtml.length} characters`);
-    
+
     // Verify we're actually on the portal page and not redirected to login
-    const isLoggedIn = portalHtml.includes('Student & Parent Portal') || 
-                      portalHtml.includes('Welcome to Millennium') ||
-                      portalHtml.includes('jdash-widget') ||
-                      portalHtml.includes('table.grey') ||
-                      portalHtml.includes('Millennium Schools Pty Ltd');
-    
-    const isLoginPage = portalHtml.includes('<input') && 
-                       (portalHtml.includes('username') || 
-                        portalHtml.includes('password') ||
-                        portalHtml.includes('login'));
-    
+    const isLoggedIn = portalHtml.includes('Student & Parent Portal') ||
+      portalHtml.includes('Welcome to Millennium') ||
+      portalHtml.includes('jdash-widget') ||
+      portalHtml.includes('table.grey') ||
+      portalHtml.includes('Millennium Schools Pty Ltd');
+
+    const isLoginPage = portalHtml.includes('<input') &&
+      (portalHtml.includes('username') ||
+        portalHtml.includes('password') ||
+        portalHtml.includes('login'));
+
     logger.debug(`Portal verification: isLoggedIn=${isLoggedIn}, isLoginPage=${isLoginPage}`);
-    
+
     // Only fail if we're clearly on a login page, not just because there's no timetable data
     if (isLoginPage && !isLoggedIn) {
       logger.error('Portal scraping failed: Redirected to login page');
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Session expired or invalid. Please log in again.',
         expired: true,
         debug: {
@@ -147,25 +147,25 @@ export default async function handler(
         }
       });
     }
-    
+
     // Extract user information from the portal
     const userInfoText = $('table.grey td:first-child b').text() || '';
     logger.debug(`Raw user info text: "${userInfoText}"`);
-    
+
     const userParts = userInfoText.split(' : ');
     logger.debug(`User parts after split: [${userParts.map(p => `"${p}"`).join(', ')}]`);
-    
+
     // Only use scraped data if we actually got both parts, otherwise fallback
     const schoolName = (userParts.length === 2 && userParts[0]) ? userParts[0].trim() : (session.school || 'Unknown School');
     const userName = (userParts.length === 2 && userParts[1]) ? userParts[1].trim() : '';
-    
+
     logger.debug(`Final extracted - School: "${schoolName}", User: "${userName}"`);
-    
+
     // If userName is empty, log warning - frontend will use fallback parser
     if (!userName) {
       logger.warn('Could not extract user name from portal HTML - frontend will use fallback name parser');
     }
-    
+
     // Additional verification - check for specific portal elements
     const hasPortalElements = {
       dashboard: $('#dashboard').length > 0,
@@ -174,12 +174,12 @@ export default async function handler(
       diary: $('#mydiary').length > 0,
       jdashWidget: $('.jdash-widget').length > 0
     };
-    
+
     logger.debug('Portal elements found:', hasPortalElements);
-    
+
     // Extract timetable data - based on the actual portal HTML structure
     const timetable: TimetableEntry[] = [];
-    
+
     // Look specifically for the timetable widget structure from the portal
     const timetableSelectors = [
       '#timetable .jdash-body table.table1 tr',
@@ -187,21 +187,21 @@ export default async function handler(
       'table.table1 tr',
       '#dashboard table tr'
     ];
-    
+
     let foundTimetable = false;
     for (const selector of timetableSelectors) {
       $(selector).each((i, el) => {
         const cells = $(el).find('td');
         if (cells.length >= 4) {
           const firstCellText = $(cells[0]).find('b').text().trim() || $(cells[0]).text().trim();
-          
+
           // Check if this looks like a timetable row (starts with P1, P2, P3b, etc.)
           if (firstCellText.match(/^P\d+[ab]?$/i)) {
             const period = firstCellText;
             const room = $(cells[1]).text().trim();
             const subject = $(cells[2]).text().trim();
             const teacher = $(cells[3]).text().trim();
-            
+
             // Check attendance status from the periods column
             let attendanceStatus: 'present' | 'absent' | 'partial' | 'unmarked' = 'unmarked';
             if (cells.length >= 5) {
@@ -220,7 +220,7 @@ export default async function handler(
                 }
               }
             }
-            
+
             // Only add if it looks like a valid timetable entry
             if (subject && teacher) {
               timetable.push({
@@ -235,42 +235,42 @@ export default async function handler(
           }
         }
       });
-      
+
       if (foundTimetable) break; // Found timetable, stop looking
     }
-    
+
     logger.debug(`Found ${timetable.length} timetable entries`);
 
     // Process notices from parallel request
     let notices: Notice[] = [];
-    
+
     if (noticesResponse.status === 'fulfilled' && noticesResponse.value.status === 200) {
       try {
         const noticesHtml = noticesResponse.value.data;
         const $notices = cheerio.load(noticesHtml);
-        
+
         // Extract notices based on the actual notices page structure
         $notices('h4').each((i, el) => {
           const $heading = $notices(el);
           const title = $heading.text().trim();
-          
+
           // Get the notice content from the following .notice div
           const $noticeDiv = $heading.next('.notice');
           let content = '';
           let preview = '';
-          
+
           if ($noticeDiv.length > 0) {
             content = $noticeDiv.html() || '';
             // Create preview from text content
             const textContent = $noticeDiv.text().trim();
-            preview = textContent.length > 150 
+            preview = textContent.length > 150
               ? textContent.substring(0, 150) + '...'
               : textContent;
           } else {
             // Fallback: get content from next sibling elements until next h4
             let $current = $heading.next();
             const contentParts: string[] = [];
-            
+
             while ($current.length > 0 && !$current.is('h4')) {
               if ($current.hasClass('notice')) {
                 contentParts.push($current.html() || '');
@@ -283,10 +283,10 @@ export default async function handler(
               }
               $current = $current.next();
             }
-            
+
             content = contentParts.join('\n');
           }
-          
+
           // Skip empty or invalid notices
           if (title && title.length > 3 && preview) {
             notices.push({
@@ -296,7 +296,7 @@ export default async function handler(
             });
           }
         });
-        
+
         logger.debug(`Found ${notices.length} notices from notices page`);
       } catch (error) {
         logger.debug('Error parsing notices:', error);
@@ -304,7 +304,7 @@ export default async function handler(
     } else {
       logger.debug('Failed to fetch notices page:', noticesResponse.status === 'rejected' ? noticesResponse.reason : `status ${noticesResponse.value?.status}`);
     }
-    
+
     logger.debug(`Found ${notices.length} notices`);
 
     // Extract diary entries
@@ -313,16 +313,16 @@ export default async function handler(
       const $el = $(el);
       const title = $el.find('b').text().trim();
       const dateText = $el.find('small i').text().trim();
-      
+
       if (title && dateText) {
         // Extract date from text like "Thu 4 SEP 2025"
         const dateMatch = dateText.match(/(\w{3} \d{1,2} \w{3})/);
         const date = dateMatch ? dateMatch[1] : dateText;
-        
+
         // Extract description (everything after the date)
         const descriptionMatch = dateText.match(/\d{4}\s*(.+)/);
         const description = descriptionMatch ? descriptionMatch[1].trim() : undefined;
-        
+
         diary.push({
           date,
           title,
@@ -350,7 +350,7 @@ export default async function handler(
     };
 
     logger.info(`Final portal data: ${finalTimetable.length} timetable, ${finalNotices.length} notices, ${finalDiary.length} diary entries`);
-    
+
     // Add debug info for troubleshooting
     logger.debug('Debug info:', {
       cookieHeader: cookieHeader ? 'Present' : 'Missing',
@@ -361,11 +361,12 @@ export default async function handler(
       diaryCount: diary.length
     });
 
-    // Store scraped data in session for caching (iron-session v8 auto-saves)
+    // Store scraped data in session for caching with explicit save()
     // Only save if there's meaningful data to cache
     const saveStart = Date.now();
     if (finalNotices.length > 0 || finalTimetable.length > 0) {
       session.portalData = portalData;
+      await session.save();
       logger.debug(`Session data cached: ${Date.now() - saveStart}ms`);
     }
 
@@ -374,17 +375,17 @@ export default async function handler(
 
   } catch (error: any) {
     logger.error('Portal scraping error:', error);
-    
+
     if (error.response?.status === 401 || error.response?.status === 403) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Session expired. Please log in again.',
-        expired: true 
+        expired: true
       });
     }
-    
-    return res.status(500).json({ 
+
+    return res.status(500).json({
       message: 'Failed to scrape portal data',
-      error: error.message 
+      error: error.message
     });
   }
 }

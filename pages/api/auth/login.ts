@@ -94,10 +94,12 @@ export default async function handler(
       const setCookieHeaders = loginResponse.headers['set-cookie'] || [];
       
       // Extract just the cookie name=value pairs, removing Path, HttpOnly, etc.
-      const cookies = setCookieHeaders.map((cookie: string) => {
-        // Split by semicolon to get the first part (name=value)
-        return cookie.split(';')[0].trim();
-      });
+      const cookies = setCookieHeaders
+        .map((cookie: string) => {
+          // Split by semicolon to get the first part (name=value)
+          return cookie.split(';')[0].trim();
+        })
+        .filter((cookie: string) => cookie.length > 0); // Filter out empty cookies
       
       logger.debug(`Login successful for ${username} at ${school}. Cookies: ${cookies.length}`);
       
@@ -106,13 +108,14 @@ export default async function handler(
         logger.debug(`Cookie ${index}: ${cookie.substring(0, 50)}... (${cookie.length} chars)`);
       });
       
-      // Save session (iron-session v8 auto-saves when you modify the object)
+      // Save session with explicit save() call
       const session = await getSession(req, res);
       session.loggedIn = true;
       session.username = username;
       session.school = school;
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
+      await session.save();
 
       const totalSize = JSON.stringify(session).length;
       logger.debug(`Session saved with ${cookies.length} cookies (total session size: ${totalSize} bytes)`);
@@ -149,10 +152,12 @@ export default async function handler(
       const setCookieHeaders = error.response.headers['set-cookie'] || [];
       
       // Extract just the cookie name=value pairs, removing Path, HttpOnly, etc.
-      const cookies = setCookieHeaders.map((cookie: string) => {
-        // Split by semicolon to get the first part (name=value)
-        return cookie.split(';')[0].trim();
-      });
+      const cookies = setCookieHeaders
+        .map((cookie: string) => {
+          // Split by semicolon to get the first part (name=value)
+          return cookie.split(';')[0].trim();
+        })
+        .filter((cookie: string) => cookie.length > 0); // Filter out empty cookies
       
       logger.debug(`Login successful (redirect caught) for ${username} at ${school}. Cookies: ${cookies.length}`);
       
@@ -161,13 +166,14 @@ export default async function handler(
         logger.debug(`Cookie ${index}: ${cookie.substring(0, 50)}... (${cookie.length} chars)`);
       });
       
-      // Save session (iron-session v8 auto-saves when you modify the object)
+      // Save session with explicit save() call
       const session = await getSession(req, res);
       session.loggedIn = true;
       session.username = username;
       session.school = school;
       session.sessionCookies = cookies;
       session.timestamp = new Date().toISOString();
+      await session.save();
 
       const totalSize = JSON.stringify(session).length;
       logger.debug(`Session saved with ${cookies.length} cookies (total session size: ${totalSize} bytes)`);
