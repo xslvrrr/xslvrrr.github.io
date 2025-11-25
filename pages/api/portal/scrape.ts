@@ -88,13 +88,18 @@ export default async function handler(
     const cookieHeader = session.sessionCookies.join('; ');
     logger.debug(`Cookie header for scraping: ${cookieHeader}`);
 
-    // Configure axios with timeout for faster failures
+    // Configure axios with timeout for faster failures and redirect following
     const axiosConfig = {
       headers: {
         'Cookie': cookieHeader,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://millennium.education/login.asp',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
       },
-      timeout: 8000 // 8 second timeout
+      timeout: 8000, // 8 second timeout
+      maxRedirects: 5, // Follow up to 5 redirects
+      validateStatus: (status: number) => status < 400 // Accept all 2xx and 3xx
     };
 
     // Parallelize both portal requests for faster loading
@@ -115,6 +120,15 @@ export default async function handler(
     const portalHtml = portalResponse.value.data;
     const $ = cheerio.load(portalHtml);
     logger.debug(`HTML parsing: ${Date.now() - parseStart}ms`);
+
+    // Debug: Save the HTML response to a file for inspection
+    if (portalHtml.length < 5000) {
+      const fs = require('fs');
+      const path = require('path');
+      const debugPath = path.join(process.cwd(), 'debug-portal-response.html');
+      fs.writeFileSync(debugPath, portalHtml);
+      logger.debug(`Saved small portal response (${portalHtml.length} chars) to debug-portal-response.html`);
+    }
 
     // Debug logging and verification
     logger.debug(`Scraping portal for ${session.username} at ${session.school}`);

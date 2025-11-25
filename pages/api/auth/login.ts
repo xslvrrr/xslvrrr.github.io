@@ -53,7 +53,7 @@ export default async function handler(
     formData.append('email', username);
     formData.append('password', password);
     formData.append('sitename', school);
-    
+
     logger.debug(`Attempting login for ${username} at ${school}`);
 
     // Make request to millennium.education with axios
@@ -82,17 +82,19 @@ export default async function handler(
     // Check for successful login (302 redirect to portal)
     const redirectUrl = loginResponse.headers['location'] || loginResponse.headers['Location'] || '';
     const responseStatus = loginResponse.status;
-    
+
     logger.debug(`Login response status: ${responseStatus}, Redirect URL: ${redirectUrl}`);
 
     // Check if redirect indicates success
-    const isSuccess = responseStatus === 302 || 
-                     (redirectUrl && redirectUrl.includes('portal'));
-    
+    const isSuccess = responseStatus === 302 ||
+      (redirectUrl && redirectUrl.includes('portal'));
+
     if (isSuccess) {
       // Extract session cookies and parse them properly
       const setCookieHeaders = loginResponse.headers['set-cookie'] || [];
-      
+
+      logger.debug(`Raw Set-Cookie headers: ${JSON.stringify(setCookieHeaders)}`);
+
       // Extract just the cookie name=value pairs, removing Path, HttpOnly, etc.
       const cookies = setCookieHeaders
         .map((cookie: string) => {
@@ -100,14 +102,14 @@ export default async function handler(
           return cookie.split(';')[0].trim();
         })
         .filter((cookie: string) => cookie.length > 0); // Filter out empty cookies
-      
+
       logger.debug(`Login successful for ${username} at ${school}. Cookies: ${cookies.length}`);
-      
+
       // Log cookie details
       cookies.forEach((cookie: string, index: number) => {
         logger.debug(`Cookie ${index}: ${cookie.substring(0, 50)}... (${cookie.length} chars)`);
       });
-      
+
       // Save session with explicit save() call
       const session = await getSession(req, res);
       session.loggedIn = true;
@@ -125,7 +127,7 @@ export default async function handler(
         message: 'Login successful! You can now use the redesigned interface.'
       });
     }
-    
+
     // Login failed
     logger.error('Login failed:', {
       status: responseStatus,
@@ -133,7 +135,7 @@ export default async function handler(
       username,
       school
     });
-    
+
     return res.status(401).json({
       success: false,
       message: 'Invalid credentials. Please check your username, password, and school name.',
@@ -146,11 +148,11 @@ export default async function handler(
 
   } catch (error: any) {
     logger.error('Login error:', error);
-    
+
     // Handle 302 redirect in catch (when maxRedirects: 0)
     if (error.response?.status === 302 || error.response?.status === 301) {
       const setCookieHeaders = error.response.headers['set-cookie'] || [];
-      
+
       // Extract just the cookie name=value pairs, removing Path, HttpOnly, etc.
       const cookies = setCookieHeaders
         .map((cookie: string) => {
@@ -158,14 +160,14 @@ export default async function handler(
           return cookie.split(';')[0].trim();
         })
         .filter((cookie: string) => cookie.length > 0); // Filter out empty cookies
-      
+
       logger.debug(`Login successful (redirect caught) for ${username} at ${school}. Cookies: ${cookies.length}`);
-      
+
       // Log cookie details
       cookies.forEach((cookie: string, index: number) => {
         logger.debug(`Cookie ${index}: ${cookie.substring(0, 50)}... (${cookie.length} chars)`);
       });
-      
+
       // Save session with explicit save() call
       const session = await getSession(req, res);
       session.loggedIn = true;
@@ -183,7 +185,7 @@ export default async function handler(
         message: 'Login successful! You can now use the redesigned interface.'
       });
     }
-    
+
     logger.error('Error details:', {
       message: error.message,
       code: error.code,
@@ -199,8 +201,8 @@ export default async function handler(
     }
 
     // Provide more detailed error for debugging
-    const errorMessage = process.env.NODE_ENV === 'development' 
-      ? `Error: ${error.message}` 
+    const errorMessage = process.env.NODE_ENV === 'development'
+      ? `Error: ${error.message}`
       : 'An unexpected error occurred during login. Please try again.';
 
     return res.status(500).json({
