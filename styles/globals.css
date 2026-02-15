@@ -1,185 +1,1509 @@
-/* CSS Variables */
+/* 
+ * Millennium Portal - Global Styles
+ * Tailwind CSS v4 with @theme Design System
+ */
+
+@import "tailwindcss";
+@source "../pages/**/*.{js,ts,jsx,tsx}";
+@source "../components/**/*.{js,ts,jsx,tsx}";
+@source "../lib/**/*.{js,ts,jsx,tsx}";
+@source "../hooks/**/*.{js,ts,jsx,tsx}";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   TAILWIND V4 THEME CONFIGURATION
+   ============================================ */
+@theme {
+    /* Font Family */
+    --font-sans: 'Geist Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Typography Scale (1.2 ratio - minor third) */
+    --text-display: 32px;
+    --text-h1: 24px;
+    --text-h2: 18px;
+    --text-h3: 16px;
+    --text-body: 14px;
+    --text-small: 13px;
+    --text-caption: 12px;
+    --text-micro: 11px;
+
+    /* Line Heights */
+    --leading-tight: 1.2;
+    --leading-snug: 1.4;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.6;
+
+    /* Font Weights */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+
+    /* Spacing Scale (8pt grid) */
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --spacing-8: 32px;
+    --spacing-10: 40px;
+    --spacing-12: 48px;
+    --spacing-16: 64px;
+
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    /* Animation Durations (controlled by useAnimationSettings) */
+    --anim-duration-fast: 150ms;
+    --anim-duration-normal: 200ms;
+    --anim-duration-slow: 300ms;
+    --anim-duration-bounce: 300ms;
+
+    /* Animation Category Toggles (1 = enabled, 0 = disabled) */
+    --anim-page-transitions: 1;
+    --anim-micro-interactions: 1;
+    --anim-hover-effects: 1;
+    --anim-loading: 1;
+    --anim-list-stagger: 1;
+    --anim-sidebar: 1;
+    --anim-modal: 1;
+
+    /* Transitions (derived from animation durations) */
+    --transition-fast: var(--anim-duration-fast) ease;
+    --transition-normal: var(--anim-duration-normal) ease;
+    --transition-slow: var(--anim-duration-slow) ease;
+    --transition-bounce: var(--anim-duration-bounce) cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Colors - Dark Mode (Default) */
+    --color-bg-base: #08090A;
+    --color-bg-elevated: #0F1011;
+    --color-bg-surface: rgba(255, 255, 255, 0.03);
+    --color-bg-surface-hover: rgba(255, 255, 255, 0.06);
+    --color-bg-overlay: rgba(255, 255, 255, 0.08);
+
+    --color-accent: #6468F0;
+    --color-accent-hover: #7377F2;
+    --color-accent-active: #5458E0;
+    --color-accent-light: rgba(100, 104, 240, 0.15);
+
+    --color-text-primary: #F7F8F8;
+    --color-text-secondary: #A1A5A9;
+    --color-text-tertiary: #6A6A75;
+    --color-text-muted: #4A4A52;
+
+    --color-border-subtle: rgba(255, 255, 255, 0.08);
+    --color-border-default: rgba(255, 255, 255, 0.12);
+    --color-border-strong: rgba(255, 255, 255, 0.20);
+
+    --color-hover-bg: rgba(255, 255, 255, 0.04);
+    --color-active-bg: rgba(255, 255, 255, 0.08);
+    --color-focus-ring: rgba(100, 104, 240, 0.4);
+}
+
+/* Map semantic app variables to Tailwind v4 color tokens so utilities like
+   bg-popover/text-muted-foreground/border-input generate correctly. */
+@theme inline {
+    --color-background: hsl(var(--background));
+    --color-foreground: hsl(var(--foreground));
+    --color-card: hsl(var(--card));
+    --color-card-foreground: hsl(var(--card-foreground));
+    --color-popover: hsl(var(--popover));
+    --color-popover-foreground: hsl(var(--popover-foreground));
+    --color-primary: hsl(var(--primary));
+    --color-primary-foreground: hsl(var(--primary-foreground));
+    --color-secondary: hsl(var(--secondary));
+    --color-secondary-foreground: hsl(var(--secondary-foreground));
+    --color-muted: hsl(var(--muted));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-accent: hsl(var(--accent));
+    --color-accent-foreground: hsl(var(--accent-foreground));
+    --color-destructive: hsl(var(--destructive));
+    --color-destructive-foreground: hsl(var(--destructive-foreground));
+    --color-border: hsl(var(--border));
+    --color-input: hsl(var(--input));
+    --color-ring: hsl(var(--ring));
+    --color-sidebar: hsl(var(--sidebar-background));
+    --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+    --color-sidebar-primary: hsl(var(--sidebar-primary));
+    --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+    --color-sidebar-accent: hsl(var(--sidebar-accent));
+    --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+    --color-sidebar-border: hsl(var(--sidebar-border));
+    --color-sidebar-ring: hsl(var(--sidebar-ring));
+}
+
+/* Global semantic utility fallbacks.
+   These ensure core semantic classes still render correctly if Tailwind's
+   token utility emission is partially misconfigured or stale in dev builds. */
+@layer utilities {
+    .bg-background {
+        background-color: hsl(var(--background));
+    }
+
+    .bg-popover {
+        background-color: hsl(var(--popover));
+    }
+
+    .bg-input\/20 {
+        background-color: hsl(var(--input) / 0.2);
+    }
+
+    .bg-input\/30 {
+        background-color: hsl(var(--input) / 0.3);
+    }
+
+    .text-foreground {
+        color: hsl(var(--foreground));
+    }
+
+    .text-popover-foreground {
+        color: hsl(var(--popover-foreground));
+    }
+
+    .text-muted-foreground {
+        color: hsl(var(--muted-foreground));
+    }
+
+    .border-input {
+        border-color: hsl(var(--input));
+    }
+
+    .ring-foreground\/10 {
+        --tw-ring-color: hsl(var(--foreground) / 0.1);
+    }
+
+    .ring-ring\/30 {
+        --tw-ring-color: hsl(var(--ring) / 0.3);
+    }
+
+    .ring-ring\/50 {
+        --tw-ring-color: hsl(var(--ring) / 0.5);
+    }
+
+    .outline-hidden {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+    }
+}
+
+/* ============================================
+   GEIST SANS FONT
+   ============================================ */
+@font-face {
+    font-family: 'Geist Sans';
+    src: url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Geist Sans';
+    src: url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Geist Sans';
+    src: url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================================
+   CSS VARIABLES FOR EXISTING CSS MODULES
+   (Compatibility layer for Dashboard.module.css etc.)
+   ============================================ */
 :root {
-  /* Legacy variables */
-  --bg-color: #08090A;
-  --bg-secondary: #0F1011;
-  --text-white: #F7F8F8;
-  --text-gray: #A1A5A9;
-  --text-dark-gray: #777B80;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(255, 255, 255, 0.2);
-  --hover-bg: rgba(255, 255, 255, 0.05);
-  --shadow-light: rgba(0, 0, 0, 0.1);
-  --shadow-medium: rgba(0, 0, 0, 0.2);
+    /* Legacy font variables */
+    --font-family: var(--font-sans);
+    --font-normal: var(--font-weight-normal);
+    --font-medium: var(--font-weight-medium);
+    --font-semibold: var(--font-weight-semibold);
+    --font-size-md: 14px;
+    --line-height-normal: 1.5;
 
-  /* Dashboard color palette - Updated with precise colors */
-  --sidebar-bg: #050505;
-  --main-bg: #050505;
-  --content-bg: #0f0f0f;
-  --card-bg: transparent;
-  --hover-bg: rgba(255, 255, 255, 0.03);
-  --active-bg: rgba(255, 255, 255, 0.06);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --hover-card-bg: rgba(255, 255, 255, 0.02);
-  --hover-border-color: rgba(255, 255, 255, 0.12);
-  
-  /* Text colors - Improved contrast */
-  --text-primary: #F7F8F8;
-  --text-secondary: #A0A0A0;
-  --text-tertiary: #8A8A8A;
-  
-  /* Status colors for priority indicators */
-  --priority-high: #ff4d4f;
-  --priority-medium: #faad14;
-  --priority-low: #52c41a;
-  
-  /* Sizing - Updated with golden ratio */
-  --sidebar-width: 220px;
-  --sidebar-narrow-width: 60px;
-  --header-height: 60px;
-  --card-radius: 6px;
-  
-  /* Spacing - Updated to golden ratio */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 24px;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.24);
-  
-  /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
-  --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  
-  /* Font sizes - Adjusted to match Linear better */
-  --font-size-base: 13px;
-  --font-size-xs: 10px;
-  --font-size-sm: 12px;
-  --font-size-md: 13px;
-  --font-size-lg: 15px;
-  --font-size-xl: 18px;
-  --font-size-xxl: 28px;
-  
-  /* Line heights for harmony */
-  --line-height-tight: 1.2;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.618;
-  
-  /* Radius values */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+    /* Legacy spacing variables */
+    --space-1: var(--spacing-1);
+    --space-2: var(--spacing-2);
+    --space-3: var(--spacing-3);
+    --space-4: var(--spacing-4);
+    --space-5: var(--spacing-5);
+    --space-6: var(--spacing-6);
+    --space-8: var(--spacing-8);
+    --space-10: var(--spacing-10);
+    --space-12: var(--spacing-12);
+    --space-16: var(--spacing-16);
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+
+    /* Dark mode colors (default) */
+    --bg-base: var(--color-bg-base);
+    --bg-elevated: var(--color-bg-elevated);
+    --bg-surface: var(--color-bg-surface);
+    --bg-surface-hover: var(--color-bg-surface-hover);
+    --bg-overlay: var(--color-bg-overlay);
+
+    --accent-color: var(--color-accent);
+    --accent-color-hover: var(--color-accent-hover);
+    --accent-color-active: var(--color-accent-active);
+    --accent-color-light: var(--color-accent-light);
+    --accent-gradient: var(--accent-color);
+    --accent-gradient-hover: var(--accent-color-hover);
+
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+    --text-tertiary: var(--color-text-tertiary);
+    --text-muted: var(--color-text-muted);
+
+    --border-subtle: var(--color-border-subtle);
+    --border-default: var(--color-border-default);
+    --border-strong: var(--color-border-strong);
+
+    --hover-bg: var(--color-hover-bg);
+    --active-bg: var(--color-active-bg);
+    --focus-ring: var(--color-focus-ring);
+
+    /* Legacy Dashboard.module.css variables */
+    --main-bg: #08090A;
+    --sidebar-bg: #0F1011;
+    --content-bg: #0F1011;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --hover-card-bg: rgba(255, 255, 255, 0.06);
+    --hover-border-color: rgba(255, 255, 255, 0.12);
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --primary-color: #6468F0;
+    --primary-color-light: rgba(100, 104, 240, 0.15);
+
+    /* Shadcn/ui CSS Variables (HSL format) */
+    --background: 0 0% 7%;
+    --foreground: 0 0% 97%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 97%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 97%;
+    --primary: 237 85% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 97%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 237 85% 66%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 237 85% 66%;
+    --radius: 8px;
+
+    /* Sidebar specific (shadcn) */
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 0 0% 97%;
+    --sidebar-primary: 237 85% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 97%;
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: 237 85% 66%;
 }
 
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ========================================
+   LIGHT MODE
+   ======================================== */
+.light,
+[data-theme="light"] {
+    /* Background Layers */
+    --bg-base: #F4F5F8;
+    --bg-elevated: #FFFFFF;
+    --bg-surface: transparent;
+    --bg-surface-hover: rgba(34, 35, 38, 0.02);
+    --bg-overlay: rgba(34, 35, 38, 0.04);
+
+    /* Accent colors stay the same */
+    --accent-color-active: #5458E0;
+
+    /* Text Colors */
+    --text-primary: #08090A;
+    --text-secondary: #222326;
+    --text-tertiary: #6A6A75;
+    --text-muted: #9A9AA0;
+
+    /* Borders */
+    --border-subtle: rgba(34, 35, 38, 0.08);
+    --border-default: rgba(34, 35, 38, 0.12);
+    --border-strong: rgba(34, 35, 38, 0.20);
+
+    /* Interactive States */
+    --hover-bg: rgba(34, 35, 38, 0.04);
+    --active-bg: rgba(34, 35, 38, 0.08);
+
+    /* Legacy variables */
+    --main-bg: #F4F5F8;
+    --sidebar-bg: #F4F5F8;
+    --content-bg: #FFFFFF;
+    --card-bg: transparent;
+    --border-color: rgba(34, 35, 38, 0.08);
+    --hover-card-bg: rgba(34, 35, 38, 0.02);
+    --hover-border-color: rgba(34, 35, 38, 0.12);
+    --input-bg: rgba(34, 35, 38, 0.04);
+
+    /* Shadcn variables */
+    --background: 0 0% 97%;
+    --foreground: 0 0% 3.5%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.5%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 3.5%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 0 0% 3.5%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 3.5%;
+    --sidebar-border: 0 0% 90%;
 }
 
-/* Base styles */
-html, body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-white);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: 'liga', 'kern';
-  overscroll-behavior: none;
+/* ============================================
+   ANIMATION UTILITY CLASSES
+   ============================================ */
+
+/* Animation fill-mode utilities */
+.fill-mode-forwards {
+    animation-fill-mode: forwards;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.fill-mode-backwards {
+    animation-fill-mode: backwards;
 }
 
-* {
-  box-sizing: border-box;
+.fill-mode-both {
+    animation-fill-mode: both;
 }
 
-/* Utility classes */
-.fade-in {
-  opacity: 1;
+/* ============================================
+   ANIMATION KEYFRAMES
+   ============================================ */
+
+/* Fade animations */
+@keyframes mm-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
-.fade-out {
-  animation: fadeDownBlur 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+@keyframes mm-fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
 }
 
-/* Common animations */
-@keyframes fadeUpBlur {
-  0% { 
-    opacity: 0; 
-    transform: translateY(20px);
-    filter: blur(8px);
-  }
-  100% { 
-    opacity: 1; 
-    transform: translateY(0);
-    filter: blur(0);
-  }
+/* Scale animations */
+@keyframes mm-zoom-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-@keyframes fadeDownBlur {
-  0% { 
-    opacity: 1; 
-    transform: translateY(0);
-    filter: blur(0);
-  }
-  100% { 
-    opacity: 0; 
-    transform: translateY(20px);
-    filter: blur(8px);
-  }
+@keyframes mm-zoom-out {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
 }
 
-/* Scrollbar styling for webkit browsers */
+/* Slide animations - directional */
+@keyframes mm-slide-in-from-top {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mm-slide-out-to-top {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes mm-slide-in-from-bottom {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mm-slide-out-to-bottom {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@keyframes mm-slide-in-from-left {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes mm-slide-out-to-left {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+}
+
+@keyframes mm-slide-in-from-right {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes mm-slide-out-to-right {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+}
+
+/* Combined zoom + slide animations */
+@keyframes mm-popup-in-top {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes mm-popup-out-top {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.96) translateY(-4px);
+    }
+}
+
+@keyframes mm-popup-in-bottom {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes mm-popup-out-bottom {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.96) translateY(4px);
+    }
+}
+
+/* Sheet/Panel slide animations (full slide) */
+@keyframes mm-sheet-in-right {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes mm-sheet-out-right {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes mm-sheet-in-left {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes mm-sheet-out-left {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+/* ============================================
+   CUSTOM ANIMATION CLASSES (using CSS variables)
+   ============================================ */
+
+/* Base animation properties */
+.mm-animate {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dropdown/Select Content - Enter */
+[data-slot="dropdown-menu-content"],
+[data-slot="select-content"] {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-slot="dropdown-menu-content"][data-open],
+[data-slot="select-content"][data-open] {
+    animation-name: mm-zoom-in;
+    animation-duration: var(--anim-duration-normal, 200ms);
+}
+
+/* Directional slide based on side */
+[data-slot="dropdown-menu-content"][data-open][data-side="top"],
+[data-slot="select-content"][data-open][data-side="top"] {
+    animation-name: mm-popup-in-bottom;
+}
+
+[data-slot="dropdown-menu-content"][data-open][data-side="bottom"],
+[data-slot="select-content"][data-open][data-side="bottom"] {
+    animation-name: mm-popup-in-top;
+}
+
+[data-slot="dropdown-menu-content"][data-open][data-side="left"],
+[data-slot="select-content"][data-open][data-side="left"] {
+    animation-name: mm-slide-in-from-right;
+}
+
+[data-slot="dropdown-menu-content"][data-open][data-side="right"],
+[data-slot="select-content"][data-open][data-side="right"] {
+    animation-name: mm-slide-in-from-left;
+}
+
+/* Dropdown/Select Content - Exit */
+[data-slot="dropdown-menu-content"][data-closed],
+[data-slot="select-content"][data-closed] {
+    animation-name: mm-zoom-out;
+    animation-duration: var(--anim-duration-fast, 150ms);
+    animation-timing-function: ease-out;
+}
+
+[data-slot="dropdown-menu-content"][data-closed][data-side="top"],
+[data-slot="select-content"][data-closed][data-side="top"] {
+    animation-name: mm-popup-out-bottom;
+}
+
+[data-slot="dropdown-menu-content"][data-closed][data-side="bottom"],
+[data-slot="select-content"][data-closed][data-side="bottom"] {
+    animation-name: mm-popup-out-top;
+}
+
+[data-slot="dropdown-menu-content"][data-closed][data-side="left"],
+[data-slot="select-content"][data-closed][data-side="left"] {
+    animation-name: mm-slide-out-to-right;
+}
+
+[data-slot="dropdown-menu-content"][data-closed][data-side="right"],
+[data-slot="select-content"][data-closed][data-side="right"] {
+    animation-name: mm-slide-out-to-left;
+}
+
+/* Tooltip animations */
+[data-slot="tooltip-content"] {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-slot="tooltip-content"][data-open] {
+    animation-name: mm-zoom-in;
+    animation-duration: var(--anim-duration-fast, 150ms);
+}
+
+[data-slot="tooltip-content"][data-open][data-side="top"] {
+    animation-name: mm-popup-in-bottom;
+}
+
+[data-slot="tooltip-content"][data-open][data-side="bottom"] {
+    animation-name: mm-popup-in-top;
+}
+
+[data-slot="tooltip-content"][data-open][data-side="left"] {
+    animation-name: mm-slide-in-from-right;
+}
+
+[data-slot="tooltip-content"][data-open][data-side="right"] {
+    animation-name: mm-slide-in-from-left;
+}
+
+[data-slot="tooltip-content"][data-closed] {
+    animation-name: mm-fade-out;
+    animation-duration: var(--anim-duration-fast, 100ms);
+    animation-timing-function: ease-out;
+}
+
+/* Alert Dialog / Dialog animations */
+[data-slot="alert-dialog-overlay"],
+[data-slot="dialog-overlay"] {
+    animation-fill-mode: both;
+}
+
+[data-slot="alert-dialog-overlay"][data-open],
+[data-slot="dialog-overlay"][data-open] {
+    animation-name: mm-fade-in;
+    animation-duration: var(--anim-duration-normal, 200ms);
+    animation-timing-function: ease-out;
+}
+
+[data-slot="alert-dialog-overlay"][data-closed],
+[data-slot="dialog-overlay"][data-closed] {
+    animation-name: mm-fade-out;
+    animation-duration: var(--anim-duration-fast, 150ms);
+    animation-timing-function: ease-out;
+}
+
+[data-slot="alert-dialog-content"],
+[data-slot="dialog-content"] {
+    animation-fill-mode: both;
+}
+
+[data-slot="alert-dialog-content"][data-open],
+[data-slot="dialog-content"][data-open] {
+    animation-name: mm-zoom-in;
+    animation-duration: var(--anim-duration-normal, 200ms);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-slot="alert-dialog-content"][data-closed],
+[data-slot="dialog-content"][data-closed] {
+    animation-name: mm-zoom-out;
+    animation-duration: var(--anim-duration-fast, 150ms);
+    animation-timing-function: ease-out;
+}
+
+/* Sheet animations */
+[data-slot="sheet-overlay"] {
+    animation-fill-mode: both;
+}
+
+[data-slot="sheet-overlay"][data-open] {
+    animation-name: mm-fade-in;
+    animation-duration: var(--anim-duration-normal, 200ms);
+    animation-timing-function: ease-out;
+}
+
+[data-slot="sheet-overlay"][data-closed] {
+    animation-name: mm-fade-out;
+    animation-duration: var(--anim-duration-fast, 150ms);
+    animation-timing-function: ease-out;
+}
+
+[data-slot="sheet-content"] {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-slot="sheet-content"][data-side="right"][data-open] {
+    animation-name: mm-sheet-in-right;
+    animation-duration: var(--anim-duration-slow, 300ms);
+}
+
+[data-slot="sheet-content"][data-side="right"][data-closed] {
+    animation-name: mm-sheet-out-right;
+    animation-duration: var(--anim-duration-normal, 200ms);
+}
+
+[data-slot="sheet-content"][data-side="left"][data-open] {
+    animation-name: mm-sheet-in-left;
+    animation-duration: var(--anim-duration-slow, 300ms);
+}
+
+[data-slot="sheet-content"][data-side="left"][data-closed] {
+    animation-name: mm-sheet-out-left;
+    animation-duration: var(--anim-duration-normal, 200ms);
+}
+
+/* Accordion animations */
+[data-slot="accordion-content"] {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height var(--anim-duration-normal, 200ms) ease-out,
+        opacity var(--anim-duration-normal, 200ms) ease-out;
+}
+
+[data-slot="accordion-content"][data-open] {
+    max-height: 1000px;
+    opacity: 1;
+}
+
+[data-slot="accordion-content"][data-closed] {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Collapsible animations */
+[data-slot="collapsible-content"] {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height var(--anim-duration-normal, 200ms) ease-out,
+        opacity var(--anim-duration-normal, 200ms) ease-out;
+}
+
+[data-slot="collapsible-content"][data-open] {
+    max-height: 1000px;
+    opacity: 1;
+}
+
+[data-slot="collapsible-content"][data-closed] {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Tabs content animation */
+[data-slot="tabs-content"] {
+    animation-fill-mode: both;
+}
+
+[data-slot="tabs-content"]:not([data-hidden]) {
+    animation-name: mm-fade-in;
+    animation-duration: var(--anim-duration-normal, 200ms);
+    animation-timing-function: ease-out;
+}
+
+[data-slot="tabs-content"][data-hidden] {
+    animation-name: mm-fade-out;
+    animation-duration: var(--anim-duration-fast, 100ms);
+    animation-timing-function: ease-out;
+}
+
+/* Dropdown Sub-content animations */
+[data-slot="dropdown-menu-sub-content"] {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-slot="dropdown-menu-sub-content"][data-open] {
+    animation-name: mm-zoom-in;
+    animation-duration: var(--anim-duration-fast, 150ms);
+}
+
+[data-slot="dropdown-menu-sub-content"][data-open][data-side="left"] {
+    animation-name: mm-slide-in-from-right;
+}
+
+[data-slot="dropdown-menu-sub-content"][data-open][data-side="right"] {
+    animation-name: mm-slide-in-from-left;
+}
+
+[data-slot="dropdown-menu-sub-content"][data-closed] {
+    animation-name: mm-fade-out;
+    animation-duration: var(--anim-duration-fast, 100ms);
+    animation-timing-function: ease-out;
+}
+
+/* Context menu animations */
+[data-slot="context-menu-content"] {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-slot="context-menu-content"][data-open] {
+    animation-name: mm-zoom-in;
+    animation-duration: var(--anim-duration-normal, 200ms);
+}
+
+[data-slot="context-menu-content"][data-closed] {
+    animation-name: mm-zoom-out;
+    animation-duration: var(--anim-duration-fast, 150ms);
+    animation-timing-function: ease-out;
+}
+
+/* Popover animations */
+[data-slot="popover-content"] {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-slot="popover-content"][data-open] {
+    animation-name: mm-zoom-in;
+    animation-duration: var(--anim-duration-normal, 200ms);
+}
+
+[data-slot="popover-content"][data-open][data-side="top"] {
+    animation-name: mm-popup-in-bottom;
+}
+
+[data-slot="popover-content"][data-open][data-side="bottom"] {
+    animation-name: mm-popup-in-top;
+}
+
+[data-slot="popover-content"][data-closed] {
+    animation-name: mm-zoom-out;
+    animation-duration: var(--anim-duration-fast, 150ms);
+    animation-timing-function: ease-out;
+}
+
+/* ============================================
+   ANIMATION CONTROL RULES
+   When animations are disabled via data-animations attribute
+   ============================================ */
+
+/* Disable all animations and transitions when globally disabled */
+[data-animations="disabled"] *,
+[data-animations="disabled"] *::before,
+[data-animations="disabled"] *::after,
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* Respect prefers-reduced-motion at system level */
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Category-specific animation disabling */
+
+/* Disable hover effects when that category is off */
+[data-anim-hover-effects="disabled"] [data-slot="card"][data-clickable="true"]:hover,
+[data-anim-hover-effects="disabled"] [data-sidebar="menu-button"]:hover,
+[data-anim-hover-effects="disabled"] .quickCard:hover {
+    transform: none !important;
+    transition-duration: 0ms !important;
+}
+
+/* Disable micro-interactions when that category is off */
+[data-anim-micro-interactions="disabled"] [data-slot="switch"],
+[data-anim-micro-interactions="disabled"] [data-slot="switch-thumb"],
+[data-anim-micro-interactions="disabled"] button {
+    transition-duration: 0ms !important;
+}
+
+/* Disable modal/popup animations when that category is off */
+[data-anim-modal="disabled"] .dropdown-animate,
+[data-anim-modal="disabled"] .select-content-animated,
+[data-anim-modal="disabled"] [data-slot="tooltip-content"],
+[data-anim-modal="disabled"] [data-slot="alert-dialog-content"] {
+    animation: none !important;
+    transition-duration: 0ms !important;
+}
+
+/* Disable sidebar animations when that category is off */
+[data-anim-sidebar="disabled"] [data-slot="sidebar-gap"],
+[data-anim-sidebar="disabled"] [data-slot="sidebar-container"],
+[data-anim-sidebar="disabled"] [data-slot="sidebar-inner"],
+[data-anim-sidebar="disabled"] [data-slot="sidebar-inset"],
+[data-anim-sidebar="disabled"] [data-sidebar="group-content"],
+[data-anim-sidebar="disabled"] .sidebar-collapse-hide {
+    transition-duration: 0ms !important;
+}
+
+/* Disable list stagger animations when that category is off */
+[data-anim-list-stagger="disabled"] .notificationItem,
+[data-anim-list-stagger="disabled"] .quickCard,
+[data-anim-list-stagger="disabled"] .activityItem {
+    animation: none !important;
+}
+
+/* Disable loading animations when that category is off */
+[data-anim-loading="disabled"] .loadingSpinner,
+[data-anim-loading="disabled"] .inlineLoaderDot {
+    animation: none !important;
+}
+
+/* Disable page transitions when that category is off */
+[data-anim-page-transitions="disabled"] .pageTransition {
+    transition: none !important;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        font-family: var(--font-sans);
+        font-size: 16px;
+        line-height: var(--leading-normal);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        min-height: 100vh;
+    }
+
+    /* Tooltip fallback styling (kept in base so utilities can override) */
+    [data-slot="tooltip-content"] {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-default);
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        font-size: 12px;
+        line-height: 1.4;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    [data-slot="tooltip-arrow"] {
+        fill: var(--bg-elevated);
+    }
+}
+
+/* ============================================
+   SCROLLBAR STYLING - 2px, Solid, Themed
+   ============================================ */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+    width: 2px;
+    height: 2px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-  transition: background 0.2s ease;
+    background: var(--border-default, rgba(255, 255, 255, 0.12));
+    border-radius: 1px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+    background: var(--border-strong, rgba(255, 255, 255, 0.22));
 }
 
 /* Firefox scrollbar */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-default, rgba(255, 255, 255, 0.12)) transparent;
 }
 
-/* Focus visible for accessibility */
-*:focus-visible {
-  outline: 2px solid rgba(74, 144, 226, 0.6);
-  outline-offset: 2px;
+/* Hide scrollbar for horizontal scroll containers */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
 }
 
-/* Reduce motion for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* ============================================
+   FOCUS STYLES
+   ============================================ */
+:focus-visible {
+    outline: none;
+}
+
+/* ============================================
+   SELECTION STYLES
+   ============================================ */
+::selection {
+    background-color: var(--accent-color-light);
+    color: var(--text-primary);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ============================================
+   SHADCN SIDEBAR INSET VARIANT
+   Explicit CSS since Tailwind v4 doesn't generate 
+   peer-data-[variant=inset]:* utility classes
+   ============================================ */
+
+/* When sidebar has variant=inset, apply inset styling to SidebarInset */
+@media (min-width: 768px) {
+
+    /* Inset styling for the main content area */
+    [data-slot="sidebar-wrapper"]:has([data-variant="inset"]) [data-slot="sidebar-inset"] {
+        margin: 12px;
+        margin-left: 0;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        border: 1px solid var(--border-default);
+        /* Background color contrast - lighter than sidebar */
+        background-color: hsl(var(--background));
+        overflow: hidden;
+    }
+
+    /* When sidebar is collapsed, add left margin too */
+    [data-slot="sidebar-wrapper"]:has([data-variant="inset"][data-state="collapsed"]) [data-slot="sidebar-inset"] {
+        margin-left: 12px;
+    }
+
+    /* Ensure sidebar wrapper has the proper dark background for contrast */
+    [data-slot="sidebar-wrapper"]:has([data-variant="inset"]) {
+        background-color: hsl(var(--sidebar-background));
+    }
+}
+
+/* ============================================
+   SIDEBAR ENHANCEMENTS
+   Additional styling for polish
+   ============================================ */
+
+/* Sidebar container padding */
+[data-sidebar="sidebar"] {
+    padding: 8px;
+}
+
+/* Sidebar group spacing */
+[data-sidebar="group"] {
+    padding: 4px 8px;
+}
+
+/* Sidebar group label styling - Normal capitalization */
+[data-sidebar="group-label"] {
+    font-size: 12px;
+    font-weight: 500;
+    color: hsl(var(--sidebar-foreground) / 0.5);
+    padding-left: 8px;
+    margin-bottom: 4px;
+}
+
+/* Collapsible group label with arrow */
+[data-sidebar="group-label"][data-collapsible] {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
+    transition: color 0.25s ease;
+    position: relative;
+}
+
+[data-sidebar="group-label"][data-collapsible]:hover {
+    color: hsl(var(--sidebar-foreground) / 0.7);
+}
+
+/* Arrow rotation for collapsible - positioned to animate smoothly */
+[data-sidebar="group-label"] svg {
+    transition: transform 0.25s ease !important;
+    flex-shrink: 0;
+}
+
+[data-sidebar="group-label"][data-collapsed="true"] svg {
+    transform: rotate(-90deg);
+}
+
+/* Collapsible content animation - CSS Grid approach for animating height */
+[data-sidebar="group-content"] {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.2s ease !important;
+}
+
+[data-sidebar="group-content"]>* {
+    overflow: hidden;
+}
+
+[data-sidebar="group-content"][data-collapsed="true"] {
+    grid-template-rows: 0fr;
+    opacity: 0;
+}
+
+/* Sidebar menu button enhancements */
+[data-sidebar="menu-button"] {
+    padding: 10px 12px;
+    gap: 12px;
+    font-size: 14px;
+    transition: all 0.25s ease !important;
+}
+
+/* Icons - use theme-aware colors */
+[data-sidebar="menu-button"] svg {
+    width: 18px;
+    height: 18px;
+    color: var(--icon-color-secondary, hsl(0 0% 55%));
+    transition: color 0.25s ease !important;
+}
+
+[data-sidebar="menu-button"]:hover svg,
+[data-sidebar="menu-button"][data-active="true"] svg {
+    color: var(--icon-color, hsl(0 0% 95%));
+}
+
+/* Active state - use transparent overlay for proper UI tint */
+[data-sidebar="menu-button"][data-active="true"] {
+    background-color: var(--sidebar-active-transparent, hsl(var(--sidebar-accent)));
+    color: hsl(var(--sidebar-accent-foreground));
+}
+
+/* Enhanced hover effects - use transparent overlay */
+[data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+    background-color: var(--sidebar-accent-transparent, hsl(var(--sidebar-accent) / 0.7));
+    color: hsl(var(--sidebar-foreground));
+}
+
+/* User profile header styling */
+[data-slot="sidebar-header"] {
+    padding: 8px;
+    margin-bottom: 4px;
+}
+
+/* Grey text for school name (second span in user area) */
+[data-slot="sidebar-header"] button .grid span:nth-child(2) {
+    color: hsl(0 0% 55%) !important;
+}
+
+/* Smooth collapse transitions for avatar and content */
+[data-slot="sidebar-header"] button {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Avatar positioning - use fixed left position to avoid tween on resize */
+[data-slot="sidebar-header"] button>div:first-child {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    /* No transition on the avatar itself - it stays fixed while text fades */
+}
+
+/* Sidebar collapse hide - visibility-based transition instead of display:none */
+.sidebar-collapse-hide {
+    transition: opacity 0.25s ease, max-width 0.25s ease, visibility 0.25s ease !important;
+    overflow: hidden;
+    max-width: 200px;
+}
+
+/* Apply hidden state when sidebar is collapsed */
+[data-collapsible="icon"] .sidebar-collapse-hide {
+    opacity: 0;
+    visibility: hidden;
+    max-width: 0;
+    overflow: hidden;
+}
+
+/* Keep button padding consistent - avatar doesn't need to move */
+[data-collapsible="icon"] [data-slot="sidebar-header"] button {
+    padding: 8px;
+    justify-content: flex-start;
+}
+
+/* Footer styling */
+[data-slot="sidebar-footer"] {
+    padding: 8px;
+    margin-top: auto;
+}
+
+/* Sidebar collapse/expand animation - SMOOTH */
+[data-slot="sidebar-gap"] {
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-slot="sidebar-container"] {
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        right 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-slot="sidebar-inner"] {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-slot="sidebar-inset"] {
+    transition: margin 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Keep category arrows visible in collapsed mode - override Tailwind opacity:0 */
+[data-collapsible="icon"] [data-sidebar="group-label"] {
+    opacity: 1 !important;
+    margin-top: 0 !important;
+    /* Keep height consistent to prevent vertical snap */
+    height: 32px;
+}
+
+/* Arrow stays in place during sidebar collapse - use fixed padding, not calc() */
+[data-sidebar="group-label"] {
+    transition: padding 0.25s ease !important;
+    padding-left: 8px;
+    padding-right: 8px;
+    /* Maintain consistent height in both states */
+    height: 32px;
+    min-height: 32px;
+}
+
+[data-sidebar="group-label"] svg {
+    flex-shrink: 0;
+    transition: transform 0.25s ease !important;
+}
+
+[data-collapsible="icon"] [data-sidebar="group-label"] svg {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* Fixed padding in collapsed mode - arrow stays at left edge, doesn't center */
+[data-collapsible="icon"] [data-sidebar="group-label"] {
+    padding-left: 11px;
+    padding-right: 4px;
+}
+
+/* Hide only the text span in collapsed mode, not the arrow */
+[data-sidebar="group-label"] span {
+    transition: opacity 0.25s ease, max-width 0.25s ease !important;
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+}
+
+[data-collapsible="icon"] [data-sidebar="group-label"] span {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+}
+
+/* ============================================
+   CARD COMPONENT STYLING
+   ============================================ */
+
+/* Clickable card styling with smooth easing */
+[data-slot="card"][data-clickable="true"] {
+    cursor: pointer;
+    transition: transform 0.2s ease-out, background-color 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+/* Hover state ONLY for clickable cards */
+[data-slot="card"][data-clickable="true"]:hover {
+    background-color: var(--hover-card-bg) !important;
+    border-color: var(--hover-border-color) !important;
+    transform: translateY(-3px);
+}
+
+/* Table row hover effect */
+[data-slot="table-row"]:hover {
+    background-color: var(--hover-bg);
+}
+
+/* Remove border from last row in table body */
+[data-slot="table-body"] [data-slot="table-row"]:last-child {
+    border-bottom: none !important;
+}
+
+/* Remove border from header row (border is on thead) */
+[data-slot="table-header"] [data-slot="table-row"] {
+    border-bottom: none !important;
+}
+
+/* Section title spacing */
+.section-title {
+    margin-bottom: 12px;
+}
+
+/* Tooltip fade-in animation */
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   CONTEXT MENU STYLING
+   ============================================ */
+[data-slot="context-menu-content"],
+[data-slot="context-menu-sub-content"] {
+    background: var(--content-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 6px !important;
+    min-width: 180px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    outline: none !important;
+}
+
+[data-slot="context-menu-item"],
+[data-slot="context-menu-sub-trigger"],
+[data-slot="context-menu-radio-item"],
+[data-slot="context-menu-checkbox-item"] {
+    padding: 8px 12px !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text-primary) !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    transition: background-color 0.1s ease !important;
+}
+
+[data-slot="context-menu-item"]:hover,
+[data-slot="context-menu-item"]:focus,
+[data-slot="context-menu-sub-trigger"]:hover,
+[data-slot="context-menu-sub-trigger"]:focus,
+[data-slot="context-menu-radio-item"]:hover,
+[data-slot="context-menu-radio-item"]:focus,
+[data-slot="context-menu-checkbox-item"]:hover,
+[data-slot="context-menu-checkbox-item"]:focus {
+    background: var(--hover-bg) !important;
+    outline: none !important;
+}
+
+[data-slot="context-menu-sub-trigger"][data-popup-open] {
+    background: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-slot="context-menu-item"][data-variant="destructive"] {
+    color: #ef4444 !important;
+}
+
+[data-slot="context-menu-item"][data-variant="destructive"]:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+[data-slot="context-menu-separator"] {
+    height: 1px !important;
+    background: var(--border-color) !important;
+    margin: 4px 0 !important;
+}
+
+[data-slot="context-menu-label"] {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    color: var(--text-tertiary) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }

@@ -1,0 +1,2006 @@
+/* Calendar Container - Fixed height using calc for ironclad containment */
+.calendarContainer {
+    display: flex;
+    height: 100%;
+    max-height: 100%;
+    background: var(--content-bg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* When Google Calendar notification banner is visible (~49px) */
+.calendarContainer.withNotification {
+    height: 100%;
+    max-height: 100%;
+}
+
+/* Hide scrollbar utility - for smooth transitions */
+.hideScrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hideScrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Sidebar with custom scrollbar */
+.sidebar {
+    width: 260px;
+    border-right: 1px solid var(--border-color);
+    background: var(--sidebar-background);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebarFooterAction {
+    margin-top: auto;
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.smartCleanTooltipHost {
+    position: relative;
+}
+
+.smartCleanTooltipHost::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    background: rgba(15, 16, 17, 0.95);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+    z-index: 20;
+}
+
+.smartCleanTooltipHost:hover::after,
+.smartCleanTooltipHost:focus-within::after {
+    opacity: 1;
+}
+
+.smartCleanBtn {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--hover-bg);
+    color: var(--text-primary);
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+
+.smartCleanBtnBusy {
+    opacity: 0.7;
+}
+
+.smartCleanBtn:hover:not(:disabled) {
+    background: var(--active-bg);
+}
+
+.smartCleanBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.smartCleanCount {
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+.contextColorGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 20px);
+    gap: 6px;
+    padding: 2px 0;
+    align-items: center;
+}
+
+.contextColorSwatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.contextColorSwatchSelected {
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.contextColorInput {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.selectedColourPreview {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.selectedColourSwatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--border-default, rgba(255, 255, 255, 0.15));
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--border-strong, rgba(255, 255, 255, 0.25));
+}
+
+/* Mini Calendar */
+.miniCalendar {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.miniCalendarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.miniCalendarTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: color 0.2s ease;
+}
+
+.miniNavBtn {
+    background: none;
+    border: none;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.miniNavBtn:hover {
+    background: var(--hover-bg);
+    transform: scale(1.1);
+}
+
+.miniNavBtn:active {
+    transform: scale(0.95);
+}
+
+.miniCalendarGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.miniCalendarDayName {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: 4px 0;
+    font-weight: 500;
+}
+
+.miniCalendarDay {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.miniCalendarDay:hover {
+    background: var(--hover-bg);
+    transform: scale(1.15);
+}
+
+.miniCalendarDay:active {
+    transform: scale(0.9);
+}
+
+.miniCalendarDay.otherMonth {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+}
+
+.miniCalendarDay.today {
+    background: var(--accent-gradient);
+    color: white;
+    font-weight: 600;
+}
+
+.miniCalendarDay.selected {
+    border: 2px solid var(--accent-color);
+    background: transparent;
+    color: var(--text-primary);
+}
+
+/* Sidebar sections */
+.sidebarSection {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebarSectionTitle {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Today's notices section */
+.noticesSection {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.noticeItem {
+    padding: 10px 12px;
+    background: var(--hover-bg);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.noticeItem:hover {
+    background: var(--active-bg);
+    transform: translateX(4px);
+}
+
+.noticeItem:last-child {
+    margin-bottom: 0;
+}
+
+.noticeTitle {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.noticePreview {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.noNotices {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    text-align: center;
+}
+
+.noNotices svg {
+    opacity: 0.4;
+    margin-bottom: 8px;
+    color: var(--icon-color-muted, currentColor);
+}
+
+/* Upcoming Events Section */
+.upcomingEventsSection {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.upcomingEventsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.upcomingEventItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    background: var(--hover-bg);
+    transition: background 0.15s ease;
+}
+
+.upcomingEventItem:hover {
+    background: var(--active-bg);
+}
+
+/* Currently happening events have a subtle highlight */
+.currentEventItem {
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.currentEventItem:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.upcomingEventColor {
+    width: 4px;
+    height: 100%;
+    min-height: 32px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.upcomingEventContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.upcomingEventTitle {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.upcomingEventTime {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.noUpcomingEvents {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    text-align: center;
+}
+
+.noUpcomingEvents svg {
+    opacity: 0.4;
+    margin-bottom: 8px;
+    color: var(--icon-color-muted, currentColor);
+}
+
+/* Calendar list */
+.calendarList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.calendarSectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.createCalendarBtn {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--hover-bg);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.createCalendarBtn:hover {
+    background: var(--active-bg);
+    color: var(--text-primary);
+}
+
+.calendarItemRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.calendarItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.calendarItem:hover {
+    background: var(--hover-bg);
+}
+
+.calendarCheckbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.calendarName {
+    font-size: 13px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.removeCalendarBtn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.removeCalendarBtn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* Main Calendar Area */
+.calendarMain {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Calendar Header */
+.calendarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--content-bg);
+    flex-shrink: 0;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navBtn {
+    background: none;
+    border: 1px solid var(--border-color);
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.navBtn:hover {
+    background: var(--hover-bg);
+}
+
+.navBtn:active {
+    transform: scale(0.95);
+}
+
+.headerTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-left: 8px;
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.todayBtn {
+    background: var(--hover-bg);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+}
+
+.todayBtn:hover {
+    background: var(--active-bg);
+}
+
+.viewToggle {
+    display: flex;
+    background: var(--hover-bg);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+}
+
+.viewBtn {
+    background: none;
+    border: none;
+    padding: 6px 12px;
+    border-radius: calc(var(--radius-sm) - 2px);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.viewBtn:hover {
+    color: var(--text-primary);
+}
+
+.viewBtn.active {
+    background: var(--content-bg);
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.addBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-gradient);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.addBtn:hover {
+    opacity: 0.9;
+}
+
+/* Calendar Content - Animation wrapper */
+.calendarContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    position: relative;
+    /* For absolute positioned transition overlays */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+/* Simple crossfade transition for week↔month and day↔month */
+.crossfadeTransition {
+    animation: crossfade 0.3s ease forwards;
+}
+
+@keyframes crossfade {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* View zoom animations */
+.zoomOut {
+    transform: scale(0.9);
+    opacity: 0;
+}
+
+.zoomIn {
+    transform: scale(1.1);
+    opacity: 0;
+}
+
+.zoomOutEnter {
+    transform: scale(1);
+    opacity: 1;
+    animation: zoomOutEnterAnim 0.3s ease forwards;
+}
+
+.zoomInEnter {
+    transform: scale(1);
+    opacity: 1;
+    animation: zoomInEnterAnim 0.3s ease forwards;
+}
+
+@keyframes zoomOutEnterAnim {
+    from {
+        transform: scale(1.1);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes zoomInEnterAnim {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Day to Week transition - width contracts */
+.dayToWeek {
+    animation: dayToWeekAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes dayToWeekAnim {
+    0% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scaleX(0.14);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+}
+
+/* Week to Day transition - width expands */
+.weekToDay {
+    animation: weekToDayAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes weekToDayAnim {
+    0% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scaleX(1.5);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+}
+
+/* Week to Month transition - height contracts */
+.weekToMonth {
+    animation: weekToMonthAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes weekToMonthAnim {
+    0% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scaleY(0.2);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+/* Month to Week transition - height expands */
+.monthToWeek {
+    animation: monthToWeekAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes monthToWeekAnim {
+    0% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scaleY(1.5);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+/* Day to Month transition - full zoom out */
+.dayToMonth {
+    animation: dayToMonthAnim 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes dayToMonthAnim {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(0.15);
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Month to Day transition - full zoom in */
+.monthToDay {
+    animation: monthToDayAnim 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes monthToDayAnim {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(2);
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Slide animations */
+.slideLeft {
+    transform: translateX(-30px);
+    opacity: 0;
+}
+
+.slideRight {
+    transform: translateX(30px);
+    opacity: 0;
+}
+
+.slideLeftEnter {
+    animation: slideLeftEnter 0.2s ease forwards;
+}
+
+.slideRightEnter {
+    animation: slideRightEnter 0.2s ease forwards;
+}
+
+@keyframes slideLeftEnter {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideRightEnter {
+    from {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.fadeSlide {
+    opacity: 0;
+    transform: scale(0.98);
+}
+
+/* Week View */
+.weekView {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Day Headers - Fixed */
+.dayHeaders {
+    display: flex;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    flex-shrink: 0;
+    background: var(--content-bg);
+}
+
+.timeGutter {
+    width: 90px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+/* Time gutter collapse for Week↔Month */
+.timeGutterHidden {
+    width: 0 !important;
+    opacity: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.timeGutterVisible {
+    width: 90px !important;
+    opacity: 1 !important;
+}
+
+.timeGutterAnimating {
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease,
+        padding 0.35s ease !important;
+}
+
+.dayHeader {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    border-left: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.dayHeader:hover {
+    background: var(--hover-bg);
+}
+
+/* Day header transition states */
+.dayHeaderHidden {
+    flex: 0 !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-left: none !important;
+    visibility: hidden !important;
+}
+
+.dayHeaderExpanded {
+    flex: 7 !important;
+    opacity: 1 !important;
+    min-width: 0;
+    overflow: hidden;
+    visibility: visible !important;
+}
+
+.dayHeaderAnimating {
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease,
+        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0s linear 0s !important;
+}
+
+.dayHeaderNormal {
+    flex: 1 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.dayHeader.today .dayNumber {
+    background: var(--accent-gradient);
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dayName {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.dayNumber {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-top: 2px;
+}
+
+/* All Day Row */
+.allDayRow {
+    display: flex;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    min-height: 30px;
+    flex-shrink: 0;
+    background: var(--content-bg);
+}
+
+.allDayCell {
+    flex: 1;
+    border-left: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    padding: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+/* All-day cell transition states */
+.allDayCellHidden {
+    flex: 0 !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-left: none !important;
+    visibility: hidden !important;
+}
+
+.allDayCellExpanded {
+    flex: 7 !important;
+    opacity: 1 !important;
+    min-width: 0;
+    overflow: hidden;
+    visibility: visible !important;
+}
+
+.allDayCellAnimating {
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease,
+        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0s linear 0s !important;
+}
+
+.allDayCellNormal {
+    flex: 1 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.allDayEvent {
+    display: block;
+    width: 100%;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.allDayEvent:hover {
+    opacity: 0.85;
+}
+
+/* Scrollable Time Grid Wrapper - Fixed height containment with hidden scrollbar */
+.timeGridWrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 0;
+    /* Critical for flexbox overflow */
+
+    /* Hide scrollbar for all browsers */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.timeGridWrapper::-webkit-scrollbar {
+    display: none;
+}
+
+/* Time Grid */
+.timeGrid {
+    display: flex;
+    position: relative;
+    height: calc(24 * 60px);
+    /* Fixed height for 24 hours */
+}
+
+.timeColumn {
+    width: 90px;
+    flex-shrink: 0;
+    position: sticky;
+    left: 0;
+    background: var(--content-bg);
+    z-index: 5;
+}
+
+/* Time column transition states for Week↔Month */
+.timeColumnHidden {
+    width: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+.timeColumnVisible {
+    width: 90px !important;
+    opacity: 1 !important;
+}
+
+.timeColumnAnimating {
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease !important;
+}
+
+/* Week view fade states for Month transition */
+.weekViewFading {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.weekViewVisible {
+    opacity: 1;
+}
+
+.weekViewAnimating {
+    transition: opacity 0.4s ease 0.4s !important;
+    /* 400ms delay after row morph */
+}
+
+/* Month view fade states for Week transition */
+.monthViewFading {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.monthViewVisible {
+    opacity: 1;
+}
+
+.monthViewAnimating {
+    transition: opacity 0.35s ease !important;
+}
+
+.timeSlot {
+    height: 60px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-right: 12px;
+    padding-top: 0;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    transform: translateY(-6px);
+}
+
+/* First time slot fix - prevent 12AM cutoff */
+.timeSlot:first-child {
+    transform: translateY(0);
+    padding-top: 4px;
+}
+
+.daysGrid {
+    flex: 1;
+    display: flex;
+    position: relative;
+    padding-top: 5px;
+    /* Breathing room for event outlines above first hour */
+}
+
+.dayColumn {
+    flex: 1;
+    border-left: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.04));
+    position: relative;
+}
+
+.dayColumn.singleDay {
+    flex: 1;
+}
+
+/* Day column transition states - CSS classes are more reliable than inline styles */
+.dayColumnHidden {
+    flex: 0 !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-left: none !important;
+    visibility: hidden !important;
+}
+
+.dayColumnExpanded {
+    flex: 7 !important;
+    opacity: 1 !important;
+    min-width: 0;
+    overflow: hidden;
+    visibility: visible !important;
+}
+
+.dayColumnAnimating {
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease,
+        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0s linear 0s !important;
+}
+
+.dayColumnNormal {
+    flex: 1 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.hourCell {
+    height: 60px;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.04));
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+    padding-top: 2px;
+    /* Breathing room for event outlines */
+}
+
+.hourCell:hover {
+    background: var(--hover-bg, rgba(255, 255, 255, 0.02));
+}
+
+/* Current Time Indicator */
+.currentTime {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    z-index: 8;
+    /* Above grid lines but time line portion will be behind events */
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.currentTimeLabel {
+    width: 90px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 4px;
+    box-sizing: border-box;
+    background: var(--content-bg);
+    position: relative;
+    z-index: 12;
+    /* Always above events */
+}
+
+.currentTimeLabel>* {
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.currentTimeLine {
+    flex: 1;
+    height: 2px;
+    background: #ef4444;
+    position: relative;
+    z-index: 3;
+}
+
+/* Event */
+.event {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 2px;
+    /* Breathing room for outline at top of hour cell */
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 11px;
+    overflow: hidden;
+    cursor: pointer;
+    z-index: 5;
+    color: white;
+    transition: all 0.15s ease;
+}
+
+.event:hover {
+    transform: scale(1.02);
+    z-index: 6;
+}
+
+/* Currently happening events sit above the timeline with red outline */
+.currentlyHappening {
+    z-index: 8;
+    box-shadow: 0 0 0 2px #ef4444;
+}
+
+.currentlyHappening:hover {
+    z-index: 9;
+    box-shadow: 0 0 0 2px #ef4444;
+}
+
+.eventTime {
+    font-size: 10px;
+    opacity: 0.9;
+}
+
+.eventTitle {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.eventLocation {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+/* Month View */
+.monthView {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    overflow: hidden;
+}
+
+.monthHeader {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 8px;
+}
+
+.monthDayName {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    padding: 8px 0;
+}
+
+.monthGrid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Week row wrapper for flex-based height animation */
+.monthWeekRow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Month row transition states - same pattern as dayColumn */
+.monthRowHidden {
+    flex: 0 !important;
+    opacity: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+}
+
+.monthRowExpanded {
+    flex: 5 !important;
+    opacity: 1 !important;
+    min-height: 0;
+    overflow: hidden;
+    visibility: visible !important;
+}
+
+.monthRowNormal {
+    flex: 1 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.monthRowAnimating {
+    transition: flex 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+        opacity 0.4s ease,
+        visibility 0s linear 0s !important;
+}
+
+.monthDay {
+    background: var(--sidebar-background);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Month day transition states for Week↔Month vertical morph */
+.monthDayHidden {
+    flex: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+}
+
+.monthDayVisible {
+    flex: 1 !important;
+    opacity: 1 !important;
+}
+
+.monthDayAnimating {
+    transition: flex 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        padding 0.35s ease,
+        opacity 0.3s ease !important;
+}
+
+.monthDay:hover {
+    background: var(--hover-bg);
+    transform: scale(1.02);
+}
+
+.monthDay.otherMonth {
+    opacity: 0.4;
+}
+
+.monthDay.today {
+    border: 3px solid var(--accent-color);
+    background: var(--sidebar-background);
+}
+
+.monthDay.selected {
+    border: 2px solid var(--accent-color);
+    background: transparent;
+}
+
+.monthDayNumber {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.monthDay.today .monthDayNumber {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.monthDayEvents {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.monthEvent {
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 10px;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.monthEvent:hover {
+    opacity: 0.85;
+}
+
+.monthMoreEvents {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    animation: fadeIn 0.14s ease;
+}
+
+.modalOverlay.closing {
+    animation: fadeOut 0.14s ease forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+.modal {
+    background: var(--content-bg);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.14s ease;
+}
+
+.modalOverlay.closing .modal {
+    animation: slideDown 0.14s ease forwards;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modalHeader h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modalCloseBtn {
+    background: none;
+    border: none;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.modalCloseBtn:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.modalForm {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.formGroup label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Fix icon colors in form labels */
+.formGroup label svg {
+    color: var(--text-secondary);
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="date"],
+.formGroup input[type="time"],
+.formGroup input[type="color"],
+.formGroup select,
+.formGroup textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--input-bg, var(--sidebar-background));
+    transition: all 0.15s ease;
+}
+
+.comboTrigger {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--input-bg, var(--sidebar-background));
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+}
+
+.comboContent {
+    width: min(320px, 85vw);
+    padding: 8px;
+    gap: 8px;
+}
+
+.comboSearch {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: var(--input-bg, var(--sidebar-background));
+    color: var(--text-primary);
+}
+
+.comboList {
+    max-height: 220px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.comboItem {
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-primary);
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+}
+
+.comboItem:hover {
+    background: var(--hover-bg);
+}
+
+.comboEmpty {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    padding: 8px;
+}
+
+.dateSelectorContent {
+    width: min(340px, 90vw);
+    padding: 10px;
+    gap: 10px;
+}
+
+.dateSelectorHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.dateSelectorNav {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.dateSelectorGrid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.dateSelectorLabel {
+    font-size: 11px;
+    text-align: center;
+    color: var(--text-tertiary);
+}
+
+.dateSelectorDay {
+    border: none;
+    border-radius: 8px;
+    height: 28px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.dateSelectorDay:hover {
+    background: var(--hover-bg);
+}
+
+.dateSelectorOther {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+}
+
+.dateSelectorSelected {
+    border: 1px solid transparent;
+    background:
+        linear-gradient(var(--bg-surface), var(--bg-surface)) padding-box,
+        var(--accent-gradient) border-box;
+}
+
+.formGroup input[type="color"] {
+    padding: 4px;
+    height: 40px;
+    cursor: pointer;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+    outline: none;
+    border-color: transparent;
+    border-image: var(--accent-gradient) 1;
+    box-shadow: none;
+}
+
+.formGroup textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.formRow {
+    display: flex;
+    gap: 16px;
+}
+
+.formRow .formGroup {
+    flex: 1;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.cancelBtn {
+    padding: 10px 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cancelBtn:hover {
+    background: var(--hover-bg);
+}
+
+.deleteBtn {
+    padding: 10px 20px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-sm);
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.deleteBtn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.saveBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--accent-gradient);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.saveBtn:hover {
+    opacity: 0.9;
+}
+
+/* Color picker container */
+.colorPickerContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Color picker row */
+.colorPickerRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Custom color picker button (circle with paint icon) */
+.customColorBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    color: white;
+    flex-shrink: 0;
+}
+
+.customColorBtn:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Color swatch buttons */
+.colorSwatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    position: relative;
+}
+
+.colorSwatch:hover {
+    transform: scale(1.15);
+}
+
+.colorSwatch.selected {
+    border-color: transparent;
+}
+
+.colorSwatch.selected::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    padding: 2px;
+    background: var(--accent-gradient);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* Hidden color input for custom picker */
+.hiddenColorInput {
+    width: 100%;
+    height: 36px;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+/* Used Colours section */
+.usedColoursSection {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.usedColoursLabel {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Checkbox label style */
+.checkboxLabel {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Fix input icons - make them inherit text color properly */
+.formGroup input[type="text"]::placeholder,
+.formGroup input[type="date"]::placeholder,
+.formGroup input[type="time"]::placeholder,
+.formGroup textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* Calendar/date inputs color scheme fix */
+.formGroup input[type="date"]::-webkit-calendar-picker-indicator,
+.formGroup input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}

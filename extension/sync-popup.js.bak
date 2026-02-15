@@ -1,0 +1,382 @@
+// Sync popup - injected into the Millennium portal to show sync progress
+
+(function () {
+    'use strict';
+
+    // Only run on portal pages
+    if (!window.location.href.includes('millennium.education/portal')) return;
+
+    // Check if already injected
+    if (document.getElementById('millennium-sync-overlay')) return;
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'millennium-sync-overlay';
+    overlay.innerHTML = `
+    <style>
+      #millennium-sync-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(8, 9, 10, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 999999;
+        font-family: 'Geist Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      #millennium-sync-overlay.visible {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .sync-modal {
+        background: #0F1011;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 40px;
+        width: 400px;
+        max-width: 90vw;
+        text-align: center;
+        color: #F7F8F8;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease-out;
+      }
+      
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      
+      .sync-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      .sync-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .sync-logo-fallback {
+        width: 100%;
+        height: 100%;
+        background: #6468F0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FFFFFF;
+        font-size: 40px;
+        font-weight: 600;
+      }
+      
+      .sync-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #F7F8F8;
+        margin-bottom: 8px;
+      }
+      
+      .sync-subtitle {
+        color: #6A6A75;
+        font-size: 14px;
+        margin-bottom: 32px;
+      }
+      
+      .sync-progress-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        height: 8px;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      
+      .sync-progress-bar {
+        background: #6468F0;
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 8px;
+      }
+      
+      .sync-status {
+        font-size: 14px;
+        color: #A1A5A9;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      
+      .sync-page {
+        font-size: 12px;
+        color: #6A6A75;
+      }
+      
+      .sync-complete {
+        display: none;
+      }
+      
+      .sync-complete.visible {
+        display: block;
+      }
+      
+      .sync-complete-icon {
+        width: 60px;
+        height: 60px;
+        background: #22c55e;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FFFFFF;
+        margin: 0 auto 16px;
+      }
+
+      .sync-complete-icon svg {
+        width: 32px;
+        height: 32px;
+        stroke: currentColor;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+      
+      .sync-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 24px 0;
+      }
+      
+      .sync-stat {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 16px 8px;
+      }
+      
+      .sync-stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #6468F0;
+      }
+      
+      .sync-stat-label {
+        font-size: 10px;
+        color: #6A6A75;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+        margin-top: 4px;
+      }
+      
+      .sync-btn {
+        width: 100%;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 150ms ease;
+        margin-top: 8px;
+        font-family: inherit;
+      }
+      
+      .sync-btn-primary {
+        background: #6468F0;
+        color: #FFFFFF;
+      }
+      
+      .sync-btn-primary:hover {
+        background: #7377F2;
+      }
+      
+      .sync-btn-primary:active {
+        background: #5458E0;
+      }
+      
+      .sync-btn-secondary {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #F7F8F8;
+      }
+      
+      .sync-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      
+      .sync-in-progress {
+        display: block;
+      }
+      
+      .sync-in-progress.hidden {
+        display: none;
+      }
+    </style>
+    
+    <div class="sync-modal">
+      <div class="sync-logo" id="syncLogo">
+        <img id="syncLogoImg" src="" alt="Millennium" style="display:none;">
+        <div class="sync-logo-fallback">M</div>
+      </div>
+      
+      <div class="sync-in-progress" id="syncInProgress">
+        <div class="sync-title">Syncing Your Portal</div>
+        <div class="sync-subtitle">Collecting your timetable, notices, grades & more</div>
+        
+        <div class="sync-progress-container">
+          <div class="sync-progress-bar" id="syncProgressBar"></div>
+        </div>
+        
+        <div class="sync-status" id="syncStatus">Starting sync...</div>
+        <div class="sync-page" id="syncPage">Preparing...</div>
+      </div>
+      
+      <div class="sync-complete" id="syncComplete">
+        <div class="sync-complete-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="sync-title">Sync Complete!</div>
+        <div class="sync-subtitle">Your data is ready in the redesigned portal</div>
+        
+        <div class="sync-stats">
+          <div class="sync-stat">
+            <div class="sync-stat-value" id="statClasses">0</div>
+            <div class="sync-stat-label">Classes</div>
+          </div>
+          <div class="sync-stat">
+            <div class="sync-stat-value" id="statNotices">0</div>
+            <div class="sync-stat-label">Notices</div>
+          </div>
+          <div class="sync-stat">
+            <div class="sync-stat-value" id="statGrades">0</div>
+            <div class="sync-stat-label">Grades</div>
+          </div>
+        </div>
+        
+        <button class="sync-btn sync-btn-primary" id="openDashboardBtn">
+          Open Dashboard
+        </button>
+        <button class="sync-btn sync-btn-secondary" id="closeSyncBtn">
+          Stay Here
+        </button>
+      </div>
+    </div>
+  `;
+
+    document.body.appendChild(overlay);
+
+    // Load logo
+    const syncLogoImg = document.getElementById('syncLogoImg');
+    const syncLogo = document.getElementById('syncLogo');
+    const syncLogoFallback = syncLogo?.querySelector('.sync-logo-fallback');
+    if (syncLogoImg && chrome && chrome.runtime) {
+        try {
+            syncLogoImg.src = chrome.runtime.getURL('icons/icon128.png');
+            syncLogoImg.onload = () => {
+                syncLogoImg.style.display = 'block';
+                if (syncLogoFallback) syncLogoFallback.style.display = 'none';
+            };
+            syncLogoImg.onerror = () => {
+                syncLogoImg.style.display = 'none';
+                if (syncLogoFallback) syncLogoFallback.style.display = 'flex';
+            };
+        } catch (e) {
+            // If chrome.runtime is not available, keep fallback
+        }
+    }
+
+    // UI Elements
+    const progressBar = document.getElementById('syncProgressBar');
+    const syncStatus = document.getElementById('syncStatus');
+    const syncPage = document.getElementById('syncPage');
+    const syncInProgress = document.getElementById('syncInProgress');
+    const syncComplete = document.getElementById('syncComplete');
+    const statClasses = document.getElementById('statClasses');
+    const statNotices = document.getElementById('statNotices');
+    const statGrades = document.getElementById('statGrades');
+    const openDashboardBtn = document.getElementById('openDashboardBtn');
+    const closeSyncBtn = document.getElementById('closeSyncBtn');
+
+    // Show overlay
+    function showOverlay() {
+        overlay.classList.add('visible');
+    }
+
+    // Hide overlay
+    function hideOverlay() {
+        overlay.classList.remove('visible');
+    }
+
+    // Update progress
+    function updateProgress(current, total, pageName) {
+        const percent = (current / total) * 100;
+        progressBar.style.width = `${percent}%`;
+        syncStatus.textContent = `Syncing ${current} of ${total} pages`;
+        syncPage.textContent = pageName;
+    }
+
+    // Show complete
+    function showComplete(data) {
+        syncInProgress.classList.add('hidden');
+        syncComplete.classList.add('visible');
+
+        statClasses.textContent = data.timetable?.length || 0;
+        statNotices.textContent = data.notices?.length || 0;
+        statGrades.textContent = data.grades?.length || 0;
+    }
+
+    // Button handlers
+    openDashboardBtn.addEventListener('click', () => {
+        window.open('http://localhost:3000/dashboard', '_blank');
+        hideOverlay();
+    });
+
+    closeSyncBtn.addEventListener('click', () => {
+        hideOverlay();
+    });
+
+    // Listen for sync messages
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === 'START_FULL_SYNC') {
+            showOverlay();
+            syncInProgress.classList.remove('hidden');
+            syncComplete.classList.remove('visible');
+        }
+
+        if (message.type === 'SYNC_PROGRESS') {
+            const { current, total, page } = message.progress;
+            updateProgress(current, total, page);
+        }
+
+        if (message.type === 'SYNC_COMPLETE') {
+            showComplete(message.data);
+        }
+    });
+
+    // Export for content.js
+    window.millenniumSyncPopup = {
+        show: showOverlay,
+        hide: hideOverlay,
+        updateProgress,
+        showComplete
+    };
+
+})();

@@ -4,10 +4,13 @@ import { NextApiRequest, NextApiResponse } from 'next';
 export interface SessionData {
   loggedIn: boolean;
   username?: string;
+  password?: string;
   school?: string;
   sessionCookies?: string[];
+  portalUrl?: string;
   timestamp?: string;
   portalData?: any;
+  userId?: string;
 }
 
 const defaultSession: SessionData = {

@@ -9,9 +9,25 @@ interface KeyboardShortcut {
   description?: string;
 }
 
+/**
+ * Check if the active element is an input field where shortcuts should be disabled
+ */
+function isInputElement(element: Element | null): boolean {
+  if (!element) return false;
+  const tagName = element.tagName.toLowerCase();
+  const isInput = tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+  const isContentEditable = element.getAttribute('contenteditable') === 'true';
+  return isInput || isContentEditable;
+}
+
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in input fields
+      if (isInputElement(document.activeElement)) {
+        return;
+      }
+
       for (const shortcut of shortcuts) {
         const ctrlMatch = shortcut.ctrlKey === undefined || shortcut.ctrlKey === event.ctrlKey;
         const shiftMatch = shortcut.shiftKey === undefined || shortcut.shiftKey === event.shiftKey;

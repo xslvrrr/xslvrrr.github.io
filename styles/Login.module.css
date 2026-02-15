@@ -17,7 +17,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -98,7 +98,7 @@
   border-radius: 8px;
   padding: 12px 16px;
   color: #F7F8F8;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
@@ -134,26 +134,28 @@
 }
 
 @keyframes fadeUpBlur {
-  0% { 
-    opacity: 0; 
+  0% {
+    opacity: 0;
     transform: translateY(20px);
     filter: blur(8px);
   }
-  100% { 
-    opacity: 1; 
+
+  100% {
+    opacity: 1;
     transform: translateY(0);
     filter: blur(0);
   }
 }
 
 @keyframes fadeDownBlur {
-  0% { 
-    opacity: 1; 
+  0% {
+    opacity: 1;
     transform: translateY(0);
     filter: blur(0);
   }
-  100% { 
-    opacity: 0; 
+
+  100% {
+    opacity: 0;
     transform: translateY(20px);
     filter: blur(8px);
   }
@@ -174,6 +176,32 @@
   text-align: center;
 }
 
+.doeHint {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.doeHint p {
+  margin: 0;
+  font-size: 14px;
+  color: #60A5FA;
+  line-height: 1.5;
+}
+
+.doeHint p:first-child {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.passwordInputContainer {
+  position: relative;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
 .questionInput {
   width: 100%;
   padding: 12px;
@@ -181,10 +209,15 @@
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #F7F8F8;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: 15px;
   margin-bottom: 24px;
   transition: all 0.2s ease;
+}
+
+.passwordInputContainer .questionInput {
+  padding-right: 44px;
+  margin-bottom: 0;
 }
 
 .questionInput:hover {
@@ -199,19 +232,62 @@
   box-shadow: 0 0 0 2px rgba(247, 248, 248, 0.1);
 }
 
+.passwordToggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.passwordToggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.passwordToggle img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.5;
+  filter: brightness(0) invert(1);
+  transition: opacity 0.2s ease;
+}
+
+.passwordToggle:hover img {
+  opacity: 0.7;
+}
+
 .questionButtons {
   display: flex;
   gap: 12px;
   width: 100%;
 }
 
-.submitBtn, .backBtn, .returnBtn {
+.completionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.submitBtn,
+.backBtn,
+.returnBtn,
+.tryAgainBtn,
+.returnLinkBtn {
   background-color: #F7F8F8;
   color: #08090A;
   border: none;
   border-radius: 8px;
   padding: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -226,9 +302,32 @@
 
 .backBtn {
   flex: 1;
-  background-color: #101316;
+  background-color: transparent;
   color: #F7F8F8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tryAgainBtn {
+  background-color: transparent;
+  color: #F7F8F8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tryAgainBtn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.returnLinkBtn {
+  background-color: transparent;
+  color: #A1A5A9;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.returnLinkBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #F7F8F8;
 }
 
 .returnBtn {
@@ -236,7 +335,8 @@
   width: 100%;
 }
 
-.submitBtn:hover, .returnBtn:hover {
+.submitBtn:hover,
+.returnBtn:hover {
   background-color: #e6e7e7;
   transform: translateY(-1px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
@@ -248,7 +348,9 @@
   transform: translateY(-1px);
 }
 
-.submitBtn:active, .backBtn:active, .returnBtn:active {
+.submitBtn:active,
+.backBtn:active,
+.returnBtn:active {
   transform: translateY(0);
   box-shadow: none;
 }
@@ -263,6 +365,21 @@
 
 .backLink:hover {
   color: #F7F8F8;
+}
+
+.forgotPasswordLink {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+  color: #A1A5A9;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.forgotPasswordLink:hover {
+  color: #F7F8F8;
+  text-decoration: underline;
 }
 
 /* Return link container at the bottom */
@@ -326,10 +443,6 @@
   color: #F7F8F8;
   font-size: 14px;
   font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 200px;
 }
 
 .radioGroup {
@@ -361,7 +474,7 @@
 }
 
 .highlight {
-  /* Highlight for student option */
+  opacity: 1;
 }
 
 /* Loading animation */
@@ -389,10 +502,14 @@
 }
 
 @keyframes dotPulse {
-  0%, 80%, 100% {
+
+  0%,
+  80%,
+  100% {
     opacity: 0.3;
     transform: scale(0.8);
   }
+
   40% {
     opacity: 1;
     transform: scale(1.2);
@@ -414,7 +531,7 @@
 .notification.success {
   background-color: rgba(25, 135, 84, 0.15);
   border: 1px solid rgba(25, 135, 84, 0.3);
-  color: #28c076; 
+  color: #28c076;
 }
 
 .notification.error {
@@ -446,7 +563,7 @@
   .loginContainer {
     padding: 30px 16px;
   }
-  
+
   .questionTitle {
     font-size: 18px;
   }

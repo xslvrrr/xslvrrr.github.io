@@ -1,121 +1,200 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { IconCircleCheck, IconAlertTriangle, IconDownload, IconRefresh, IconExternalLink, IconBrandChrome, IconBrandFirefox } from '@tabler/icons-react';
 import styles from '../styles/Login.module.css';
 
-interface LoginData {
-  username: string;
-  password: string;
-  school: string;
+type Step = 'checking' | 'install' | 'sync' | 'ready' | 'syncing';
+type BrowserType = 'chrome' | 'firefox' | 'edge' | 'safari' | 'other';
+
+// Browser detection utility
+function detectBrowser(): BrowserType {
+  if (typeof window === 'undefined') return 'other';
+
+  const ua = navigator.userAgent.toLowerCase();
+
+  // Order matters: Edge contains "chrome", Firefox is distinct
+  if (ua.includes('firefox') || ua.includes('fxios')) {
+    return 'firefox';
+  }
+  if (ua.includes('edg/') || ua.includes('edge/')) {
+    return 'edge';
+  }
+  if (ua.includes('chrome') || ua.includes('crios')) {
+    return 'chrome';
+  }
+  if (ua.includes('safari') && !ua.includes('chrome')) {
+    return 'safari';
+  }
+
+  return 'other';
 }
 
-interface LoginState {
-  step: 'options' | 'username' | 'password' | 'school' | 'completion';
-  loginData: LoginData;
-  isLoading: boolean;
-  notification: {
-    type: 'success' | 'error' | 'unexpected' | null;
-    message: string;
-  };
-  isTransitioning: boolean;
+interface ExtensionData {
+  timetable?: any[] | { weekA?: any[]; weekB?: any[] };
+  notices?: any[];
+  grades?: any[];
+  attendance?: any[];
+  user?: { name: string; school: string };
 }
 
 export default function Login() {
   const router = useRouter();
-  const [state, setState] = useState<LoginState>({
-    step: 'options',
-    loginData: { username: '', password: '', school: '' },
-    isLoading: false,
-    notification: { type: null, message: '' },
-    isTransitioning: false
-  });
+  const [step, setStep] = useState<Step>('checking');
+  const [extensionData, setExtensionData] = useState<ExtensionData | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
+  const [browser, setBrowser] = useState<BrowserType>('other');
 
+  // Detect browser on mount
+  useEffect(() => {
+    setBrowser(detectBrowser());
+  }, []);
 
+  // Browser-specific download info
+  const downloadInfo = useMemo(() => {
+    const isFirefox = browser === 'firefox';
+    return {
+      href: isFirefox ? '/extension-firefox.zip' : '/extension.zip',
+      filename: isFirefox ? 'millennium-sync-firefox.zip' : 'millennium-sync-extension.zip',
+      icon: isFirefox ? <IconBrandFirefox size={18} /> : <IconBrandChrome size={18} />,
+      browserName: isFirefox ? 'Firefox' : (browser === 'edge' ? 'Edge' : 'Chrome'),
+      extensionsPage: isFirefox ? 'about:debugging#/runtime/this-firefox' : 'chrome://extensions',
+      instructions: isFirefox ? [
+        'Download the extension below',
+        'Open about:debugging in Firefox',
+        'Click "This Firefox" → "Load Temporary Add-on"',
+        'Select any file in the unzipped folder'
+      ] : [
+        'Download the extension below',
+        'Open chrome://extensions',
+        'Enable "Developer mode"',
+        'Unzip and click "Load unpacked"'
+      ]
+    };
+  }, [browser]);
 
-  const transition = (newStep: LoginState['step'], delay = 400) => {
-    setState(prev => ({ ...prev, isTransitioning: true }));
-    
+  // Transition helper
+  const transition = (newStep: Step) => {
+    setIsTransitioning(true);
     setTimeout(() => {
-      setState(prev => ({ ...prev, step: newStep, isTransitioning: false }));
-    }, delay);
+      setStep(newStep);
+      setIsTransitioning(false);
+    }, 400);
   };
 
-  const handleInputChange = (field: keyof LoginData, value: string) => {
-    setState(prev => ({
-      ...prev,
-      loginData: { ...prev.loginData, [field]: value }
-    }));
-  };
-
-  const handleSubmitLogin = async () => {
-    setState(prev => ({ 
-      ...prev, 
-      isLoading: true,
-      step: 'completion',
-      notification: { type: null, message: '' }
-    }));
-
+  // Handle token from URL (from extension redirect)
+  const handleTokenLogin = useCallback(async (token: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/extension/token-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state.loginData),
+        body: JSON.stringify({ token })
       });
+      const data = await response.json();
 
-      const result = await response.json();
-      
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        notification: {
-          type: result.success ? 'success' : 'error',
-          message: result.message
-        }
-      }));
-
-      if (result.success) {
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1500);
+      if (response.ok && data.success) {
+        setNotification({ type: 'success', message: `Welcome, ${data.user?.name || 'Student'}!` });
+        // Now check for data again (session should be established)
+        setTimeout(checkExtension, 500);
+        return true;
+      } else {
+        setNotification({ type: 'error', message: 'Login token expired. Please sync again.' });
+        transition('sync');
+        return false;
       }
     } catch (error) {
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        notification: {
-          type: 'error',
-          message: 'An unexpected error occurred. Please try again.'
-        }
-      }));
+      console.error('Token login failed:', error);
+      transition('sync');
+      return false;
+    }
+  }, []);
+
+  // Check for extension data
+  const checkExtension = useCallback(async () => {
+    try {
+      // Check API for synced data
+      const response = await fetch('/api/extension/data');
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.log('Extension check failed: invalid JSON response', parseError);
+        throw parseError;
+      }
+
+      // Check if we have valid data (timetable can be object or array)
+      const hasTimetable = data.timetable && (
+        Array.isArray(data.timetable) ? data.timetable.length > 0 :
+          (data.timetable.weekA?.length > 0 || data.timetable.weekB?.length > 0)
+      );
+
+      if (response.ok && data && data.user && hasTimetable) {
+        setExtensionData(data);
+        transition('ready');
+        return true;
+      }
+
+      // If API says needsSync, user has valid session but no data yet
+      if (data.needsSync) {
+        transition('sync');
+        return true;
+      }
+    } catch (error) {
+      console.log('Extension check failed:', error);
+    }
+
+    // No valid session - show install page
+    // Clear any stale localStorage marker
+    localStorage.removeItem('millennium-extension-installed');
+    transition('install');
+    return false;
+  }, []);
+
+  useEffect(() => {
+    // Check for token in URL (from extension redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      // Remove token from URL to prevent reuse
+      window.history.replaceState({}, '', '/login');
+      handleTokenLogin(token);
+    } else {
+      // Normal check
+      const timer = setTimeout(checkExtension, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [checkExtension, handleTokenLogin]);
+
+  // Mark extension as installed
+  const handleExtensionInstalled = () => {
+    localStorage.setItem('millennium-extension-installed', 'true');
+    transition('sync');
+  };
+
+  // Go to portal for syncing
+  const handleGoToPortal = () => {
+    window.open('https://millennium.education/portal/', '_blank');
+    setNotification({ type: 'success', message: 'Sync your data, then return here' });
+  };
+
+  // Recheck for data
+  const handleRecheck = async () => {
+    setIsLoading(true);
+    const found = await checkExtension();
+    setIsLoading(false);
+
+    if (!found && step === 'sync') {
+      setNotification({ type: 'error', message: 'No data found. Please sync on the portal first.' });
     }
   };
 
-  const renderNotification = () => {
-    if (!state.notification.type) return null;
-
-    const iconSrc = {
-      success: '/Assets/check-circle.svg',
-      error: '/Assets/triangle-warning.svg',
-      unexpected: '/Assets/question-mark.svg'
-    }[state.notification.type];
-
-    const iconStyle = {
-      success: { filter: 'invert(59%) sepia(63%) saturate(409%) hue-rotate(114deg) brightness(92%) contrast(92%)' },
-      error: { filter: 'invert(56%) sepia(38%) saturate(2893%) hue-rotate(316deg) brightness(102%) contrast(101%)' },
-      unexpected: { filter: 'invert(50%) sepia(10%) saturate(250%) hue-rotate(180deg) brightness(90%) contrast(80%)' }
-    }[state.notification.type];
-
-    return (
-      <div className={`${styles.notification} ${styles[state.notification.type]}`}>
-        <img 
-          src={iconSrc} 
-          alt={state.notification.type} 
-          className={styles.notificationIcon}
-          style={iconStyle}
-        />
-        <span>{state.notification.message}</span>
-      </div>
-    );
+  // Go to dashboard
+  const handleGoToDashboard = () => {
+    router.push('/dashboard');
   };
 
   const renderLoadingDots = () => (
@@ -126,39 +205,18 @@ export default function Login() {
     </div>
   );
 
-  const renderVerificationDisplay = () => {
-    if (state.step !== 'completion' || state.isLoading) return null;
+  const renderNotification = () => {
+    if (!notification.type) return null;
+
+    const icons = {
+      success: <IconCircleCheck size={24} className={styles.notificationIcon} style={{ color: '#28c076' }} />,
+      error: <IconAlertTriangle size={24} className={styles.notificationIcon} style={{ color: '#ff5a6a' }} />
+    };
 
     return (
-      <div className={styles.verificationDisplay}>
-        <div className={styles.radioGroup}>
-          <label className={`${styles.radioLabel} ${styles.highlight}`}>
-            <input type="radio" name="account-type" value="2" checked disabled />
-            <span>Student</span>
-          </label>
-          <label className={styles.radioLabel}>
-            <input type="radio" name="account-type" value="5" disabled />
-            <span>Teacher</span>
-          </label>
-          <label className={styles.radioLabel}>
-            <input type="radio" name="account-type" value="1" disabled />
-            <span>Parent</span>
-          </label>
-        </div>
-        <div className={styles.verificationFields}>
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldLabel}>Username/Email</div>
-            <div className={styles.fieldValue}>{state.loginData.username}</div>
-          </div>
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldLabel}>Password</div>
-            <div className={styles.fieldValue}>{'•'.repeat(state.loginData.password.length)}</div>
-          </div>
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldLabel}>School</div>
-            <div className={styles.fieldValue}>{state.loginData.school}</div>
-          </div>
-        </div>
+      <div className={`${styles.notification} ${styles[notification.type]}`}>
+        {icons[notification.type]}
+        <span>{notification.message}</span>
       </div>
     );
   };
@@ -169,165 +227,165 @@ export default function Login() {
         <title>Log In - Millennium Portal</title>
         <meta name="description" content="Sign in to your Millennium student portal" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
 
       <div className={styles.loginBody}>
         <div className={`${styles.loginContainer} ${styles.fadeIn}`}>
-          <div className={`${styles.loginHeader} ${state.isTransitioning ? styles.fadeOut : ''}`}>
+          <div className={`${styles.loginHeader} ${isTransitioning ? styles.fadeOut : ''}`}>
             <img src="/Assets/Millennium Logo.png" alt="Millennium Logo" className={styles.loginLogo} />
             <h1 className={styles.loginTitle}>Log in to Millennium</h1>
           </div>
 
-          {state.step === 'options' && (
-            <div className={`${styles.loginOptions} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <button 
-                className={styles.loginOptionBtn}
-                onClick={() => alert('NSW DoE login is not implemented yet.')}
-              >
-                Continue with NSW DoE
-              </button>
-              <button 
-                className={styles.loginOptionBtn}
-                onClick={() => transition('username')}
-              >
-                Continue with login details
-              </button>
+          {/* Step 1: Checking for extension */}
+          {step === 'checking' && (
+            <div className={`${styles.loginQuestionnaire} ${isTransitioning ? styles.fadeOut : ''}`}>
+              <h2 className={styles.questionTitle}>Checking for extension...</h2>
+              {renderLoadingDots()}
             </div>
           )}
 
-          {state.step === 'username' && (
-            <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <h2 className={styles.questionTitle}>What&apos;s your username or email?</h2>
-              <input
-                type="text"
-                className={styles.questionInput}
-                placeholder="Enter your username or email"
-                value={state.loginData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                autoComplete="username"
-              />
-              <div className={styles.questionButtons}>
-                <button 
-                  className={styles.submitBtn}
-                  onClick={() => transition('password')}
-                >
-                  Submit
-                </button>
+          {/* Step 2: Install extension */}
+          {step === 'install' && (
+            <div className={`${styles.loginQuestionnaire} ${isTransitioning ? styles.fadeOut : ''}`}>
+              <h2 className={styles.questionTitle}>Install the {downloadInfo.browserName} extension</h2>
+              <p className={styles.questionSubtitle}>
+                The extension syncs your portal data securely from your browser.
+              </p>
+
+              <div className={styles.verificationDisplay}>
+                <div className={styles.verificationFields}>
+                  {downloadInfo.instructions.map((instruction, idx) => (
+                    <div className={styles.fieldRow} key={idx}>
+                      <div className={styles.fieldLabel}>{idx + 1}.</div>
+                      <div className={styles.fieldValue}>{instruction}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <a 
-                href="#" 
-                className={styles.backLink}
-                onClick={(e) => {
-                  e.preventDefault();
-                  transition('options');
-                }}
-              >
-                Back to login options
-              </a>
-            </div>
-          )}
 
-          {state.step === 'password' && (
-            <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <h2 className={styles.questionTitle}>What&apos;s your password?</h2>
-              <input
-                type="password"
-                className={styles.questionInput}
-                placeholder="Enter your password"
-                value={state.loginData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                autoComplete="current-password"
-              />
               <div className={styles.questionButtons}>
-                <button 
-                  className={styles.backBtn}
-                  onClick={() => transition('username')}
-                >
-                  Back
-                </button>
-                <button 
+                <a
+                  href={downloadInfo.href}
+                  download={downloadInfo.filename}
                   className={styles.submitBtn}
-                  onClick={() => transition('school')}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  Submit
-                </button>
+                  {downloadInfo.icon}
+                  Download for {downloadInfo.browserName}
+                </a>
               </div>
-            </div>
-          )}
 
-          {state.step === 'school' && (
-            <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <h2 className={styles.questionTitle}>What&apos;s your school?</h2>
-              <input
-                type="text"
-                className={styles.questionInput}
-                placeholder="Enter your school name"
-                value={state.loginData.school}
-                onChange={(e) => handleInputChange('school', e.target.value)}
-              />
-              <div className={styles.questionButtons}>
-                <button 
-                  className={styles.backBtn}
-                  onClick={() => transition('password')}
-                >
-                  Back
-                </button>
-                <button 
-                  className={styles.submitBtn}
-                  onClick={handleSubmitLogin}
-                >
-                  Submit
-                </button>
-              </div>
-            </div>
-          )}
-
-          {state.step === 'completion' && (
-            <div className={`${styles.loginQuestionnaire} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <h2 className={styles.questionTitle}>
-                {state.isLoading 
-                  ? 'Verifying your login'
-                  : state.notification.type === 'success' 
-                    ? 'Login successful'
-                    : state.notification.type === 'error'
-                      ? 'Login failed'
-                      : 'Login status unclear'
-                }
-              </h2>
-              {state.isLoading && (
-                <p className={styles.questionSubtitle}>
-                  Please wait while we verify your credentials...
+              {browser !== 'firefox' && browser !== 'chrome' && browser !== 'edge' && (
+                <p className={styles.questionSubtitle} style={{ marginTop: '16px', fontSize: '12px' }}>
+                  Using a different browser? Download for{' '}
+                  <a href="/extension-firefox.zip" download="millennium-sync-firefox.zip" style={{ color: '#6468F0' }}>Firefox</a>
+                  {' '}or{' '}
+                  <a href="/extension.zip" download="millennium-sync-extension.zip" style={{ color: '#6468F0' }}>Chrome/Edge</a>
                 </p>
               )}
-              
-              {state.isLoading && renderLoadingDots()}
-              {renderVerificationDisplay()}
+
+              <button
+                onClick={handleExtensionInstalled}
+                className={styles.backLink}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: '24px' }}
+              >
+                I've installed it →
+              </button>
+            </div>
+          )}
+
+          {/* Step 3: Sync data */}
+          {step === 'sync' && (
+            <div className={`${styles.loginQuestionnaire} ${isTransitioning ? styles.fadeOut : ''}`}>
+              <h2 className={styles.questionTitle}>Sync your portal data</h2>
+              <p className={styles.questionSubtitle}>
+                Open the Millennium portal and log in normally. The extension will sync your data automatically.
+              </p>
+
               {renderNotification()}
-              
+
               <div className={styles.questionButtons}>
-                <button 
-                  onClick={() => router.push('/')} 
-                  className={styles.returnBtn}
-                  type="button"
+                <button
+                  className={styles.backBtn}
+                  onClick={handleRecheck}
+                  disabled={isLoading}
                 >
-                  Return to main page
+                  {isLoading ? 'Checking...' : 'Check Again'}
+                </button>
+                <button
+                  className={styles.submitBtn}
+                  onClick={handleGoToPortal}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <IconExternalLink size={18} />
+                  Open Portal
+                </button>
+              </div>
+
+              <button
+                onClick={() => transition('install')}
+                className={styles.backLink}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: '24px' }}
+              >
+                ← Back to install instructions
+              </button>
+            </div>
+          )}
+
+          {/* Step 4: Ready */}
+          {step === 'ready' && (
+            <div className={`${styles.loginQuestionnaire} ${isTransitioning ? styles.fadeOut : ''}`}>
+              <h2 className={styles.questionTitle}>Data synced successfully!</h2>
+              <p className={styles.questionSubtitle}>
+                Welcome back, {extensionData?.user?.name || 'Student'}
+              </p>
+
+              <div className={styles.verificationDisplay}>
+                <div className={styles.verificationFields}>
+                  <div className={styles.fieldRow}>
+                    <div className={styles.fieldLabel}>Classes</div>
+                    <div className={styles.fieldValue}>
+                      {Array.isArray(extensionData?.timetable)
+                        ? extensionData.timetable.length
+                        : ((extensionData?.timetable?.weekA?.length || 0) + (extensionData?.timetable?.weekB?.length || 0))}
+                    </div>
+                  </div>
+                  <div className={styles.fieldRow}>
+                    <div className={styles.fieldLabel}>Notices</div>
+                    <div className={styles.fieldValue}>{extensionData?.notices?.length || 0}</div>
+                  </div>
+                  <div className={styles.fieldRow}>
+                    <div className={styles.fieldLabel}>Grades</div>
+                    <div className={styles.fieldValue}>{extensionData?.grades?.length || 0}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.completionButtons}>
+                <button
+                  className={styles.submitBtn}
+                  onClick={handleGoToDashboard}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <IconCircleCheck size={18} />
+                  Open Dashboard
+                </button>
+                <button
+                  className={styles.tryAgainBtn}
+                  onClick={handleGoToPortal}
+                >
+                  Sync Again
                 </button>
               </div>
             </div>
           )}
 
-          {state.step !== 'completion' && (
-            <div className={`${styles.returnLinkContainer} ${state.isTransitioning ? styles.fadeOut : ''}`}>
-              <button 
-                onClick={() => router.push('/')} 
-                className={styles.returnLink}
-                type="button"
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                Return to main page
-              </button>
-            </div>
-          )}
+          <div className={`${styles.returnLinkContainer} ${isTransitioning ? styles.fadeOut : ''}`}>
+            <Link href="/" className={styles.returnLink}>
+              Return to main page
+            </Link>
+          </div>
         </div>
       </div>
     </>

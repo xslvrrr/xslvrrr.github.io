@@ -1,0 +1,1564 @@
+{
+  "users": {
+    "2e84f6a8-1248-4513-8d68-9cf73192223c": {
+      "id": "2e84f6a8-1248-4513-8d68-9cf73192223c",
+      "millenniumUid": "424840",
+      "name": "Ryan Khan",
+      "school": "Rouse Hill High School",
+      "settings": {
+        "theme": "dark",
+        "notifications": true,
+        "autoSync": true,
+        "syncInterval": 30
+      },
+      "createdAt": "2026-02-09T22:01:53.713Z",
+      "lastSync": "2026-02-10T21:47:59.290Z",
+      "portalData": {
+        "timetable": {
+          "weekA": [
+            {
+              "day": "Monday",
+              "period": "P1",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P2",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P3b",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Monday",
+              "period": "P4",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Monday",
+              "period": "P5",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Monday",
+              "period": "P6b",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P7",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P8",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P1",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P2",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P3b",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P4",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P5",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P6b",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mrs G Kaur",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P7",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mrs G Kaur",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P8",
+              "course": "12 PAUSE",
+              "classCode": "1.2PAUSE.2",
+              "teacher": "Miss M Gul",
+              "room": "M1"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P1",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P2",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P3b",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P4",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P5",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P1",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P2",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P3b",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P4",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P5",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P6b",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P7",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P8",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Friday",
+              "period": "P1",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Friday",
+              "period": "P2",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Friday",
+              "period": "P3b",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P4",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P5",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P6b",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P7",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P8",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            }
+          ],
+          "weekB": [
+            {
+              "day": "Monday",
+              "period": "P1",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mrs G Kaur",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P2",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mrs G Kaur",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P3b",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Monday",
+              "period": "P4",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Monday",
+              "period": "P5",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Monday",
+              "period": "P6b",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P7",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Monday",
+              "period": "P8",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P1",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P2",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P3b",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P4",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P5",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P6b",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P7",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Tuesday",
+              "period": "P8",
+              "course": "12 PAUSE",
+              "classCode": "1.2PAUSE.2",
+              "teacher": "Miss M Gul",
+              "room": "M1"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P1",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P2",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P3b",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P4",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Wednesday",
+              "period": "P5",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P1",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P2",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P3b",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P4",
+              "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+              "classCode": "PSOR1.A",
+              "teacher": "Ms K Mathias",
+              "room": "E4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P5",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P6b",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P7",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Thursday",
+              "period": "P8",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms F Deb Chaudhuri",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P1",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P2",
+              "course": "Stage 6 Chemistry Preliminary",
+              "classCode": "PCHE.C",
+              "teacher": "Ms D Pahwa",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P3b",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P4",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P5",
+              "course": "Stage 6 Physics Preliminary",
+              "classCode": "PPHY.B",
+              "teacher": "Mr S Harrison",
+              "room": "G4"
+            },
+            {
+              "day": "Friday",
+              "period": "P6b",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Friday",
+              "period": "P7",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            },
+            {
+              "day": "Friday",
+              "period": "P8",
+              "course": "Stage 6 Mathematics Extension 1 Preliminary",
+              "classCode": "PMAX1.A",
+              "teacher": "Mr A Sharma",
+              "room": "E4"
+            }
+          ]
+        },
+        "notices": [
+          {
+            "title": "CHS - Sydney West Volleyball Girls Opens",
+            "content": "Are you interested in representing the school in Volleyball? The Sydney West Opens Comp is open to all years 7-12. If you would like to try out for the team, please indicate your interest on the following Google Form https://docs.google.com/forms/d/e/1FAIpQLSeefW8qNCevZa9x1vBk2i44KSkfMf5DbUBs0LFEk6gm-E7jUQ/viewform?usp=dialog Tryouts will be held Thursday Recess 1 AND 2 on the 12th FebYou may come to tryouts without indicating your interest, but it is recommended you fill out the form before you arrive.    Any questions? See Mr Casey (Staffroom 1)",
+            "contentHtml": "<p><b>Are you interested in representing the school in&nbsp;<span style=\"font-size: 12pt;\"><span style=\"color: #ff0000;\">Volleyball</span></span></b>? </p><p>The Sydney West Opens Comp is open to all years 7-12.&nbsp;</p><p>If you would like to try out for the team,&nbsp;<u>please indicate your interest on the following Google Form&nbsp;</u></p><p><u style=\"color: #0000ff; font-size: 12pt;\">https://docs.google.com/forms/d/e/1FAIpQLSeefW8qNCevZa9x1vBk2i44KSkfMf5DbUBs0LFEk6gm-E7jUQ/viewform?usp=dialog</u></p><p>&nbsp;</p><p><b><span style=\"font-size: 12pt;\"><u>Tryouts</u> </span>will be held <span style=\"font-size: 12pt;\"><u>Thursday Recess 1 AND 2 on the 12th Feb</u></span></b></p><p>You may come to tryouts without indicating your interest, but it is recommended you fill out the form before you arrive.&nbsp;&nbsp;</p><p>&nbsp;<span style=\"font-size: 9pt;\">&nbsp;</span></p><p><b>Any questions? See Mr Casey (Staffroom 1)</b></p><p>&nbsp;</p>",
+            "preview": "Are you interested in representing the school in Volleyball? The Sydney West Opens Comp is open to all years 7-12. If you would like to try out for the team, please indicate your interest on the follo...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-06",
+              "2026-02-07",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11"
+            ]
+          },
+          {
+            "title": "CHS Tennis!",
+            "content": "For the first time RHHS is fielding a boys and a girls tennis team If you're interested in trying out please complete the sign-on sheet posted outside staffroom 2 or see Mr. Harrison ASAP.",
+            "contentHtml": "<p>For the first time RHHS is fielding a boys and a girls tennis team</p><p>&nbsp;</p><p>If you're interested in trying out please complete the sign-on sheet posted outside staffroom 2 or see Mr. Harrison ASAP.</p>",
+            "preview": "For the first time RHHS is fielding a boys and a girls tennis team If you're interested in trying out please complete the sign-on sheet posted outside staffroom 2 or see Mr. Harrison ASAP.",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12",
+              "2026-02-15",
+              "2026-02-16"
+            ]
+          },
+          {
+            "title": "Cricket Trials - Boys Team",
+            "content": "Thank you to all the boys who signed up to be a part of the opens boys cricket team. The trial will be held this Thursday afternoon from 3-4pm. Please ask your parents to complete the permission slip via school bytes. Please see Mr Johns if you have any questions.",
+            "contentHtml": "<p><span style=\"font-size: 9pt;\">Thank you to all the boys who signed up to be a part of the opens boys cricket team.<b> </b></span></p><p><span style=\"font-size: 9pt;\"><b>The trial will be held this Thursday afternoon from 3-4pm. Please ask your parents to complete the permission slip via school bytes.</b></span></p><p><span style=\"font-size: 9pt;\">&nbsp;</span></p><p>Please see Mr Johns if you have any questions.</p>",
+            "preview": "Thank you to all the boys who signed up to be a part of the opens boys cricket team. The trial will be held this Thursday afternoon from 3-4pm. Please ask your parents to complete the permission slip ...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11"
+            ]
+          },
+          {
+            "title": "Drama club",
+            "content": "Drama club is back for Term 1! \nCome to THE HALL on Wednesdays at recess to join in.  All grades 7-12 are welcome. \n\n If you have any questions speak to Mr Casey or Ms Tesoriero in Staffroom 1",
+            "contentHtml": "<p>Drama club is back for Term 1!</p><p>&nbsp;</p><p>\nCome to THE HALL on Wednesdays at recess to join in.</p><p>&nbsp;</p><p> All grades 7-12 are welcome. </p><p>\n\n<span style=\"font-size: 9pt;\">&nbsp;</span></p><p>If you have any questions speak to Mr Casey or Ms Tesoriero in Staffroom 1</p>",
+            "preview": "Drama club is back for Term 1! \nCome to THE HALL on Wednesdays at recess to join in.  All grades 7-12 are welcome. \n\n If you have any questions speak to Mr Casey or Ms Tesoriero in Staffroom 1",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-09",
+              "2026-02-16",
+              "2026-02-17"
+            ]
+          },
+          {
+            "title": "Expression of Interest - String/Classical Ensemble",
+            "content": "If you’re interested in classical music please complete this Google Form so we can get a strings/classical ensemble up and running.Any questions, chat to the Music staff in Staffroom 2, or you’ll usually find us around F6 and F4  https://forms.gle/FXGcSybhwrisBUqUA",
+            "contentHtml": "<p><br></p><p>If you’re interested in classical music please complete this Google Form so we can get a strings/classical ensemble up and running.</p><p data-start=\"173\" data-end=\"277\" data-is-last-node=\"\" data-is-only-node=\"\">Any questions, chat to the Music staff in Staffroom 2, or you’ll usually find us around F6 and F4</p><p>&nbsp;</p><p>&nbsp;</p><p>https://forms.gle/FXGcSybhwrisBUqUA&nbsp;&nbsp;</p>",
+            "preview": "If you’re interested in classical music please complete this Google Form so we can get a strings/classical ensemble up and running.Any questions, chat to the Music staff in Staffroom 2, or you’ll usua...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-11",
+              "2026-02-12",
+              "2026-02-15",
+              "2026-02-16",
+              "2026-02-17"
+            ]
+          },
+          {
+            "title": "First Aid Course",
+            "content": "Good morning! Could all students who signed up to complete the First Aid course please ensure that permission and payment is completed through School Bytes as soon as possible. You will not receive your enrolment link until this is completed. If you are unsure, please come and see Mr Mansfield in Staffroom 2. Thanks :)",
+            "contentHtml": "<span style=\"font-size: 10pt;\"><span style=\"font-size: 12pt;\">Good morning! Could all students who signed up to complete the First Aid course please ensure that permission and payment is completed through School Bytes as soon as possible. You will not receive your enrolment link until this is completed. If you are unsure, please come and see Mr Mansfield in Staffroom 2. Thanks :)&nbsp;</span></span>",
+            "preview": "Good morning! Could all students who signed up to complete the First Aid course please ensure that permission and payment is completed through School Bytes as soon as possible. You will not receive yo...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12"
+            ]
+          },
+          {
+            "title": "Grade 9-12 Boys and Girls OzTag Program Sign up",
+            "content": "To those students in Grade 9-12. A sign up sheet is up on the notice board outside of the staffroom for those students interested in joining the OzTag program. Trials will take place in Week 3. You have until Wednesday (11/02/26) afternoon to sign up.",
+            "contentHtml": "To those students in Grade 9-12. A sign up sheet is up on the notice board outside of the staffroom for those students interested in joining the OzTag program. Trials will take place in Week 3. You have until Wednesday (11/02/26) afternoon to sign up.",
+            "preview": "To those students in Grade 9-12. A sign up sheet is up on the notice board outside of the staffroom for those students interested in joining the OzTag program. Trials will take place in Week 3. You ha...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09"
+            ]
+          },
+          {
+            "title": "Macquarie Cup Soccer Trials - BOYS and GIRLS",
+            "content": "Hi all,The Macquarie Cup Soccer Boys & Girls trials will be held Week 3 Friday (13th February) - for Stage 5 and Stage 6 students between 3 - 4pm.There will be a sign-on sheet for boys and girls outside Staffroom 2 for all to register their interest in attending.If you have any questions speak to Mr Vlismas / Mr Shadwick",
+            "contentHtml": "<p>Hi all,</p><p><span style=\"font-size: 9pt;\">The Macquarie Cup Soccer Boys &amp; Girls trials will be held Week 3 Friday (13th February) - for Stage 5 and Stage 6 students between 3 - 4pm.</span></p><p>There will be a sign-on sheet for boys and girls outside Staffroom 2 for all to register their interest in attending.</p><p>If you have any questions speak to Mr Vlismas / Mr Shadwick</p>",
+            "preview": "Hi all,The Macquarie Cup Soccer Boys & Girls trials will be held Week 3 Friday (13th February) - for Stage 5 and Stage 6 students between 3 - 4pm.There will be a sign-on sheet for boys and girls outsi...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12"
+            ]
+          },
+          {
+            "title": "Morning Gym Starting Soon!",
+            "content": "The Morning Gym program, run by Mr. Garcia and Mr. Vekariya, will be starting up soon. Sessions begin at 7:30am, but feel free to arrive whenever you can. A free breakfast will be provided at the end of each session. For more information, please see or email Mr. Garcia or Mr. Vekariya in Staffroom 2.",
+            "contentHtml": "<p dir=\"ltr\">The Morning Gym program, run by Mr. Garcia and Mr. Vekariya, will be starting up soon. Sessions begin at 7:30am, but feel free to arrive whenever you can.&nbsp;<span style=\"font-size: 9pt;\">A free breakfast will be provided at the end of each session.</span></p><p>&nbsp;</p><p dir=\"ltr\">For more information, please see or email Mr. Garcia or Mr. Vekariya in Staffroom 2.</p><p><br></p>",
+            "preview": "The Morning Gym program, run by Mr. Garcia and Mr. Vekariya, will be starting up soon. Sessions begin at 7:30am, but feel free to arrive whenever you can. A free breakfast will be provided at the end ...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-05",
+              "2026-02-06",
+              "2026-02-07",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12",
+              "2026-02-13",
+              "2026-02-14",
+              "2026-02-15",
+              "2026-02-16",
+              "2026-02-17"
+            ]
+          },
+          {
+            "title": "Opens Boys and Girls Touch Football",
+            "content": "Good morning! Any students interested in representing RHHS in Touch Football in 2026, please come and complete the sign up sheet outside of staffroom 2 by FRIDAY 13TH FEBRUARY. Trials to follow. See Mr Mansfield if you have any questions. Thanks!",
+            "contentHtml": "<span style=\"font-size: 14pt;\">Good morning! Any students interested in representing RHHS in Touch Football in 2026, please come and complete the sign up sheet outside of staffroom 2 by </span><b style=\"font-size: 14pt;\">FRIDAY 13TH FEBRUARY. </b><span style=\"font-size: 14pt;\">Trials to follow. See Mr Mansfield if you have any questions. Thanks!</span>",
+            "preview": "Good morning! Any students interested in representing RHHS in Touch Football in 2026, please come and complete the sign up sheet outside of staffroom 2 by FRIDAY 13TH FEBRUARY. Trials to follow. See M...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12"
+            ]
+          },
+          {
+            "title": "Partner Primary Schools",
+            "content": "A number of students are picking up siblings from primary schools in the afternoon. In support of our Primary Schools, you need to wait outside the gates of the primary schools for your siblings unless they are in Kindergarten. Otherwise, please stay out of the grounds of other schools unless with a parent.",
+            "contentHtml": "<span style=\"font-size: 10pt;\">A number of students are picking up siblings from primary schools in the afternoon. In support of our Primary Schools, you need to wait outside the gates of the primary schools for your siblings unless they are in Kindergarten. Otherwise, please stay out of the grounds of other schools unless with a parent.</span>",
+            "preview": "A number of students are picking up siblings from primary schools in the afternoon. In support of our Primary Schools, you need to wait outside the gates of the primary schools for your siblings unles...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11"
+            ]
+          },
+          {
+            "title": "School Photos 2026",
+            "content": "School Photos will be happening on Monday the 16th and Tuesday the 17th of February (Week 4).Stage 6, Year 7, and Year 10 will be on Monday.Year 8 and Year 9 will be on Tuesday. Sibling Photos and Speciality Photos will occur over both days, so please be prepared for either day.  If you are absent on both days, Monday 23rd February will be a catch up day. Your parents/guardians will be sent the payment and ordering details through SchoolBytes.  Any questions please see Miss Magyar or Ms Wang in Staffroom 2",
+            "contentHtml": "<p>School Photos will be happening on Monday the 16th and Tuesday the 17th of February (Week 4).</p><p>Stage 6, Year 7, and Year 10 will be on Monday.</p><p>Year 8 and Year 9 will be on Tuesday.&nbsp;</p><p>Sibling Photos and Speciality Photos will occur over both days, so please be prepared for either day.&nbsp;&nbsp;</p><p>If you are absent on both days, Monday 23rd February will be a catch up day.&nbsp;</p><p>Your parents/guardians will be sent the payment and ordering details through SchoolBytes.&nbsp;</p><p>&nbsp;</p><p>Any questions please see Miss Magyar or Ms Wang in Staffroom 2&nbsp;</p>",
+            "preview": "School Photos will be happening on Monday the 16th and Tuesday the 17th of February (Week 4).Stage 6, Year 7, and Year 10 will be on Monday.Year 8 and Year 9 will be on Tuesday. Sibling Photos and Spe...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12"
+            ]
+          },
+          {
+            "title": "State Dance Company",
+            "content": "The State Dance Company is an advanced program for talented NSW public school dancers in Years 4–12. It offers a progression pathway for high-potential dancers through four intensive workshops in Sydney, where students train, rehearse, and perform new works with industry tutors. The program focuses on excellence in technique, composition, and performance, with opportunities to perform at the State Dance Festival and Schools Spectacular. If you are interested in applying, please see Miss McMillan in Staffroom 2 for more information. Applications Close Friday 3rd April (Week 10)",
+            "contentHtml": "<p>The <span data-start=\"79\" data-end=\"102\">State Dance Company</span> is an advanced program for talented NSW public school dancers in Years 4–12. It offers a progression pathway for high-potential dancers through four intensive workshops in Sydney, where students train, rehearse, and perform new works with industry tutors. The program focuses on excellence in technique, composition, and performance, with opportunities to perform at the State Dance Festival and Schools Spectacular.</p><p>&nbsp;</p><p><span data-start=\"520\" data-end=\"618\">If you are interested in applying, please see Miss McMillan in Staffroom 2 for more information.</span><span style=\"font-size: 9pt;\">&nbsp;</span></p><p><b><i>Applications Close Friday 3rd April (Week 10)</i></b></p>",
+            "preview": "The State Dance Company is an advanced program for talented NSW public school dancers in Years 4–12. It offers a progression pathway for high-potential dancers through four intensive workshops in Sydn...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12",
+              "2026-02-15",
+              "2026-02-16",
+              "2026-02-17"
+            ]
+          },
+          {
+            "title": "SW RUGBY LEAGUE",
+            "content": "Hi All, There is opportunities for both boys and girls to trial for the Sydney West Rugby League Team for the U16s and U18s. For boys you must be playing at least Division 1 to attend.If you wish to attend please come speak with Mr. Garcia in staffroom 2.",
+            "contentHtml": "<p>Hi All,</p><p>&nbsp;</p><p>There is opportunities for both boys and girls to trial for the Sydney West Rugby League Team for the U16s and U18s.</p><p>&nbsp;</p><p>For boys you must be playing at least <b>Division 1</b> to attend.</p><p><br></p><p>If you wish to attend please come speak with Mr. Garcia in staffroom 2.</p>",
+            "preview": "Hi All, There is opportunities for both boys and girls to trial for the Sydney West Rugby League Team for the U16s and U18s. For boys you must be playing at least Division 1 to attend.If you wish to a...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12",
+              "2026-02-15",
+              "2026-02-16",
+              "2026-02-17"
+            ]
+          },
+          {
+            "title": "U/16s Boys AFL Team",
+            "content": "If you are interested in competing in the schools U/16s boys AFL team, please complete the sign up sheet located out the front of staffroom 2. There will be a trial/training session during Week 3 and Week 4. Please see Mr Johns if you have any questions.",
+            "contentHtml": "<p>If you are interested in competing in the schools U/16s boys AFL team, please complete the sign up sheet located out the front of staffroom 2. There will be a trial/training session during Week 3 and Week 4.</p><p>&nbsp;</p><p>Please see Mr Johns if you have any questions.&nbsp;</p>",
+            "preview": "If you are interested in competing in the schools U/16s boys AFL team, please complete the sign up sheet located out the front of staffroom 2. There will be a trial/training session during Week 3 and ...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12"
+            ]
+          },
+          {
+            "title": "Valentine's Day",
+            "content": "Do you love someone!?  buy them a rose this valentines!! ❤️From Thursday week 2 - Wednesday week 3 every recess and lunch! CASH ONLY - No Eftpos avaliable1 rose - $32 roses - $5Small Bouquet (3 roses and a bow) - $8 Serenade + card package (no rose) - $5Serenade + Small Bouquet - $10 🌹🌹🌹🌹🌹🌹🌹🌹🌹🌹🌹🌹",
+            "contentHtml": "<p dir=\"ltr\">Do you love someone!?&nbsp; buy them a rose this valentines!! ❤️</p><p dir=\"ltr\">From Thursday week 2 - Wednesday week 3 every recess and lunch!</p><p>&nbsp;</p><p>CASH ONLY - <u>No Eftpos avaliable</u></p><br><p dir=\"ltr\">1 rose - $3</p><p dir=\"ltr\">2 roses - $5</p><p dir=\"ltr\">Small Bouquet (3 roses and a bow) - $8&nbsp;</p><p dir=\"ltr\">Serenade + card package (no rose) - $5</p><p>Serenade + Small Bouquet - $10&nbsp;</p><p dir=\"ltr\">🌹🌹🌹🌹🌹🌹🌹🌹🌹🌹🌹🌹</p><div></div>",
+            "preview": "Do you love someone!?  buy them a rose this valentines!! ❤️From Thursday week 2 - Wednesday week 3 every recess and lunch! CASH ONLY - No Eftpos avaliable1 rose - $32 roses - $5Small Bouquet (3 roses ...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09"
+            ]
+          },
+          {
+            "title": "Wanders 5 School Cup Sign-Up",
+            "content": "If you are interested in participating in the Wanders 5 School Cup, please complete the sign-up sheets located outside Staffroom 2.There will be boys’ and girls’ teams for the following year groups:Year 7/8Year 9/10Stage 6Please only sign the sheet for your own year group. If you have any questions, please see Mr. Garcia.",
+            "contentHtml": "<p><span style=\"font-size: 9pt;\">If you are interested in participating in the Wanders 5 School Cup, please complete the sign-up sheets located outside Staffroom 2.</span></p><p dir=\"ltr\">There will be boys’ and girls’ teams for the following year groups:</p><ul><li dir=\"ltr\">Year 7/8</li><li dir=\"ltr\">Year 9/10</li><li dir=\"ltr\">Stage 6</li></ul><p dir=\"ltr\">Please only sign the sheet for your own year group.</p><p>&nbsp;</p><p dir=\"ltr\">If you have any questions, please see Mr. Garcia.</p><p>&nbsp;</p>",
+            "preview": "If you are interested in participating in the Wanders 5 School Cup, please complete the sign-up sheets located outside Staffroom 2.There will be boys’ and girls’ teams for the following year groups:Ye...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12",
+              "2026-02-15",
+              "2026-02-16",
+              "2026-02-17"
+            ]
+          },
+          {
+            "title": "Year 9/10 China Club - lion dance rehearsal",
+            "content": "Year 9/10 China Club members meet Mrs Wang at the Movt Studio at the start of p.3 today.Come straight there. Don't get your name marked off by your usual teacher.Mrs Wang will let them know.",
+            "contentHtml": "<p>Year 9/10 China Club members meet Mrs Wang at the Movt Studio at the start of p.3 today.</p><p>Come straight there. Don't get your name marked off by your usual teacher.</p><p>Mrs Wang will let them know.&nbsp;</p>",
+            "preview": "Year 9/10 China Club members meet Mrs Wang at the Movt Studio at the start of p.3 today.Come straight there. Don't get your name marked off by your usual teacher.Mrs Wang will let them know.",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10"
+            ]
+          },
+          {
+            "title": "Yr 1.0 -1.1 TAFE Collect room details",
+            "content": "Years 1.0 -1.2 TAFE Starts next week Dear TAFE students,URGENT -Your courses start next week. Please collect your room details document from the Careers room TODAY. Please make sure you sign out of school at the OFFICE before you leave for your TAFE courses.Information was also included on your OFFER sheets that you and your parents signed. If you have any further questions please see me in the Careers room.Thank you. Ms Henson CA",
+            "contentHtml": "<p>Years 1.0 -1.2 TAFE Starts next week</p><p>&nbsp;</p><p>Dear TAFE students,</p><p><b><i>URGENT -Your courses start next week.&nbsp;Please collect your room details document from the Careers room TODAY.</i></b> </p><p>Please make sure you sign out of school at the OFFICE before you leave for your TAFE courses.</p><p>Information was <i>also included on your OFFER sheets</i> that you and your parents signed. If you have any further questions please see me in the Careers room.</p><p>Thank you.&nbsp;</p><p>Ms Henson CA&nbsp;&nbsp;</p>",
+            "preview": "Years 1.0 -1.2 TAFE Starts next week Dear TAFE students,URGENT -Your courses start next week. Please collect your room details document from the Careers room TODAY. Please make sure you sign out of sc...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12"
+            ]
+          },
+          {
+            "title": "Yrs 9& 10 White Card Course Thursday 26th Feb",
+            "content": "Years 9 & 1.0 White Card CourseTerm 1 Thursday 26th February  Students who are registered to attend the White Card course on Thursday 26th February are reminded to be at school by 8:10am with their medicare details, RHHS Student Photo ID, charged laptop and a penTerm 2 White Card course  Any student who is interested in the trades and would like to complete their White Card course can register in the Careers room in the Library.",
+            "contentHtml": "<p><b><u>Years 9 &amp; 1.0 White Card Course</u></b></p><p><b><i>Term 1 Thursday 26th February&nbsp;</i></b>&nbsp;</p><p>Students who are registered to attend the White Card course on Thursday 26th February <i>are reminded to be at school by 8:10am with their medicare details, RHHS Student Photo ID, charged</i> <i>laptop and a pen</i></p><p><b><i>Term 2 White Card course</i></b>&nbsp;&nbsp;</p><p>Any student who is interested in the trades and would like to complete their White Card course can register in the Careers room in the Library.</p><p>&nbsp;</p><p>&nbsp;</p>",
+            "preview": "Years 9 & 1.0 White Card CourseTerm 1 Thursday 26th February  Students who are registered to attend the White Card course on Thursday 26th February are reminded to be at school by 8:10am with their me...",
+            "date": "2026-02-10",
+            "dates": [
+              "2026-02-10",
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-11",
+              "2026-02-12",
+              "2026-02-15",
+              "2026-02-16",
+              "2026-02-17"
+            ]
+          },
+          {
+            "title": "Girls Opens Netball 2026",
+            "content": "Are you interested in representing the school in Netball? The Macquarie Cup Knockouts Comp is open to all years 7-12. If you would like to try out for the team, please indicate your interest on the sheet outside Staffroom 2. Tryouts will be held Wednesday Lunch 4th Feb AND Thursday R1/L2 5th Feb You may come to tryouts without indicating your interest, but it is recommended you fill out the sheet before you arrive.    Any questions? See Miss Magyar (Staffroom 2)",
+            "contentHtml": "<p><span style=\"font-size: 14pt;\"><b>Are you interested in representing the school in <span style=\"color: #0000ff;\">Netball</span></b>? The Macquarie Cup Knockouts Comp is open to all years 7-12.&nbsp;</span></p><p style=\"font-size: 14pt;\">If you would like to try out for the team, <u>please indicate your interest on the sheet outside Staffroom 2</u>.&nbsp;</p><p><span style=\"font-size: 14pt;\"><span style=\"color: red;\"><b>Tryouts will be held Wednesday Lunch 4th Feb AND Thursday R1/L2 5th Feb&nbsp;</b></span></span></p><p>You may come to tryouts without indicating your interest, but it is recommended you fill out the sheet before you arrive.&nbsp;&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><b><span style=\"font-size: 14pt;\">Any questions? See Miss Magyar (Staffroom 2)</span></b></p>",
+            "preview": "Are you interested in representing the school in Netball? The Macquarie Cup Knockouts Comp is open to all years 7-12. If you would like to try out for the team, please indicate your interest on the sh...",
+            "date": "2026-02-03",
+            "dates": [
+              "2026-02-03",
+              "2026-02-04"
+            ]
+          },
+          {
+            "title": "Pulse Alive 2026",
+            "content": "If you are interested in representing Rouse Hill High School as part of our Dance Ensemble for Pulse Alive 2026, please attend the information meeting on Wednesday 4th February at Recess in the Movement Studio. \nThis meeting is essential for any student wishing to be involved.\nPlease see Ms McMillan if you have any questions.",
+            "contentHtml": "<p><span style=\"font-size: 9pt;\">If you are interested in representing Rouse Hill High School as part of our Dance Ensemble for </span><span data-start=\"288\" data-end=\"308\" style=\"font-size: 9pt;\">Pulse Alive 2026</span><span style=\"font-size: 9pt;\">, please attend the information meeting on </span><span data-start=\"351\" data-end=\"387\" style=\"font-size: 9pt;\">Wednesday 4th February at Recess</span><span style=\"font-size: 9pt;\"> in the Movement Studio.</span></p><p>&nbsp;</p>\n<p data-start=\"451\" data-end=\"569\"><i>This meeting is essential for any student wishing to be involved.</i><br data-start=\"516\" data-end=\"519\">\nPlease see <span data-start=\"530\" data-end=\"542\">Ms McMillan&nbsp;</span>if you have any questions.</p><p>&nbsp;</p>",
+            "preview": "If you are interested in representing Rouse Hill High School as part of our Dance Ensemble for Pulse Alive 2026, please attend the information meeting on Wednesday 4th February at Recess in the Moveme...",
+            "date": "2026-02-03",
+            "dates": [
+              "2026-02-03"
+            ]
+          },
+          {
+            "title": "RHHS Dance Group 2026",
+            "content": "Auditions for our 2026 Dance Groups will be held in Week 3.We will be selecting two groups this year: Stage 4 (Year 7 & 8) and Stage 5/6 Combined (Years 9-12).All interested students are encouraged to sign up using the sheet located outside Staffroom 2.\nStage 5&6 auditions will be held on Wednesday 11 February in the Movement Studio at Recess 1Stage 4 auditions will be held Thursday 12th February in the Movement Studio at Recess 1 If you have any questions, please see Miss McMillan in Staffroom 2.",
+            "contentHtml": "<p data-start=\"69\" data-end=\"124\"><b><u>Auditions for our 2026 Dance Groups will be held in Week 3.</u></b></p><p>We will be selecting two groups this year: Stage 4 (Year 7 &amp; 8) and Stage 5/6 Combined (Years 9-12).</p><p>All interested students are encouraged to sign up using the sheet located outside Staffroom 2.</p>\n<p data-start=\"363\" data-end=\"489\"></p><ul><li><b><span style=\"color: #cc99ff;\">Stage 5&amp;6 auditions will be held on Wednesday 11 February in the Movement Studio at Recess 1</span></b></li><li><b><span style=\"color: #99ccff;\"><span style=\"color: #00ccff;\">Stage 4 auditions will be held Thursday 12th February in the Movement Studio at Recess 1</span></span></b></li></ul><p>&nbsp;</p><p><i style=\"font-size: 9pt;\">If you have any questions, please see Miss McMillan in Staffroom 2.&nbsp;</i></p><p>&nbsp;</p>",
+            "preview": "Auditions for our 2026 Dance Groups will be held in Week 3.We will be selecting two groups this year: Stage 4 (Year 7 & 8) and Stage 5/6 Combined (Years 9-12).All interested students are encouraged to...",
+            "date": "2026-02-03",
+            "dates": [
+              "2026-02-03",
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09"
+            ]
+          },
+          {
+            "title": "Open Boys Volleyball",
+            "content": "Any boy interested in Open Boys Volleyball needs to write there name on the sign on sheet outside Staffroom 2.  Tryouts:Monday February 9 Lunch 11-12Tuesday February 10 Recess 9-10 Kind RegardsMr CarterVolleyball Coach",
+            "contentHtml": "<p>Any boy interested in Open Boys Volleyball needs to write there name on the sign on sheet outside Staffroom 2.</p><p>&nbsp;</p><p>&nbsp;Tryouts:</p><p>Monday February 9 Lunch 11-12</p><p>Tuesday February 10 Recess 9-10</p><p>&nbsp;</p><p>Kind Regards</p><p>Mr Carter</p><p>Volleyball Coach&nbsp;</p>",
+            "preview": "Any boy interested in Open Boys Volleyball needs to write there name on the sign on sheet outside Staffroom 2.  Tryouts:Monday February 9 Lunch 11-12Tuesday February 10 Recess 9-10 Kind RegardsMr Cart...",
+            "date": "2026-02-04",
+            "dates": [
+              "2026-02-04",
+              "2026-02-05",
+              "2026-02-08",
+              "2026-02-09"
+            ]
+          },
+          {
+            "title": "China Club -  Years 7,8,11 & 12",
+            "content": "The China Club group for any interested year 7,8,11 & 12 students will meet on Tuesday recess 1 in E111 (little seminar room at the top of E block). We will use this session to decorate the front office for Chinese New Year.",
+            "contentHtml": "<p>The China Club group for any interested year 7,8,11 &amp; 12 students will meet on Tuesday recess 1 in E111 (little seminar room at the top of E block).</p><p>&nbsp;</p><p>We will use this session to decorate the front office for Chinese New Year.</p>",
+            "preview": "The China Club group for any interested year 7,8,11 & 12 students will meet on Tuesday recess 1 in E111 (little seminar room at the top of E block). We will use this session to decorate the front offi...",
+            "date": "2026-02-08",
+            "dates": [
+              "2026-02-08",
+              "2026-02-09",
+              "2026-02-15",
+              "2026-02-16"
+            ]
+          }
+        ],
+        "grades": [],
+        "attendance": {
+          "yearly": [
+            {
+              "year": "2026",
+              "schoolDays": 8,
+              "wholeDayAbsences": 3,
+              "wholeDayPercentage": 62.5,
+              "partialAbsences": 0,
+              "totalPercentage": 62.5
+            },
+            {
+              "year": "2025",
+              "schoolDays": 192,
+              "wholeDayAbsences": 29,
+              "wholeDayPercentage": 84.9,
+              "partialAbsences": 0.5,
+              "totalPercentage": 84.63
+            },
+            {
+              "year": "2024",
+              "schoolDays": 195,
+              "wholeDayAbsences": 17,
+              "wholeDayPercentage": 91.3,
+              "partialAbsences": 0,
+              "totalPercentage": 91.28
+            },
+            {
+              "year": "2023",
+              "schoolDays": 194,
+              "wholeDayAbsences": 11,
+              "wholeDayPercentage": 94.3,
+              "partialAbsences": 0,
+              "totalPercentage": 94.32
+            },
+            {
+              "year": "2022",
+              "schoolDays": 192,
+              "wholeDayAbsences": 19,
+              "wholeDayPercentage": 90.1,
+              "partialAbsences": 0,
+              "totalPercentage": 90.1
+            },
+            {
+              "year": "2021",
+              "schoolDays": 194,
+              "wholeDayAbsences": 3,
+              "wholeDayPercentage": 98.5,
+              "partialAbsences": 0.03,
+              "totalPercentage": 98.43
+            }
+          ],
+          "subjects": [
+            {
+              "classCode": "1.2PAUSE.2",
+              "rollsMarked": 0,
+              "absent": 0,
+              "percentage": null
+            },
+            {
+              "classCode": "PCHE.C",
+              "rollsMarked": 12,
+              "absent": 6,
+              "percentage": 50
+            },
+            {
+              "classCode": "PMAX1.A",
+              "rollsMarked": 2,
+              "absent": 2,
+              "percentage": 0
+            },
+            {
+              "classCode": "PPHY.B",
+              "rollsMarked": 9,
+              "absent": 3,
+              "percentage": 66.67
+            },
+            {
+              "classCode": "PSOR1.A",
+              "rollsMarked": 9,
+              "absent": 0,
+              "percentage": 100
+            }
+          ]
+        },
+        "calendar": [
+          {
+            "date": "25 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "29 Sep",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "30 Sep",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "1 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "2 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "3 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "4 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "5 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "6 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "7 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "8 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "9 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "10 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "13 Oct",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "25 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "22 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "23 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "24 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "26 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "27 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "28 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "29 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "30 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "31 Dec",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "1 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "2 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "3 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "4 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "5 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "6 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "7 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "8 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "9 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "10 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "11 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "12 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "13 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "14 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "15 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "16 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "17 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "18 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "19 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "20 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "21 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "22 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "23 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "24 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "26 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "27 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "28 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "29 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "30 Jan",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "3 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "4 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "5 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "6 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "7 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "8 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "9 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "10 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "11 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "12 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "13 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "14 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "15 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "16 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "17 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "20 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "21 Apr",
+            "title": "Holidays",
+            "type": "holiday"
+          },
+          {
+            "date": "8 Jun",
+            "title": "Holidays",
+            "type": "holiday"
+          }
+        ],
+        "reports": [
+          {
+            "title": "Year 11 - Semester 2 Report - 2025",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2025&s=2",
+            "yearLevel": "Year 11",
+            "semester": 2,
+            "calendarYear": 2025
+          },
+          {
+            "title": "Year 11 - Semester 1 Report - 2025",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2025&s=1",
+            "yearLevel": "Year 11",
+            "semester": 1,
+            "calendarYear": 2025
+          },
+          {
+            "title": "Year 10 - Semester 2 Report - 2024",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2024&s=2",
+            "yearLevel": "Year 10",
+            "semester": 2,
+            "calendarYear": 2024
+          },
+          {
+            "title": "Year 10 - Semester 1 Report - 2024",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2024&s=1",
+            "yearLevel": "Year 10",
+            "semester": 1,
+            "calendarYear": 2024
+          },
+          {
+            "title": "Year 9 - Semester 2 Report - 2023",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2023&s=2",
+            "yearLevel": "Year 9",
+            "semester": 2,
+            "calendarYear": 2023
+          },
+          {
+            "title": "Year 9 - Semester 1 Report - 2023",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2023&s=1",
+            "yearLevel": "Year 9",
+            "semester": 1,
+            "calendarYear": 2023
+          },
+          {
+            "title": "Year 8 - Semester 2 Report - 2022",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2022&s=2",
+            "yearLevel": "Year 8",
+            "semester": 2,
+            "calendarYear": 2022
+          },
+          {
+            "title": "Year 8 - Semester 1 Report - 2022",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2022&s=1",
+            "yearLevel": "Year 8",
+            "semester": 1,
+            "calendarYear": 2022
+          },
+          {
+            "title": "Year 7 - Semester 2 Report - 2021",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2021&s=2",
+            "yearLevel": "Year 7",
+            "semester": 2,
+            "calendarYear": 2021
+          },
+          {
+            "title": "Year 7 - Semester 1 Report - 2021",
+            "url": "https://millennium.education/portal/viewreportfullPDF.asp?uid=424840&year=2021&s=1",
+            "yearLevel": "Year 7",
+            "semester": 1,
+            "calendarYear": 2021
+          }
+        ],
+        "classes": [
+          {
+            "course": "12 PAUSE",
+            "classCode": "1.2PAUSE.2",
+            "teacher": "Miss M Gul",
+            "room": "",
+            "lessons": 0,
+            "quickMerits": 0,
+            "rollsMarked": 0,
+            "absences": 0
+          },
+          {
+            "course": "Stage 6 Chemistry Preliminary",
+            "classCode": "PCHE.C",
+            "teacher": "Ms F Deb Chaudhuri, Ms D Pahwa",
+            "room": "",
+            "lessons": 0,
+            "quickMerits": 0,
+            "rollsMarked": 12,
+            "absences": 0
+          },
+          {
+            "course": "Stage 6 Mathematics Extension 1 Preliminary",
+            "classCode": "PMAX1.A",
+            "teacher": "Mr A Sharma",
+            "room": "",
+            "lessons": 0,
+            "quickMerits": 0,
+            "rollsMarked": 2,
+            "absences": 0
+          },
+          {
+            "course": "Stage 6 Physics Preliminary",
+            "classCode": "PPHY.B",
+            "teacher": "Mr S Harrison, Mrs G Kaur",
+            "room": "",
+            "lessons": 0,
+            "quickMerits": 0,
+            "rollsMarked": 9,
+            "absences": 0
+          },
+          {
+            "course": "Stage 6 Studies of Religion 1 Unit Preliminary",
+            "classCode": "PSOR1.A",
+            "teacher": "Ms K Mathias",
+            "room": "",
+            "lessons": 0,
+            "quickMerits": 0,
+            "rollsMarked": 9,
+            "absences": 0
+          }
+        ]
+      }
+    }
+  },
+  "lastUpdated": "2026-02-10T21:48:14.803Z"
+}

@@ -1,0 +1,85 @@
+{
+  "courses": [
+    {
+      "id": "ODMyNTExMjA1OTA5",
+      "name": "2026 Do Now Ext 1",
+      "section": "Extension",
+      "teacher": "Atul Sharma",
+      "link": "https://classroom.google.com/u/1/c/ODMyNTExMjA1OTA5",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODMyNTExMjA1OTA5/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODMyNTExMjA1OTA5/"
+    },
+    {
+      "id": "ODIzMDkxMTkwODc0",
+      "name": "Chemistry Assessment 2026",
+      "section": "",
+      "teacher": "Stewart Harrison",
+      "link": "https://classroom.google.com/u/1/c/ODIzMDkxMTkwODc0",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODIzMDkxMTkwODc0/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODIzMDkxMTkwODc0/"
+    },
+    {
+      "id": "ODE3NzQ3MDY1OTcw",
+      "name": "Prelim Studies of Religion 2026",
+      "section": "",
+      "teacher": "Beate Mannes",
+      "link": "https://classroom.google.com/u/1/c/ODE3NzQ3MDY1OTcw",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODE3NzQ3MDY1OTcw/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODE3NzQ3MDY1OTcw/"
+    },
+    {
+      "id": "ODIyMzEzNjQ4OTY2",
+      "name": "Chemistry Line C 2026",
+      "section": "Ms Chaudhuri/Ms Pahwa",
+      "teacher": "Falguni Deb Chaudhuri",
+      "link": "https://classroom.google.com/u/1/c/ODIyMzEzNjQ4OTY2",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODIyMzEzNjQ4OTY2/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODIyMzEzNjQ4OTY2/"
+    },
+    {
+      "id": "ODA4NDM1Mzk0NDQz",
+      "name": "P/HMAX1.",
+      "section": "2026 | Mr Sharma",
+      "teacher": "Atul Sharma",
+      "link": "https://classroom.google.com/u/1/c/ODA4NDM1Mzk0NDQz",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODA4NDM1Mzk0NDQz/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODA4NDM1Mzk0NDQz/"
+    },
+    {
+      "id": "ODEzMjU3Mzg1MzI0",
+      "name": "Physics Assessment 2026",
+      "section": "",
+      "teacher": "Nic O'leary",
+      "link": "https://classroom.google.com/u/1/c/ODEzMjU3Mzg1MzI0",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODEzMjU3Mzg1MzI0/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODEzMjU3Mzg1MzI0/"
+    },
+    {
+      "id": "ODIwMTQ2OTQ5Mzk0",
+      "name": "Physics Line B 2026",
+      "section": "Harrison & Kaur",
+      "teacher": "Nic O'leary",
+      "link": "https://classroom.google.com/u/1/c/ODIwMTQ2OTQ5Mzk0",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODIwMTQ2OTQ5Mzk0/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODIwMTQ2OTQ5Mzk0/"
+    },
+    {
+      "id": "ODI4NzQwNjYzNTAw",
+      "name": "1.2 PAUSE",
+      "section": "",
+      "teacher": "Ezgi Erdem",
+      "link": "https://classroom.google.com/u/1/c/ODI4NzQwNjYzNTAw",
+      "classworkLink": "https://classroom.google.com/u/1/w/ODI4NzQwNjYzNTAw/t/all",
+      "streamLink": "https://classroom.google.com/u/1/c/ODI4NzQwNjYzNTAw/"
+    }
+  ],
+  "items": [],
+  "lastUpdated": "2026-02-10T01:10:49.162Z",
+  "lastFullSync": "2026-02-10T01:10:49.162Z",
+  "syncStats": {
+    "totalSyncs": 8,
+    "lastSyncMode": "deep",
+    "lastSyncItemsAdded": 0,
+    "lastSyncItemsUpdated": 0
+  }
+}

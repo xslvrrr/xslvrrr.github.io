@@ -1,0 +1,67 @@
+{
+    "manifest_version": 3,
+    "name": "Millennium Portal Sync",
+    "version": "1.2.1",
+    "description": "Syncs your Millennium Portal and Google Classroom data with the redesigned interface",
+    "icons": {
+        "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "permissions": [
+        "storage",
+        "activeTab",
+        "tabs"
+    ],
+    "host_permissions": [
+        "https://millennium.education/*",
+        "https://classroom.google.com/*",
+        "http://localhost:3000/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://millennium.education/portal/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "https://classroom.google.com/*",
+                "https://classroom.google.com/u/*"
+            ],
+            "js": [
+                "classroom-content.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "Millennium Sync",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "32": "icons/icon32.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "icons/*"
+            ],
+            "matches": [
+                "https://millennium.education/*",
+                "https://classroom.google.com/*"
+            ]
+        }
+    ]
+}
