@@ -71,6 +71,8 @@ function TooltipContent({
   children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Popup> & {
+  side?: "top" | "bottom" | "left" | "right"
+  sideOffset?: number
   align?: "start" | "center" | "end"
 }) {
   return (
@@ -99,8 +101,6 @@ function TooltipContent({
               strokeWidth: 1.25,
               paintOrder: "stroke",
             }}
-            strokeLinejoin="round"
-            strokeLinecap="round"
           />
         </TooltipPrimitive.Popup>
       </TooltipPrimitive.Positioner>
