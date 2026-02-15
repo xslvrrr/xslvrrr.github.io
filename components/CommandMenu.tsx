@@ -96,21 +96,21 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
         const navReportsShortcut = getShortcut('nav-reports')
         const navAttendanceShortcut = getShortcut('nav-attendance')
         const navSettingsShortcut = getShortcut('nav-settings')
-        
+
         // Action shortcuts
         const logoutShortcut = getShortcut('action-logout')
-        
+
         // Calendar shortcuts
         const calCreateEventShortcut = getShortcut('calendar-create-event')
         const calDayViewShortcut = getShortcut('calendar-day-view')
         const calWeekViewShortcut = getShortcut('calendar-week-view')
         const calMonthViewShortcut = getShortcut('calendar-month-view')
         const calTodayShortcut = getShortcut('calendar-today')
-        
+
         // Timetable shortcuts
         const ttWeekAShortcut = getShortcut('timetable-week-a')
         const ttWeekBShortcut = getShortcut('timetable-week-b')
-        
+
         // Notification shortcuts
         const notifInboxShortcut = getShortcut('notifications-inbox')
         const notifPinnedShortcut = getShortcut('notifications-pinned')
@@ -118,7 +118,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
         const notifEventsShortcut = getShortcut('notifications-events')
         const notifAssignmentsShortcut = getShortcut('notifications-assignments')
         const notifArchiveShortcut = getShortcut('notifications-archive')
-        
+
         // Settings shortcuts
         const settingsGeneralShortcut = getShortcut('settings-general')
         const settingsAppearanceShortcut = getShortcut('settings-appearance')
@@ -178,7 +178,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
 
         if (notificationFolders.length > 0) {
             notificationFolders.forEach((folder) => {
-                const FolderIcon = (TablerIcons as Record<string, React.ComponentType<{ size?: number }>>)[folder.icon] || IconFolder
+                const FolderIcon = (TablerIcons as unknown as Record<string, React.ComponentType<{ size?: number }>>)[folder.icon] || IconFolder
                 items.push({
                     id: `notifications-folder-${folder.id}`,
                     label: folder.title,
@@ -203,17 +203,17 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
 
         const query = inputValue.toLowerCase()
         const queryLower = query.toLowerCase()
-        
+
         // Score and filter commands based on match priority
         const scoredCommands = commands
             .map(cmd => {
                 const labelLower = cmd.label.toLowerCase()
                 const descLower = cmd.description?.toLowerCase() || ''
                 const categoryLower = cmd.category.toLowerCase()
-                
+
                 let score = 0
                 let matches = false
-                
+
                 // Priority 1: Exact label match (highest priority)
                 if (labelLower === queryLower) {
                     score = 1000
@@ -244,13 +244,13 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                     score = 50
                     matches = true
                 }
-                
+
                 return { cmd, score, matches }
             })
             .filter(item => item.matches)
             .sort((a, b) => b.score - a.score) // Sort by score descending
             .map(item => item.cmd)
-        
+
         return scoredCommands
     }, [commands, inputValue])
 
