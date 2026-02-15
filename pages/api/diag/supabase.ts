@@ -14,6 +14,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const tablesToCheck = ['users', 'login_tokens', 'classroom_data'];
 
+    if (!supabaseAdmin) {
+        results.error = "Supabase client not initialized. Check env vars.";
+        return res.status(200).json(results);
+    }
+
     for (const table of tablesToCheck) {
         try {
             const { data, error, count } = await supabaseAdmin
