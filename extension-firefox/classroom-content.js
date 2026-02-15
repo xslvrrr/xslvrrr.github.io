@@ -860,7 +860,7 @@
             if (isIncremental) {
                 updateStatus('Checking last sync time...', 0);
                 try {
-                    const response = await fetch('http://localhost:3000/api/extension/classroom-sync');
+                    const response = await fetch('http://millennium-five.vercel.app/api/extension/classroom-sync');
                     const data = await response.json();
                     if (data.success && data.data?.lastUpdated) {
                         lastSyncTime = data.data.lastUpdated;
@@ -1360,7 +1360,7 @@
         document.body.appendChild(overlay);
 
         document.getElementById('mcsOpen')?.addEventListener('click', () => {
-            window.open('http://localhost:3000/dashboard', '_blank');
+            window.open('http://millennium-five.vercel.app/dashboard', '_blank');
             overlay.remove();
         });
         document.getElementById('mcsClose')?.addEventListener('click', () => overlay.remove());

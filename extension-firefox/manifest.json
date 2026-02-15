@@ -20,7 +20,7 @@
         "tabs",
         "https://millennium.education/*",
         "https://classroom.google.com/*",
-        "http://localhost:3000/*"
+        "http://millennium-five.vercel.app/*"
     ],
     "content_scripts": [
         {

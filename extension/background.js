@@ -1,7 +1,7 @@
 // Background service worker
 // Handles communication and full sync orchestration
 
-const APP_URL = 'http://localhost:3000';
+const APP_URL = 'http://millennium-five.vercel.app';
 
 // Listen for messages from content script and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -235,7 +235,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
     if (details.reason === 'install') {
         // Open onboarding or instructions
-        chrome.tabs.create({ url: 'http://localhost:3000/extension-installed' });
+        chrome.tabs.create({ url: 'http://millennium-five.vercel.app/extension-installed' });
     }
 });
 

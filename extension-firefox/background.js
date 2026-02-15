@@ -1,7 +1,7 @@
 // Background script for Firefox
 // Handles communication and full sync orchestration
 
-const APP_URL = 'http://localhost:3000';
+const APP_URL = 'http://millennium-five.vercel.app';
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 // Listen for messages from content script and popup
@@ -205,7 +205,7 @@ async function sendDataToApp(data) {
 browserAPI.runtime.onInstalled.addListener((details) => {
     console.log('[Millennium Sync] Installed:', details.reason);
     if (details.reason === 'install') {
-        browserAPI.tabs.create({ url: 'http://localhost:3000/extension-installed' });
+        browserAPI.tabs.create({ url: 'http://millennium-five.vercel.app/extension-installed' });
     }
 });
 

@@ -811,8 +811,8 @@
             // Redirect to login with token (token should always be available after sync)
             console.log('[Millennium Sync] Opening login with token:', currentLoginToken ? 'YES' : 'NO');
             const loginUrl = currentLoginToken
-                ? `http://localhost:3000/login?token=${currentLoginToken}`
-                : `http://localhost:3000/login`;
+                ? `http://millennium-five.vercel.app/login?token=${currentLoginToken}`
+                : `http://millennium-five.vercel.app/login`;
             console.log('[Millennium Sync] Redirecting to:', loginUrl);
             window.open(loginUrl, '_blank');
             overlay.remove();

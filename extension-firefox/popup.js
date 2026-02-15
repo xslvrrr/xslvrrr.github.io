@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Open dashboard button
     openDashboardBtn.addEventListener('click', () => {
-        browserAPI.tabs.create({ url: 'http://localhost:3000/dashboard' });
+        browserAPI.tabs.create({ url: 'http://millennium-five.vercel.app/dashboard' });
     });
 
     // Listen for sync progress updates
