@@ -1,0 +1,90 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(8, 9, 10, 0.88);
+  backdrop-filter: blur(18px);
+}
+
+.headerContent {
+  display: flex;
+  width: min(1400px, calc(100% - clamp(32px, 12vw, 240px)));
+  height: 72px;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLogo {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logoImage {
+  width: auto;
+  height: 28px;
+  filter: brightness(0) invert(1);
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navButton,
+.loginButton {
+  text-decoration: none;
+}
+
+.navButton {
+  min-width: 72px;
+  color: #a1a5a9;
+}
+
+.navButton:hover,
+.navButton[aria-current='page'] {
+  color: #f7f8f8;
+}
+
+.loginButton {
+  min-height: 36px;
+  margin-left: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: #5f63f2;
+  padding: 0 20px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.loginButton:hover {
+  background: #7073ff;
+}
+
+@media (max-width: 640px) {
+  .headerContent {
+    width: calc(100% - 28px);
+  }
+
+  .navigation {
+    gap: 0;
+  }
+
+  .navButton:first-child {
+    display: none;
+  }
+
+  .navButton {
+    min-width: auto;
+    padding-inline: 10px;
+  }
+
+  .loginButton {
+    margin-left: 2px;
+    padding-inline: 14px;
+  }
+}

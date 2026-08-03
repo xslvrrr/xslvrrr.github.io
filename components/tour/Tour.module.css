@@ -1,0 +1,91 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  pointer-events: none;
+}
+
+.spotlight {
+  position: fixed;
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgb(5 8 15 / 0.58), 0 0 0 4px color-mix(in srgb, var(--primary) 22%, transparent), 0 12px 40px rgb(0 0 0 / 0.22);
+  outline: 1.5px solid color-mix(in srgb, var(--primary) 72%, white);
+  outline-offset: 3px;
+  pointer-events: none;
+  transition: inset var(--anim-modal-animations-duration, 180ms) var(--anim-modal-animations-easing, ease), width var(--anim-modal-animations-duration, 180ms) var(--anim-modal-animations-easing, ease), height var(--anim-modal-animations-duration, 180ms) var(--anim-modal-animations-easing, ease);
+}
+
+.coachmark {
+  position: fixed;
+  z-index: 10021;
+  width: min(380px, calc(100vw - 24px));
+  pointer-events: auto;
+  gap: 18px;
+  border: 1px solid color-mix(in srgb, var(--border-default) 72%, var(--primary));
+  background: color-mix(in srgb, var(--bg-surface) 94%, transparent);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.32), 0 1px 0 rgb(255 255 255 / 0.08) inset;
+  backdrop-filter: blur(18px) saturate(1.25);
+  animation: tour-enter 180ms ease-out;
+}
+
+.coachmarkHeader {
+  gap: 8px;
+}
+
+.coachmarkMeta {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coachmarkTitle {
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+.progressTrack {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border-default) 72%, transparent);
+}
+
+.progressValue {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-gradient, var(--primary));
+  transition: width 220ms ease;
+}
+
+.coachmarkFooter {
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+}
+
+@keyframes tour-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 640px) {
+  .coachmark {
+    right: 12px !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    left: 12px !important;
+    top: auto !important;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight { transition: none; }
+  .coachmark { animation: none; }
+}
