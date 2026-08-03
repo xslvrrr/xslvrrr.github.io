@@ -63,6 +63,85 @@
     font-size: 12px;
 }
 
+/*
+ * Confirmation dialog overrides.
+ *
+ * The dialog portals to document.body, which puts it outside `.page` and therefore outside the
+ * marketing palette. Left alone it inherits the dashboard tokens on `:root`, where `--background`
+ * is `hsl(0 0% 7%)` — a near-black panel on a 75% black overlay over a #08090a page, with almost
+ * no edge to read against. These rules restate the marketing palette on the portalled elements.
+ *
+ * Specificity is not the mechanism here: the component's Tailwind classes live in
+ * `@layer utilities`, and unlayered CSS module rules beat any layered rule regardless of
+ * specificity. No `!important` is needed, and none should be added.
+ */
+.dialog {
+    max-width: min(420px, calc(100vw - 32px));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    padding: 22px;
+    background: #101113;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+    color: #f7f8f8;
+    /* The portal sits outside `.page`, so the page font has to be restated. */
+    font-family: var(--font-family, "Geist Sans", system-ui, sans-serif);
+    gap: 14px;
+}
+
+.dialogTitle {
+    color: #f7f8f8;
+    font-size: 16px;
+    font-weight: 560;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+}
+
+.dialogDescription {
+    color: #a1a5a9;
+    font-size: 13.5px;
+    line-height: 1.65;
+    text-wrap: pretty;
+}
+
+.dialogCancel,
+.dialogAction {
+    gap: 7px;
+    height: 34px;
+    border-radius: 8px;
+    padding-inline: 14px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 560;
+}
+
+.dialogCancel {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: transparent;
+    color: #a1a5a9;
+}
+
+.dialogCancel:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.06);
+    color: #f7f8f8;
+}
+
+.dialogAction {
+    border: 1px solid transparent;
+    background: #f7f8f8;
+    color: #08090a;
+}
+
+.dialogAction:hover:not(:disabled) {
+    background: #ffffff;
+}
+
+.dialogAction:disabled,
+.dialogCancel:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
 .spin {
     animation: section-bump-spin 900ms linear infinite;
 }
