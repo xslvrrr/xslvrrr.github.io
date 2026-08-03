@@ -1,0 +1,77 @@
+/*
+ * Bump control for changelog sections. Uses the fixed marketing palette rather than dashboard
+ * theme tokens, matching the rest of the public pages.
+ */
+
+.bump {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 0 12px 0 10px;
+    background: rgba(255, 255, 255, 0.03);
+    color: #a1a5a9;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 560;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.bump:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.07);
+    color: #f7f8f8;
+}
+
+.bump:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+.bump:disabled {
+    cursor: default;
+}
+
+/* Already bumped is a state, not an error: keep it legible rather than dimming it away. */
+.bump[data-bumped="true"] {
+    border-color: rgba(255, 214, 122, 0.38);
+    background: rgba(255, 214, 122, 0.1);
+    color: #ffd67a;
+    opacity: 1;
+}
+
+.bump:disabled:not([data-bumped="true"]) {
+    opacity: 0.55;
+}
+
+.bumpIcon {
+    width: 15px;
+    height: 15px;
+}
+
+.bumpCount {
+    min-width: 1ch;
+}
+
+.bumpTooltip {
+    font-size: 12px;
+}
+
+.spin {
+    animation: section-bump-spin 900ms linear infinite;
+}
+
+@keyframes section-bump-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bump { transition: none; }
+    .spin { animation: none; }
+}
