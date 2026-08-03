@@ -2,9 +2,7 @@
  * Public changelog page.
  *
  * Matches the fixed dark marketing palette used by Home.module.css rather than the dashboard
- * theme tokens, because these pages render before any account theme is known. The layout follows
- * the narrow-column, heavy-whitespace changelog convention: a centred countdown hero, then a
- * sticky section index beside a single reading column.
+ * theme tokens, because these pages render before any account theme is known.
  */
 
 .page {
@@ -21,30 +19,14 @@
     min-height: calc(100vh - 73px);
 }
 
-/* Hero -------------------------------------------------------------------- */
+.container {
+    width: min(1400px, calc(100% - clamp(32px, 12vw, 240px)));
+    margin: 0 auto;
+}
 
 .hero {
     position: relative;
-    padding: clamp(84px, 13vh, 168px) clamp(16px, 5vw, 48px) clamp(72px, 10vh, 128px);
-    text-align: center;
-}
-
-.hero::after {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14) 22%, rgba(255, 255, 255, 0.14) 78%, transparent);
-    content: "";
-}
-
-.heroInner {
-    display: flex;
-    max-width: 960px;
-    flex-direction: column;
-    align-items: center;
-    margin: 0 auto;
+    padding: clamp(88px, 12vh, 148px) 0 clamp(56px, 7vh, 96px);
 }
 
 .heroEyebrow {
@@ -67,41 +49,40 @@
 }
 
 .heroLead {
-    max-width: 20ch;
+    max-width: 34ch;
     margin: 26px 0 0;
     color: #f7f8f8;
-    font-size: clamp(30px, 4.4vw, 58px);
+    font-size: clamp(30px, 4.2vw, 56px);
     font-weight: 560;
-    letter-spacing: -0.015em;
-    line-height: 1.06;
+    letter-spacing: -0.01em;
+    line-height: 1.08;
     text-wrap: balance;
 }
 
 .countdown {
     display: grid;
-    width: 100%;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: clamp(10px, 1.6vw, 20px);
-    max-width: 880px;
-    margin-top: clamp(38px, 6vh, 64px);
+    max-width: 900px;
+    margin-top: clamp(34px, 5vh, 56px);
 }
 
 .countdownUnit {
     display: grid;
     justify-items: center;
-    gap: 12px;
+    gap: 10px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: clamp(18px, 2.6vw, 34px) 8px;
+    border-radius: 14px;
+    padding: clamp(16px, 2.4vw, 30px) 8px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
 }
 
 .countdownValue {
     color: #f7f8f8;
-    font-size: clamp(38px, 7.4vw, 96px);
+    font-size: clamp(38px, 7.4vw, 92px);
     font-weight: 560;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.03em;
     line-height: 1;
 }
 
@@ -118,11 +99,10 @@
 }
 
 .heroTarget {
-    max-width: 52ch;
-    margin: clamp(24px, 4vh, 36px) 0 0;
+    margin: clamp(20px, 3vh, 30px) 0 0;
     color: #a1a5a9;
     font-size: 15px;
-    line-height: 1.65;
+    line-height: 1.6;
 }
 
 .heroTarget strong {
@@ -130,137 +110,62 @@
     font-weight: 560;
 }
 
-/* Notes ------------------------------------------------------------------- */
+.released {
+    margin: clamp(20px, 3vh, 30px) 0 0;
+    color: #f7f8f8;
+    font-size: 17px;
+    line-height: 1.6;
+}
 
 .notes {
     position: relative;
-    padding: clamp(56px, 9vh, 112px) clamp(16px, 5vw, 48px) clamp(112px, 16vh, 200px);
-}
-
-.notesInner {
-    display: grid;
-    grid-template-columns: 216px minmax(0, 1fr);
-    gap: clamp(32px, 6vw, 88px);
-    max-width: 1120px;
-    margin: 0 auto;
-}
-
-.index {
-    position: sticky;
-    top: 96px;
-    align-self: start;
-    max-height: calc(100vh - 140px);
-    overflow-y: auto;
-}
-
-.indexLabel {
-    display: block;
-    color: #6b7075;
-    font-size: 11px;
-    font-weight: 560;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}
-
-.indexList {
-    display: grid;
-    gap: 2px;
-    margin: 16px 0 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: none;
-}
-
-.indexLink {
-    display: block;
-    border-radius: 6px;
-    padding: 6px 8px;
-    color: #a1a5a9;
-    font-size: 13.5px;
-    line-height: 1.45;
-    text-decoration: none;
-    transition: color 140ms ease, background 140ms ease;
-}
-
-.indexLink:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #f7f8f8;
-}
-
-.notesBody {
-    min-width: 0;
-}
-
-.notesHeader {
-    max-width: 68ch;
+    padding-bottom: clamp(96px, 14vh, 168px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: clamp(56px, 8vh, 96px);
 }
 
 .notesTitle {
-    max-width: 20ch;
+    max-width: 22ch;
     margin: 0;
     color: #f7f8f8;
-    font-size: clamp(30px, 3.8vw, 48px);
+    font-size: clamp(30px, 4vw, 52px);
     font-weight: 560;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
     line-height: 1.1;
     text-wrap: balance;
 }
 
 .notesLead {
-    margin: 20px 0 0;
-    color: #a1a5a9;
-    font-size: 16.5px;
-    line-height: 1.75;
-}
-
-.notesAllowance {
+    max-width: 68ch;
     margin: 18px 0 0;
-    color: #6b7075;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.notesError {
-    margin: 10px 0 0;
-    color: #ff9f9f;
-    font-size: 14px;
-    line-height: 1.6;
+    color: #a1a5a9;
+    font-size: 16px;
+    line-height: 1.7;
 }
 
 .sections {
     display: grid;
-    gap: clamp(52px, 7vh, 88px);
-    margin-top: clamp(52px, 8vh, 88px);
+    gap: clamp(44px, 6vh, 72px);
+    max-width: 880px;
+    margin-top: clamp(48px, 7vh, 80px);
 }
 
 .section {
-    scroll-margin-top: 96px;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    padding-top: 28px;
-}
-
-.sectionHead {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.sectionHeadText {
-    min-width: 0;
+    padding-top: 26px;
 }
 
 .sectionTitle {
     margin: 0;
     color: #f7f8f8;
-    font-size: clamp(23px, 2.5vw, 30px);
+    font-size: clamp(24px, 2.6vw, 32px);
     font-weight: 560;
-    letter-spacing: -0.012em;
+    letter-spacing: -0.01em;
     line-height: 1.2;
 }
 
 .sectionSummary {
-    max-width: 60ch;
+    max-width: 62ch;
     margin: 10px 0 0;
     color: #a1a5a9;
     font-size: 16px;
@@ -269,15 +174,15 @@
 
 .entries {
     display: grid;
-    gap: 28px;
-    margin: 32px 0 0;
+    gap: 26px;
+    margin: 30px 0 0;
     padding: 0;
     list-style: none;
 }
 
 .entry {
     border-left: 1px solid rgba(255, 255, 255, 0.12);
-    padding-left: 22px;
+    padding-left: 20px;
 }
 
 .entryTitle {
@@ -291,39 +196,17 @@
 
 .entryBody {
     max-width: 66ch;
-    margin: 9px 0 0;
+    margin: 8px 0 0;
     color: #a1a5a9;
-    font-size: 15.5px;
-    line-height: 1.78;
-}
-
-.notesFooter {
-    margin: clamp(52px, 8vh, 88px) 0 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    padding-top: 28px;
-    color: #6b7075;
     font-size: 15px;
-    line-height: 1.7;
+    line-height: 1.75;
 }
 
-@media (max-width: 1024px) {
-    .notesInner {
-        grid-template-columns: minmax(0, 1fr);
+@media (max-width: 860px) {
+    .container {
+        width: calc(100% - 28px);
     }
 
-    .index {
-        position: static;
-        max-height: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        padding-bottom: 20px;
-    }
-
-    .indexList {
-        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    }
-}
-
-@media (max-width: 640px) {
     .countdown {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -331,10 +214,10 @@
     .heroLead {
         font-size: clamp(28px, 9vw, 44px);
     }
+}
 
-    .sectionHead {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 14px;
+@media (prefers-reduced-motion: no-preference) {
+    .countdownValue {
+        transition: color 200ms ease;
     }
 }
