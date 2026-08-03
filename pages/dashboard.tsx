@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import DOMPurify from 'isomorphic-dompurify';
+import { UpcomingAnnouncement } from '../components/announcements';
 import {
     closestCenter,
     DndContext,
@@ -5431,6 +5432,8 @@ export default function Dashboard() {
                 <meta name="robots" content="noindex, nofollow" />
                 <link rel="icon" href="/favicon.png" />
             </Head>
+
+            <UpcomingAnnouncement userId={session?.username ?? null} />
 
             <div className={styles.dashboardBody} data-pointer-cursors={homeSettings.usePointerCursors ? 'true' : 'false'}>
                 <TooltipProvider delayDuration={0}>
