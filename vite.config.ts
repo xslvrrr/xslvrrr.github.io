@@ -3,6 +3,7 @@ import { extname, join, normalize, resolve, sep } from "node:path"
 import { defineConfig, type Plugin } from "vite"
 import { fileURLToPath, URL } from "node:url"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
+import { nitro } from "nitro/vite"
 import viteReact from "@vitejs/plugin-react"
 import viteTsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
@@ -82,6 +83,22 @@ export default defineConfig({
   },
   ssr: {
     noExternal: ["@lobehub/icons"],
+    /**
+     * Server-only packages the deployment traces rather than bundles.
+     *
+     * Nitro inlines node_modules into the server bundle by default. For these that is pure cost:
+     * jsdom (with parse5 and friends), Puppeteer, Stripe and the Supabase client are large, are
+     * reached only from portal sync and the API routes, and are perfectly happy being required at
+     * runtime. Bundling them put an 11 MB chunk through rollup and is most of what made the
+     * production build run out of memory.
+     */
+    external: [
+      "jsdom",
+      "puppeteer-core",
+      "@puppeteer/browsers",
+      "stripe",
+      "@supabase/supabase-js",
+    ],
   },
   build: {
     // Keep generated bundles distinct from the public /Assets brand directory.
@@ -117,6 +134,7 @@ export default defineConfig({
     tailwindcss(),
 
     tanstackStart(),
+    nitro(),
     viteReact(),
   ],
 })
