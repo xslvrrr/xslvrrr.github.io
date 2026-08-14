@@ -67,25 +67,23 @@ export function SectionBump({
   return (
     <>
       <Tooltip>
-        <TooltipTrigger
-          render={
-            <button
-              type="button"
-              className={styles.bump}
-              data-bumped={hasBumped ? "true" : undefined}
-              disabled={isDisabled}
-              aria-label={`${tooltip}: ${sectionTitle}. ${bumpLabel(count)}.`}
-              onClick={() => setIsDialogOpen(true)}
-            >
-              {hasBumped ? (
-                <IconStarFilled className={styles.bumpIcon} />
-              ) : (
-                <IconStar className={styles.bumpIcon} stroke={1.75} />
-              )}
-              <span className={styles.bumpCount}>{isReady ? count : "–"}</span>
-            </button>
-          }
-        />
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className={styles.bump}
+            data-bumped={hasBumped ? "true" : undefined}
+            disabled={isDisabled}
+            aria-label={`${tooltip}: ${sectionTitle}. ${bumpLabel(count)}.`}
+            onClick={() => setIsDialogOpen(true)}
+          >
+            {hasBumped ? (
+              <IconStarFilled className={styles.bumpIcon} />
+            ) : (
+              <IconStar className={styles.bumpIcon} stroke={1.75} />
+            )}
+            <span className={styles.bumpCount}>{isReady ? count : "–"}</span>
+          </button>
+        </TooltipTrigger>
         <TooltipContent className={styles.bumpTooltip}>{tooltip}</TooltipContent>
       </Tooltip>
 
@@ -95,17 +93,25 @@ export function SectionBump({
           if (!isSubmitting) setIsDialogOpen(nextOpen)
         }}
       >
-        <AlertDialogContent>
+        {/* Styling is restated locally because this dialog portals outside the marketing page. */}
+        <AlertDialogContent className={styles.dialog}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bump “{sectionTitle}”?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className={styles.dialogTitle}>Bump “{sectionTitle}”?</AlertDialogTitle>
+            <AlertDialogDescription className={styles.dialogDescription}>
               You have {remaining} of {maxBumps} {remaining === 1 ? "bump" : "bumps"} remaining. Bumps
               cannot be taken back, so spend them on the features you most want to see.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction type="button" onClick={() => void handleConfirm()} disabled={isSubmitting}>
+            <AlertDialogCancel className={styles.dialogCancel} disabled={isSubmitting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              className={styles.dialogAction}
+              onClick={() => void handleConfirm()}
+              disabled={isSubmitting}
+            >
               {isSubmitting ? <IconLoader2 size={15} className={styles.spin} /> : <IconStarFilled size={15} />}
               Bump it
             </AlertDialogAction>

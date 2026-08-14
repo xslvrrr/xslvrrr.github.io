@@ -9,12 +9,16 @@ import { supabaseAdmin } from './supabase';
  * Voters are identified by an opaque HMAC so the database never holds an account id or a raw
  * visitor id. Signed-in visitors are keyed by account, so their allowance follows them between
  * devices; everyone else is keyed by a long-lived HttpOnly cookie.
+ *
+ * Everything here is framework-neutral: identity resolution takes a cookie value rather than a
+ * request object, so both the Next API route and the TanStack file route can use it directly.
  */
 
 export const VISITOR_COOKIE_NAME = 'millennium_changelog_voter';
 
 const VISITOR_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 const VOTER_KEY_DOMAIN = 'millennium:changelog-bump:v1';
+const MAX_VISITOR_ID_LENGTH = 100;
 
 export type BumpStatus = 'bumped' | 'already_bumped' | 'no_bumps_remaining';
 
@@ -50,10 +54,9 @@ function deriveVoterKey(identity: string): string {
     .digest('base64url');
 }
 
-function readCookie(request: Request, name: string): string | null {
-  const header = request.headers.get('cookie');
-  if (!header) return null;
-  for (const part of header.split(';')) {
+export function readCookieValue(cookieHeader: string | null | undefined, name: string): string | null {
+  if (!cookieHeader) return null;
+  for (const part of cookieHeader.split(';')) {
     const separator = part.indexOf('=');
     if (separator < 0) continue;
     if (part.slice(0, separator).trim() !== name) continue;
@@ -68,17 +71,20 @@ function visitorCookie(value: string): string {
 }
 
 /**
- * Resolves the voter for a request, minting an anonymous visitor id when the caller is neither
+ * Resolves the voter from an existing visitor id, minting a new one when the caller is neither
  * signed in nor already carrying one.
  */
-export function resolveVoterIdentity(request: Request, userId?: string | null): VoterIdentity {
+export function resolveVoterIdentity(
+  existingVisitorId: string | null | undefined,
+  userId?: string | null,
+): VoterIdentity {
   const normalizedUserId = (userId ?? '').trim();
   if (normalizedUserId) {
     return { voterKey: deriveVoterKey(`user:${normalizedUserId}`) };
   }
 
-  const existing = readCookie(request, VISITOR_COOKIE_NAME);
-  if (existing && existing.length <= 100) {
+  const existing = (existingVisitorId ?? '').trim();
+  if (existing && existing.length <= MAX_VISITOR_ID_LENGTH) {
     return { voterKey: deriveVoterKey(`anon:${existing}`) };
   }
 
@@ -87,6 +93,11 @@ export function resolveVoterIdentity(request: Request, userId?: string | null): 
     voterKey: deriveVoterKey(`anon:${minted}`),
     setCookie: visitorCookie(minted),
   };
+}
+
+/** Convenience wrapper for callers that hold a Fetch `Request`. */
+export function resolveVoterIdentityFromRequest(request: Request, userId?: string | null): VoterIdentity {
+  return resolveVoterIdentity(readCookieValue(request.headers.get('cookie'), VISITOR_COOKIE_NAME), userId);
 }
 
 function normalizeState(payload: unknown): ChangelogBumpState {
