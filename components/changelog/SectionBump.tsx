@@ -67,22 +67,26 @@ export function SectionBump({
   return (
     <>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            className={styles.bump}
-            data-bumped={hasBumped ? "true" : undefined}
-            disabled={isDisabled}
-            aria-label={`${tooltip}: ${sectionTitle}. ${bumpLabel(count)}.`}
-            onClick={() => setIsDialogOpen(true)}
-          >
-            {hasBumped ? (
-              <IconStarFilled className={styles.bumpIcon} />
-            ) : (
-              <IconStar className={styles.bumpIcon} stroke={1.75} />
-            )}
-            <span className={styles.bumpCount}>{isReady ? count : "–"}</span>
-          </button>
+        {/* Base UI composes through `render`, not Radix's `asChild`. The trigger's children become
+            the rendered element's children, which is why the button is passed empty here. */}
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              className={styles.bump}
+              data-bumped={hasBumped ? "true" : undefined}
+              disabled={isDisabled}
+              aria-label={`${tooltip}: ${sectionTitle}. ${bumpLabel(count)}.`}
+              onClick={() => setIsDialogOpen(true)}
+            />
+          }
+        >
+          {hasBumped ? (
+            <IconStarFilled className={styles.bumpIcon} />
+          ) : (
+            <IconStar className={styles.bumpIcon} stroke={1.75} />
+          )}
+          <span className={styles.bumpCount}>{isReady ? count : "–"}</span>
         </TooltipTrigger>
         <TooltipContent className={styles.bumpTooltip}>{tooltip}</TooltipContent>
       </Tooltip>
