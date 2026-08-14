@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-run-assistant-cli"
+description = "Enables the run_assistant_cli command without any pre-configured scope."
+commands.allow = ["run_assistant_cli"]
+
+[[permission]]
+identifier = "deny-run-assistant-cli"
+description = "Denies the run_assistant_cli command without any pre-configured scope."
+commands.deny = ["run_assistant_cli"]

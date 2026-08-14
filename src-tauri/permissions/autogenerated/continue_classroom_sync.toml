@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-continue-classroom-sync"
+description = "Enables the continue_classroom_sync command without any pre-configured scope."
+commands.allow = ["continue_classroom_sync"]
+
+[[permission]]
+identifier = "deny-continue-classroom-sync"
+description = "Denies the continue_classroom_sync command without any pre-configured scope."
+commands.deny = ["continue_classroom_sync"]

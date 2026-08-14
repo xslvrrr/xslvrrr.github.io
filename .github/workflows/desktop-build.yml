@@ -1,0 +1,208 @@
+name: Desktop package builds
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "desktop-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.4
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Verify release tag matches app version
+        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        shell: bash
+        run: |
+          package_version="$(bun -p "require('./package.json').version")"
+          expected_tag="desktop-v${package_version}"
+          if [[ "$GITHUB_REF_NAME" != "$expected_tag" ]]; then
+            echo "Release tag $GITHUB_REF_NAME does not match package version $package_version." >&2
+            exit 1
+          fi
+      - name: Verify install-page manifest matches the release
+        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        shell: bash
+        run: |
+          # The in-app updater falls back to this manifest when the signed feed is unreachable, so
+          # a release that leaves it behind silently offers the previous version as "newer".
+          package_version="$(bun -p "require('./package.json').version")"
+          manifest_version="$(bun -p "require('./public/downloads/desktop/manifest.json').version")"
+          if [[ "$manifest_version" != "$package_version" ]]; then
+            echo "public/downloads/desktop/manifest.json declares $manifest_version but this release is $package_version." >&2
+            exit 1
+          fi
+          bun -e '
+            const manifest = require("./public/downloads/desktop/manifest.json");
+            const stale = manifest.artifacts.filter(
+              (artifact) => artifact.available && !artifact.filename.includes(manifest.version)
+            );
+            if (stale.length > 0) {
+              console.error(
+                `Available artifacts do not reference ${manifest.version}: ${stale.map((artifact) => artifact.filename).join(", ")}`
+              );
+              process.exit(1);
+            }
+          '
+
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Build desktop UI
+        run: bun run build:desktop:ui
+
+  package:
+    needs: verify
+    permissions:
+      contents: write
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macos-universal
+            runner: macos-15
+            target: universal-apple-darwin
+            rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
+            bundles: dmg
+          - name: macos-arm64
+            runner: macos-15
+            target: aarch64-apple-darwin
+            rust_targets: aarch64-apple-darwin
+            bundles: dmg
+          - name: macos-x64
+            runner: macos-15-intel
+            target: x86_64-apple-darwin
+            rust_targets: x86_64-apple-darwin
+            bundles: dmg
+          - name: windows-x64
+            runner: windows-2025
+            target: x86_64-pc-windows-msvc
+            rust_targets: x86_64-pc-windows-msvc
+            bundles: nsis
+          - name: windows-arm64
+            runner: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            rust_targets: aarch64-pc-windows-msvc
+            bundles: nsis
+          - name: linux-x64
+            runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            rust_targets: x86_64-unknown-linux-gnu
+            bundles: appimage,deb
+          - name: linux-arm64
+            runner: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
+            rust_targets: aarch64-unknown-linux-gnu
+            bundles: appimage,deb
+
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Linux package dependencies
+        if: startsWith(matrix.runner, 'ubuntu-')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev patchelf xdg-utils
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build engineering packages
+        if: ${{ !startsWith(github.ref, 'refs/tags/desktop-v') }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: bunx tauri build --target "${{ matrix.target }}" --bundles "${{ matrix.bundles }}"
+
+      - name: Build and publish signed update
+        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+          releaseBody: Download update inside Millennium, or install a package from release assets.
+          releaseDraft: false
+          releaseName: Millennium Desktop v__VERSION__
+          tagName: desktop-v__VERSION__
+          tauriScript: bunx tauri
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
+
+      - name: Verify macOS app signature and entitlements
+        if: startsWith(matrix.runner, 'macos-')
+        shell: bash
+        run: |
+          dmg_path="$(find "src-tauri/target/${{ matrix.target }}/release/bundle/dmg" -maxdepth 1 -name '*.dmg' -print -quit)"
+          mount_dir="$(mktemp -d)"
+          mounted=false
+          cleanup() {
+            if [[ "$mounted" == true ]]; then
+              hdiutil detach "$mount_dir" >/dev/null
+            fi
+            rmdir "$mount_dir"
+          }
+          trap cleanup EXIT
+          hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -readonly >/dev/null
+          mounted=true
+          app_path="$mount_dir/Millennium.app"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          entitlements="$(codesign --display --entitlements - "$app_path" 2>/dev/null || true)"
+          if grep -q '<key>com.apple.developer.' <<<"$entitlements"; then
+            echo "Restricted Apple entitlements found; ad-hoc signed builds will be rejected by AMFI." >&2
+            echo "$entitlements" >&2
+            exit 1
+          fi
+          if ! grep -q 'com.apple.security.automation.apple-events' <<<"$entitlements"; then
+            echo "Apple Events entitlement missing; Classroom browser reading cannot be granted." >&2
+            exit 1
+          fi
+          # macOS refuses to present the Automation prompt without this string, and the failure is
+          # silent: no prompt, and no row a user could add by hand in System Settings.
+          plutil -extract NSAppleEventsUsageDescription raw -o - "$app_path/Contents/Info.plist" >/dev/null
+
+      - name: Upload workflow packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: millennium-desktop-${{ matrix.name }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.dmg
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.app.tar.gz
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.app.tar.gz.sig
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*-setup.exe
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.nsis.zip
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.nsis.zip.sig
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.AppImage
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.AppImage.sig
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*.deb

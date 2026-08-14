@@ -1,5 +1,6 @@
 /* Calendar Container - Fixed height using calc for ironclad containment */
 .calendarContainer {
+    --calendar-selection-outline: #fff;
     display: flex;
     height: 100%;
     max-height: 100%;
@@ -8,27 +9,21 @@
     overflow: hidden;
 }
 
+:global(.light) .calendarContainer,
+:global([data-theme="light"]) .calendarContainer {
+    --calendar-selection-outline: #000;
+}
+
 /* When Google Calendar notification banner is visible (~49px) */
 .calendarContainer.withNotification {
     height: 100%;
     max-height: 100%;
 }
 
-/* Hide scrollbar utility - for smooth transitions */
-.hideScrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.hideScrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* Sidebar with custom scrollbar */
 .sidebar {
     width: 260px;
     border-right: 1px solid var(--border-color);
-    background: var(--sidebar-background);
+    background: var(--content-bg);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
@@ -61,7 +56,7 @@
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.12s ease;
+    transition: opacity var(--anim-duration-fast) ease;
     z-index: 20;
 }
 
@@ -84,7 +79,7 @@
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.12s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .smartCleanBtnBusy {
@@ -130,7 +125,7 @@
 }
 
 .contextColorSwatchSelected {
-    box-shadow: 0 0 0 2px var(--accent-color);
+    box-shadow: 0 0 0 2px var(--calendar-selection-outline);
 }
 
 .contextColorInput {
@@ -158,24 +153,6 @@
     border: 1px solid var(--border-color);
 }
 
-/* Custom scrollbar for sidebar */
-.sidebar::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-    background: var(--border-default, rgba(255, 255, 255, 0.15));
-    border-radius: 3px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-    background: var(--border-strong, rgba(255, 255, 255, 0.25));
-}
-
 /* Mini Calendar */
 .miniCalendar {
     padding: 16px;
@@ -193,7 +170,7 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
-    transition: color 0.2s ease;
+    transition: color var(--anim-duration-normal) ease;
 }
 
 .miniNavBtn {
@@ -206,7 +183,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-normal) ease;
 }
 
 .miniNavBtn:hover {
@@ -243,7 +220,8 @@
     border-radius: 50%;
     cursor: pointer;
     color: var(--text-primary);
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-normal) ease;
+    position: relative;
 }
 
 .miniCalendarDay:hover {
@@ -264,12 +242,38 @@
     background: var(--accent-gradient);
     color: white;
     font-weight: 600;
+    box-shadow: none;
 }
 
 .miniCalendarDay.selected {
-    border: 2px solid var(--accent-color);
     background: transparent;
     color: var(--text-primary);
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.miniCalendarDay.selected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 2px;
+    background: var(--accent-gradient);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.miniCalendarDay.today.selected {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.miniCalendarDay.today.selected::after {
+    content: none;
 }
 
 /* Sidebar sections */
@@ -299,7 +303,7 @@
     border-radius: var(--radius-sm);
     margin-bottom: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-normal) ease;
 }
 
 .noticeItem:hover {
@@ -364,7 +368,7 @@
     padding: 8px;
     border-radius: var(--radius-sm);
     background: var(--hover-bg);
-    transition: background 0.15s ease;
+    transition: background var(--anim-duration-fast) ease;
 }
 
 .upcomingEventItem:hover {
@@ -477,7 +481,7 @@
     cursor: pointer;
     width: 100%;
     text-align: left;
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-normal) ease;
 }
 
 .calendarItem:hover {
@@ -494,7 +498,12 @@
     justify-content: center;
     flex-shrink: 0;
     color: white;
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-normal) ease;
+}
+
+.calendarListIcon {
+    color: var(--text-tertiary);
+    flex-shrink: 0;
 }
 
 .calendarName {
@@ -503,6 +512,31 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.calendarIconPickerBtn {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--input-bg, var(--sidebar-background));
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    font-size: 13px;
+    cursor: pointer;
+    justify-content: space-between;
+    transition: all var(--anim-duration-fast) ease;
+}
+
+.calendarIconPickerBtn:focus-visible {
+    outline: none;
+    border-color: transparent;
+    background:
+        linear-gradient(var(--input-bg, var(--sidebar-background)), var(--input-bg, var(--sidebar-background))) padding-box,
+        var(--accent-gradient) border-box;
 }
 
 .removeCalendarBtn {
@@ -561,7 +595,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .navBtn:hover {
@@ -594,7 +628,7 @@
     font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .todayBtn:hover {
@@ -617,7 +651,7 @@
     font-size: 13px;
     font-weight: 500;
     color: var(--text-secondary);
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-normal) ease;
 }
 
 .viewBtn:hover {
@@ -642,7 +676,7 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .addBtn:hover {
@@ -658,12 +692,12 @@
     min-height: 0;
     position: relative;
     /* For absolute positioned transition overlays */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    transition: transform var(--anim-duration-normal) cubic-bezier(0.4, 0, 0.2, 1), opacity var(--anim-duration-normal) ease;
 }
 
 /* Simple crossfade transition for week↔month and day↔month */
 .crossfadeTransition {
-    animation: crossfade 0.3s ease forwards;
+    animation: crossfade var(--anim-duration-normal) ease forwards;
 }
 
 @keyframes crossfade {
@@ -672,6 +706,64 @@
     }
 
     100% {
+        opacity: 1;
+    }
+}
+
+.monthZoomTransition {
+    transform-origin: var(--calendar-zoom-origin-x, 50%) var(--calendar-zoom-origin-y, 50%);
+    will-change: transform;
+}
+
+.zoomToMonth {
+    animation: zoomToMonthView var(--anim-duration-slow) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.zoomFromMonth {
+    animation: zoomFromMonthView var(--anim-duration-slow) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.zoomToMonth .monthDayEvents,
+.zoomToMonth .monthDayName,
+.zoomToMonth .monthDayNumber {
+    animation: calendarDetailFadeIn var(--anim-duration-normal) ease var(--anim-duration-fast) both;
+}
+
+.zoomFromMonth .dayName,
+.zoomFromMonth .dayNumber,
+.zoomFromMonth .eventTime,
+.zoomFromMonth .eventTitle,
+.zoomFromMonth .eventLocation,
+.zoomFromMonth .allDayEvent {
+    animation: calendarDetailFadeIn var(--anim-duration-normal) ease var(--anim-duration-fast) both;
+}
+
+@keyframes zoomToMonthView {
+    from {
+        transform: scale(1.12);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes zoomFromMonthView {
+    from {
+        transform: scale(0.82);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes calendarDetailFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
         opacity: 1;
     }
 }
@@ -690,13 +782,13 @@
 .zoomOutEnter {
     transform: scale(1);
     opacity: 1;
-    animation: zoomOutEnterAnim 0.3s ease forwards;
+    animation: zoomOutEnterAnim var(--anim-duration-normal) ease forwards;
 }
 
 .zoomInEnter {
     transform: scale(1);
     opacity: 1;
-    animation: zoomInEnterAnim 0.3s ease forwards;
+    animation: zoomInEnterAnim var(--anim-duration-normal) ease forwards;
 }
 
 @keyframes zoomOutEnterAnim {
@@ -725,7 +817,7 @@
 
 /* Day to Week transition - width contracts */
 .dayToWeek {
-    animation: dayToWeekAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: dayToWeekAnim var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes dayToWeekAnim {
@@ -747,7 +839,7 @@
 
 /* Week to Day transition - width expands */
 .weekToDay {
-    animation: weekToDayAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: weekToDayAnim var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes weekToDayAnim {
@@ -769,7 +861,7 @@
 
 /* Week to Month transition - height contracts */
 .weekToMonth {
-    animation: weekToMonthAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: weekToMonthAnim var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes weekToMonthAnim {
@@ -791,7 +883,7 @@
 
 /* Month to Week transition - height expands */
 .monthToWeek {
-    animation: monthToWeekAnim 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: monthToWeekAnim var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes monthToWeekAnim {
@@ -813,7 +905,7 @@
 
 /* Day to Month transition - full zoom out */
 .dayToMonth {
-    animation: dayToMonthAnim 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: dayToMonthAnim var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes dayToMonthAnim {
@@ -835,7 +927,7 @@
 
 /* Month to Day transition - full zoom in */
 .monthToDay {
-    animation: monthToDayAnim 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: monthToDayAnim var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes monthToDayAnim {
@@ -867,11 +959,11 @@
 }
 
 .slideLeftEnter {
-    animation: slideLeftEnter 0.2s ease forwards;
+    animation: slideLeftEnter var(--anim-duration-normal) ease forwards;
 }
 
 .slideRightEnter {
-    animation: slideRightEnter 0.2s ease forwards;
+    animation: slideRightEnter var(--anim-duration-normal) ease forwards;
 }
 
 @keyframes slideLeftEnter {
@@ -945,9 +1037,9 @@
 }
 
 .timeGutterAnimating {
-    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.3s ease,
-        padding 0.35s ease !important;
+    transition: width var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        opacity var(--anim-duration-normal) ease,
+        padding var(--anim-duration-slow) ease !important;
 }
 
 .dayHeader {
@@ -958,7 +1050,7 @@
     padding: 8px 0;
     border-left: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: background-color var(--anim-duration-fast) ease;
 }
 
 .dayHeader:hover {
@@ -986,9 +1078,9 @@
 }
 
 .dayHeaderAnimating {
-    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.3s ease,
-        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transition: flex var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        opacity var(--anim-duration-normal) ease,
+        width var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
         visibility 0s linear 0s !important;
 }
 
@@ -1002,11 +1094,47 @@
     background: var(--accent-gradient);
     color: white;
     border-radius: 50%;
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.dayHeader.selected .dayNumber {
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.dayHeader.selected .dayNumber::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 2px;
+    background: var(--accent-gradient);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.dayHeader.today.selected .dayNumber {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.dayHeader.today.selected .dayNumber::after {
+    content: none;
 }
 
 .dayName {
@@ -1062,9 +1190,9 @@
 }
 
 .allDayCellAnimating {
-    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.3s ease,
-        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transition: flex var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        opacity var(--anim-duration-normal) ease,
+        width var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
         visibility 0s linear 0s !important;
 }
 
@@ -1085,14 +1213,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer;
-    transition: opacity 0.15s ease;
+    transition: opacity var(--anim-duration-fast) ease;
 }
 
 .allDayEvent:hover {
     opacity: 0.85;
 }
 
-/* Scrollable Time Grid Wrapper - Fixed height containment with hidden scrollbar */
+/* Scrollable Time Grid Wrapper - Fixed height containment */
 .timeGridWrapper {
     flex: 1;
     overflow-y: auto;
@@ -1100,14 +1228,6 @@
     position: relative;
     min-height: 0;
     /* Critical for flexbox overflow */
-
-    /* Hide scrollbar for all browsers */
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.timeGridWrapper::-webkit-scrollbar {
-    display: none;
 }
 
 /* Time Grid */
@@ -1141,8 +1261,8 @@
 }
 
 .timeColumnAnimating {
-    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.3s ease !important;
+    transition: width var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        opacity var(--anim-duration-normal) ease !important;
 }
 
 /* Week view fade states for Month transition */
@@ -1156,8 +1276,8 @@
 }
 
 .weekViewAnimating {
-    transition: opacity 0.4s ease 0.4s !important;
-    /* 400ms delay after row morph */
+    transition: opacity var(--anim-duration-slow) ease var(--anim-duration-slow) !important;
+    /* var(--anim-duration-slow) delay after row morph */
 }
 
 /* Month view fade states for Week transition */
@@ -1171,7 +1291,7 @@
 }
 
 .monthViewAnimating {
-    transition: opacity 0.35s ease !important;
+    transition: opacity var(--anim-duration-slow) ease !important;
 }
 
 .timeSlot {
@@ -1231,9 +1351,9 @@
 }
 
 .dayColumnAnimating {
-    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.3s ease,
-        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transition: flex var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        opacity var(--anim-duration-normal) ease,
+        width var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
         visibility 0s linear 0s !important;
 }
 
@@ -1248,12 +1368,15 @@
     border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.04));
     position: relative;
     cursor: pointer;
-    transition: background-color 0.1s ease;
+    transition: background-color var(--anim-duration-fast) ease;
     padding-top: 2px;
     /* Breathing room for event outlines */
 }
 
-.hourCell:hover {
+/* Events are children of the cell their start hour belongs to and extend downwards past it, so a
+   plain `:hover` lit the cell *above* whichever part of the event the pointer was over. The cell
+   only responds when the pointer is on empty grid, which is the only place a click adds an event. */
+.hourCell:hover:not(:has(.event:hover)) {
     background: var(--hover-bg, rgba(255, 255, 255, 0.02));
 }
 
@@ -1316,7 +1439,22 @@
     cursor: pointer;
     z-index: 5;
     color: white;
-    transition: all 0.15s ease;
+    transition: opacity var(--anim-duration-fast) ease, transform var(--anim-duration-fast) ease, filter var(--anim-duration-fast) ease;
+}
+
+.calendarEventFadingOut {
+    opacity: 0;
+    transform: scale(0.98);
+    pointer-events: none;
+}
+
+.pastEvent {
+    opacity: 0.52;
+    filter: saturate(0.85);
+}
+
+.pastEvent:hover {
+    opacity: 0.72;
 }
 
 .event:hover {
@@ -1416,20 +1554,22 @@
 }
 
 .monthRowAnimating {
-    transition: flex 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
-        opacity 0.4s ease,
+    transition: flex var(--anim-duration-slow) cubic-bezier(0.25, 0.1, 0.25, 1),
+        opacity var(--anim-duration-slow) ease,
         visibility 0s linear 0s !important;
 }
 
 .monthDay {
-    background: var(--sidebar-background);
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     padding: 8px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 /* Month day transition states for Week↔Month vertical morph */
@@ -1449,30 +1589,48 @@
 }
 
 .monthDayAnimating {
-    transition: flex 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        padding 0.35s ease,
-        opacity 0.3s ease !important;
+    transition: flex var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        min-height var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        max-height var(--anim-duration-slow) cubic-bezier(0.4, 0, 0.2, 1),
+        padding var(--anim-duration-slow) ease,
+        opacity var(--anim-duration-normal) ease !important;
 }
 
-.monthDay:hover {
-    background: var(--hover-bg);
+/* Same rule as `.hourCell`: hovering an event inside the day must not light and scale the day. */
+.monthDay:hover:not(:has(.monthEvent:hover)) {
+    background: color-mix(in srgb, var(--content-bg) 88%, white);
     transform: scale(1.02);
 }
 
 .monthDay.otherMonth {
-    opacity: 0.4;
+    background: color-mix(in srgb, var(--content-bg) 96%, white);
+    opacity: 0.58;
 }
 
 .monthDay.today {
-    border: 3px solid var(--accent-color);
-    background: var(--sidebar-background);
+    background: var(--content-bg);
+    border-color: transparent;
 }
 
 .monthDay.selected {
-    border: 2px solid var(--accent-color);
-    background: transparent;
+    border-color: transparent;
+    background: var(--content-bg);
+}
+
+.monthDay.today::before,
+.monthDay.selected::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: var(--accent-gradient);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 .monthDayNumber {
@@ -1483,8 +1641,51 @@
 }
 
 .monthDay.today .monthDayNumber {
+    background: var(--accent-gradient);
+    color: white;
+    font-weight: 600;
+}
+
+.monthDay.selected .monthDayNumber {
+    background: transparent;
     color: var(--text-primary);
     font-weight: 600;
+}
+
+.monthDay.today .monthDayNumber,
+.monthDay.selected .monthDayNumber {
+    border-radius: 999px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    align-self: flex-start;
+}
+
+.monthDay.selected .monthDayNumber::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    padding: 2px;
+    background: var(--accent-gradient);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.monthDay.today.selected .monthDayNumber {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.monthDay.today.selected .monthDayNumber::after {
+    content: none;
 }
 
 .monthDayEvents {
@@ -1527,11 +1728,11 @@
     z-index: 1000;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    animation: fadeIn 0.14s ease;
+    animation: fadeIn var(--anim-duration-fast) ease;
 }
 
 .modalOverlay.closing {
-    animation: fadeOut 0.14s ease forwards;
+    animation: fadeOut var(--anim-duration-fast) ease forwards;
 }
 
 @keyframes fadeIn {
@@ -1562,11 +1763,11 @@
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.14s ease;
+    animation: slideUp var(--anim-duration-fast) ease;
 }
 
 .modalOverlay.closing .modal {
-    animation: slideDown 0.14s ease forwards;
+    animation: slideDown var(--anim-duration-fast) ease forwards;
 }
 
 @keyframes slideUp {
@@ -1618,7 +1819,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .modalCloseBtn:hover {
@@ -1665,7 +1866,7 @@
     font-size: 14px;
     color: var(--text-primary);
     background: var(--input-bg, var(--sidebar-background));
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .comboTrigger {
@@ -1675,7 +1876,7 @@
     font-size: 14px;
     color: var(--text-primary);
     background: var(--input-bg, var(--sidebar-background));
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1684,18 +1885,10 @@
 }
 
 .comboContent {
-    width: min(320px, 85vw);
-    padding: 8px;
-    gap: 8px;
-}
-
-.comboSearch {
-    width: 100%;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 10px;
-    background: var(--input-bg, var(--sidebar-background));
-    color: var(--text-primary);
+    width: min(calc(var(--anchor-width) + 16px), calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    padding: 10px;
+    gap: 10px;
 }
 
 .comboList {
@@ -1802,12 +1995,14 @@
     cursor: pointer;
 }
 
-.formGroup input:focus,
+.formGroup input:not([type="checkbox"]):focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
     outline: none;
     border-color: transparent;
-    border-image: var(--accent-gradient) 1;
+    background:
+        linear-gradient(var(--input-bg, var(--sidebar-background)), var(--input-bg, var(--sidebar-background))) padding-box,
+        var(--accent-gradient) border-box;
     box-shadow: none;
 }
 
@@ -1841,7 +2036,7 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .cancelBtn:hover {
@@ -1857,7 +2052,7 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .deleteBtn:hover {
@@ -1874,7 +2069,7 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
 }
 
 .saveBtn:hover {
@@ -1906,7 +2101,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
     color: white;
     flex-shrink: 0;
 }
@@ -1923,7 +2118,7 @@
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--anim-duration-fast) ease;
     padding: 0;
     position: relative;
 }
@@ -1942,7 +2137,7 @@
     inset: -2px;
     border-radius: 50%;
     padding: 2px;
-    background: var(--accent-gradient);
+    background: var(--calendar-selection-outline);
     -webkit-mask:
         linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
@@ -1988,6 +2183,197 @@
     width: 16px;
     height: 16px;
     cursor: pointer;
+}
+
+.checkboxInput {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background:
+        linear-gradient(var(--input-bg, var(--sidebar-background)), var(--input-bg, var(--sidebar-background))) padding-box,
+        transparent border-box;
+    transition: border-color var(--anim-duration-fast) ease, background var(--anim-duration-fast) ease, box-shadow var(--anim-duration-fast) ease;
+}
+
+.checkboxInput::after {
+    content: "";
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    opacity: 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.checkboxInput:checked {
+    border-color: transparent;
+    background: var(--accent-gradient) border-box;
+}
+
+.checkboxInput:checked::after {
+    opacity: 1;
+}
+
+.checkboxInput:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 28%, transparent);
+}
+
+@media (max-width: 767px) {
+    .calendarContainer {
+        border-radius: 0;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .calendarHeader {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 10px;
+    }
+
+    .headerLeft,
+    .headerRight {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .headerLeft {
+        gap: 6px;
+    }
+
+    .headerTitle {
+        min-width: 0;
+        margin-left: 2px;
+        overflow: hidden;
+        font-size: 15px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .headerRight {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 6px;
+    }
+
+    .navBtn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+    }
+
+    .todayBtn,
+    .addBtn {
+        min-height: 40px;
+        padding: 0 10px;
+    }
+
+    .viewToggle {
+        min-width: 0;
+    }
+
+    .viewBtn {
+        min-width: 0;
+        min-height: 36px;
+        flex: 1;
+        padding: 6px 5px;
+        font-size: 12px;
+    }
+
+    .timeGutter,
+    .timeColumn,
+    .currentTimeLabel {
+        width: 48px;
+    }
+
+    .timeGutter,
+    .timeSlot,
+    .currentTimeLabel {
+        padding-right: 6px;
+    }
+
+    .timeGutterVisible,
+    .timeColumnVisible {
+        width: 48px !important;
+    }
+
+    .currentTimeLabel > * {
+        padding-inline: 4px;
+        font-size: 9px;
+    }
+
+    .dayHeader {
+        min-width: 0;
+        padding: 6px 0;
+    }
+
+    .dayName {
+        font-size: 9px;
+    }
+
+    .dayNumber {
+        font-size: 16px;
+    }
+
+    .monthView {
+        padding: 8px;
+    }
+
+    .monthHeader {
+        margin-bottom: 4px;
+    }
+
+    .monthDayName {
+        padding: 5px 0;
+        font-size: 9px;
+    }
+
+    .monthGrid,
+    .monthWeekRow {
+        gap: 2px;
+    }
+
+    .monthDay {
+        padding: 4px;
+    }
+
+    .monthDayNumber {
+        font-size: 11px;
+    }
+
+    .monthEvent,
+    .monthMoreEvents {
+        font-size: 8px;
+    }
+
+    .modalOverlay {
+        padding: 12px;
+    }
+
+    .modal {
+        max-width: calc(100vw - 24px);
+        max-height: calc(100dvh - 24px);
+    }
+
+    .formRow {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 420px) {
+    .addBtn span {
+        display: none;
+    }
 }
 
 /* Fix input icons - make them inherit text color properly */

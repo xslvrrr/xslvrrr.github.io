@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { CalendarEvent, CalendarSource } from '../types/calendar';
+import type { CalendarEvent, CalendarSource } from '../types/calendar';
+import { scopedBrowserStorageKey } from '../lib/storage-scope';
+import { readDesktopBootstrapCache, updateDesktopBootstrapCache } from '../lib/desktop/storage';
+import { isDesktopApp } from '../lib/desktop/utils';
 
 const LOCAL_EVENTS_KEY = 'millennium_local_events';
 const LOCAL_CALENDARS_KEY = 'millennium_local_calendars';
+
+const normalizeCalendar = (calendar: CalendarSource): CalendarSource => (
+    calendar.id === 'classes' ? { ...calendar, icon: 'IconBook' } : calendar
+);
 
 interface LocalEventsHook {
     events: CalendarEvent[];
@@ -15,87 +22,98 @@ interface LocalEventsHook {
     removeCalendar: (id: string) => void;
     renameCalendar: (id: string, name: string) => void;
     updateCalendarColor: (id: string, color: string) => void;
+    updateCalendarIcon: (id: string, icon: string) => void;
 }
 
-export function useLocalEvents(): LocalEventsHook {
+const defaultCalendars = (): CalendarSource[] => [
+    {
+        id: 'local',
+        name: 'My Events',
+        color: '#10b981',
+        icon: 'IconCalendarEvent',
+        visible: true,
+        isLocal: true,
+    },
+    {
+        id: 'classes',
+        name: 'Classes',
+        color: '#8b5cf6',
+        icon: 'IconBook',
+        visible: true,
+        isLocal: true,
+    },
+];
+
+export function useLocalEvents(userId?: string): LocalEventsHook {
     const [events, setEvents] = useState<CalendarEvent[]>([]);
-    const [calendars, setCalendars] = useState<CalendarSource[]>([
-        {
-            id: 'local',
-            name: 'My Events',
-            color: '#10b981',
-            visible: true,
-            isLocal: true,
-        },
-        {
-            id: 'classes',
-            name: 'Classes',
-            color: '#8b5cf6',
-            visible: true,
-            isLocal: true,
-        },
-    ]);
+    const [calendars, setCalendars] = useState<CalendarSource[]>(defaultCalendars);
     const hasLoadedRef = useRef(false);
+    const hasPendingUserChangeRef = useRef(false);
+    const eventsStorageKey = scopedBrowserStorageKey(LOCAL_EVENTS_KEY, userId);
+    const calendarsStorageKey = scopedBrowserStorageKey(LOCAL_CALENDARS_KEY, userId);
 
-    // Load from API (fallback to localStorage)
-    useEffect(() => {
-        let cancelled = false;
+    const loadFromStorage = useCallback(() => {
+        if (!eventsStorageKey || !calendarsStorageKey) return;
+        try {
+            const savedEvents = localStorage.getItem(eventsStorageKey);
+            if (savedEvents) {
+                const parsed = JSON.parse(savedEvents);
+                setEvents(parsed.map((e: any) => ({
+                    ...e,
+                    start: new Date(e.start),
+                    end: new Date(e.end),
+                })));
+            }
 
-        const loadFromStorage = () => {
-            try {
-                const savedEvents = localStorage.getItem(LOCAL_EVENTS_KEY);
-                if (savedEvents) {
-                    const parsed = JSON.parse(savedEvents);
-                    setEvents(parsed.map((e: any) => ({
+            const savedCalendars = localStorage.getItem(calendarsStorageKey);
+            if (savedCalendars) {
+                setCalendars(JSON.parse(savedCalendars).map(normalizeCalendar));
+            }
+        } catch (err) {
+            console.error('Failed to load local events:', err);
+        }
+    }, [calendarsStorageKey, eventsStorageKey]);
+
+    const loadFromApi = useCallback(async () => {
+        if (typeof window === 'undefined') return;
+        hasLoadedRef.current = false;
+        setEvents([]);
+        setCalendars(defaultCalendars());
+        try {
+            const response = await fetch('/api/user/local-calendar');
+            if (response.ok) {
+                const payload = await response.json();
+                if (Array.isArray(payload.events)) {
+                    setEvents(payload.events.map((e: any) => ({
                         ...e,
                         start: new Date(e.start),
                         end: new Date(e.end),
                     })));
                 }
-
-                const savedCalendars = localStorage.getItem(LOCAL_CALENDARS_KEY);
-                if (savedCalendars) {
-                    setCalendars(JSON.parse(savedCalendars));
+                if (Array.isArray(payload.calendars)) {
+                    setCalendars(payload.calendars.map(normalizeCalendar));
                 }
-            } catch (err) {
-                console.error('Failed to load local events:', err);
+                hasLoadedRef.current = true;
+                return;
             }
-        };
+        } catch (err) {
+            console.error('Failed to load local events from server:', err);
+        }
 
-        const loadFromApi = async () => {
-            if (typeof window === 'undefined') return;
-            try {
-                const response = await fetch('/api/user/local-calendar');
-                if (response.ok) {
-                    const payload = await response.json();
-                    if (cancelled) return;
-                    if (Array.isArray(payload.events)) {
-                        setEvents(payload.events.map((e: any) => ({
-                            ...e,
-                            start: new Date(e.start),
-                            end: new Date(e.end),
-                        })));
-                    }
-                    if (Array.isArray(payload.calendars)) {
-                        setCalendars(payload.calendars);
-                    }
-                    hasLoadedRef.current = true;
-                    return;
-                }
-            } catch (err) {
-                console.error('Failed to load local events from server:', err);
-            }
+        loadFromStorage();
+        hasLoadedRef.current = true;
+    }, [loadFromStorage]);
 
-            loadFromStorage();
-            hasLoadedRef.current = true;
-        };
-
+    // Load from API (fallback to localStorage)
+    useEffect(() => {
         loadFromApi();
+    }, [loadFromApi]);
 
-        return () => {
-            cancelled = true;
-        };
-    }, []);
+    useEffect(() => {
+        if (typeof window === 'undefined' || !eventsStorageKey || !calendarsStorageKey) return;
+        window.addEventListener('assistant-actions-applied', loadFromApi);
+        return () => window.removeEventListener('assistant-actions-applied', loadFromApi);
+    }, [loadFromApi]);
 
     const saveTimeoutRef = useRef<number | null>(null);
 
@@ -120,24 +138,26 @@ export function useLocalEvents(): LocalEventsHook {
             }
         } catch (error) {
             console.error('Failed to save local calendar to server:', error);
+            if (!eventsStorageKey || !calendarsStorageKey) return;
             try {
-                localStorage.setItem(LOCAL_EVENTS_KEY, JSON.stringify(serializedEvents));
-                localStorage.setItem(LOCAL_CALENDARS_KEY, JSON.stringify(nextCalendars));
+                localStorage.setItem(eventsStorageKey, JSON.stringify(serializedEvents));
+                localStorage.setItem(calendarsStorageKey, JSON.stringify(nextCalendars));
             } catch (storageError) {
                 console.error('Failed to save local calendar locally:', storageError);
             }
         }
-    }, []);
+    }, [calendarsStorageKey, eventsStorageKey]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        if (!hasLoadedRef.current) return;
+        if (!hasLoadedRef.current || !hasPendingUserChangeRef.current) return;
 
         if (saveTimeoutRef.current) {
             window.clearTimeout(saveTimeoutRef.current);
         }
 
         saveTimeoutRef.current = window.setTimeout(() => {
+            hasPendingUserChangeRef.current = false;
             persistLocalData(events, calendars);
         }, 500);
 
@@ -149,6 +169,8 @@ export function useLocalEvents(): LocalEventsHook {
     }, [events, calendars, persistLocalData]);
 
     const addEvent = useCallback((event: Partial<CalendarEvent>) => {
+        if (event.calendarId === 'classes' || event.sourceType === 'class') return;
+
         const newEvent: CalendarEvent = {
             id: `local_${Date.now()}`,
             title: event.title || 'Untitled',
@@ -163,22 +185,33 @@ export function useLocalEvents(): LocalEventsHook {
             isLocal: true,
         };
         setEvents(prev => [...prev, newEvent]);
+        hasPendingUserChangeRef.current = true;
     }, []);
 
     const updateEvent = useCallback((id: string, updates: Partial<CalendarEvent>) => {
-        setEvents(prev => prev.map(e =>
-            e.id === id ? { ...e, ...updates } : e
-        ));
+        setEvents(prev => {
+            const index = prev.findIndex(event => event.id === id && event.calendarId !== 'classes');
+            if (index === -1) return prev;
+            hasPendingUserChangeRef.current = true;
+            return prev.map((event, eventIndex) => eventIndex === index ? { ...event, ...updates } : event);
+        });
     }, []);
 
     const deleteEvent = useCallback((id: string) => {
-        setEvents(prev => prev.filter(e => e.id !== id));
+        setEvents(prev => {
+            const next = prev.filter(event => event.id !== id || event.calendarId === 'classes');
+            if (next.length === prev.length) return prev;
+            hasPendingUserChangeRef.current = true;
+            return next;
+        });
     }, []);
 
     const toggleCalendarVisibility = useCallback((id: string) => {
-        setCalendars(prev => prev.map(c =>
-            c.id === id ? { ...c, visible: !c.visible } : c
-        ));
+        setCalendars(prev => {
+            if (!prev.some(calendar => calendar.id === id)) return prev;
+            hasPendingUserChangeRef.current = true;
+            return prev.map(calendar => calendar.id === id ? { ...calendar, visible: !calendar.visible } : calendar);
+        });
     }, []);
 
     const addCalendar = useCallback((name: string, color = '#3b82f6') => {
@@ -189,31 +222,54 @@ export function useLocalEvents(): LocalEventsHook {
             id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
             name: trimmed,
             color,
+            icon: 'IconCalendarEvent',
             visible: true,
             isLocal: true,
         };
 
         setCalendars(prev => [...prev, newCalendar]);
+        hasPendingUserChangeRef.current = true;
         return newCalendar;
     }, []);
 
     const removeCalendar = useCallback((id: string) => {
-        setCalendars(prev => prev.filter(c => c.id !== id));
-        setEvents(prev => prev.filter(e => e.calendarId !== id));
+        if (id === 'classes') return;
+        setCalendars(prev => {
+            if (!prev.some(calendar => calendar.id === id)) return prev;
+            hasPendingUserChangeRef.current = true;
+            return prev.filter(calendar => calendar.id !== id);
+        });
+        setEvents(prev => prev.filter(event => event.calendarId !== id));
     }, []);
 
     const renameCalendar = useCallback((id: string, name: string) => {
+        if (id === 'classes') return;
         const trimmed = name.trim();
         if (!trimmed) return;
-        setCalendars(prev => prev.map(calendar =>
-            calendar.id === id ? { ...calendar, name: trimmed } : calendar
-        ));
+        setCalendars(prev => {
+            const current = prev.find(calendar => calendar.id === id);
+            if (!current || current.name === trimmed) return prev;
+            hasPendingUserChangeRef.current = true;
+            return prev.map(calendar => calendar.id === id ? { ...calendar, name: trimmed } : calendar);
+        });
     }, []);
 
     const updateCalendarColor = useCallback((id: string, color: string) => {
-        setCalendars(prev => prev.map(calendar =>
-            calendar.id === id ? { ...calendar, color } : calendar
-        ));
+        setCalendars(prev => {
+            const current = prev.find(calendar => calendar.id === id);
+            if (!current || current.color === color) return prev;
+            hasPendingUserChangeRef.current = true;
+            return prev.map(calendar => calendar.id === id ? { ...calendar, color } : calendar);
+        });
+    }, []);
+
+    const updateCalendarIcon = useCallback((id: string, icon: string) => {
+        setCalendars(prev => {
+            const current = prev.find(calendar => calendar.id === id);
+            if (!current || current.icon === icon) return prev;
+            hasPendingUserChangeRef.current = true;
+            return prev.map(calendar => calendar.id === id ? { ...calendar, icon } : calendar);
+        });
     }, []);
 
     return {
@@ -227,5 +283,6 @@ export function useLocalEvents(): LocalEventsHook {
         removeCalendar,
         renameCalendar,
         updateCalendarColor,
+        updateCalendarIcon,
     };
 }

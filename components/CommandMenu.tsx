@@ -2,39 +2,35 @@
 
 import * as React from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import * as TablerIcons from "@tabler/icons-react"
 import {
-    IconHome,
-    IconCalendar,
-    IconTable,
-    IconSchool,
-    IconReportAnalytics,
-    IconClipboardCheck,
-    IconUser,
-    IconCalendarPlus,
-    IconLogout,
-    IconBell,
-    IconSettings,
-    IconPalette,
-    IconAdjustments,
-    IconRefresh,
-    IconDownload,
-    IconKeyboard,
-    IconInbox,
-    IconPin,
-    IconAlertCircle,
-    IconCalendarEvent,
-    IconChecklist,
     IconArchive,
-    IconCalendarWeek,
-    IconCalendarTime,
+    IconAlertCircle,
+    IconArrowLeft,
+    IconArrowRight,
+    IconCalendarEvent,
+    IconCalendarPlus,
     IconCalendarStats,
+    IconCalendarTime,
+    IconCalendarWeek,
+    IconChecklist,
+    IconInbox,
     IconLetterA,
+    IconLayoutGrid,
     IconLetterB,
-    IconSparkles,
-    IconFolder,
+    IconLogout,
+    IconPin,
+    IconPlus,
+    IconSettings,
+    IconX,
 } from "@tabler/icons-react"
-import { ShortcutBinding, formatShortcutDisplay } from "../hooks/useShortcuts"
+import { IconExplorerIcon } from "./ui/icon-explorer"
+import {
+    RELEASED_DASHBOARD_SECTIONS,
+    RELEASED_SETTINGS_SECTIONS,
+    type DashboardSectionId,
+} from "./dashboard/navigation/dashboardRegistry"
+import { formatShortcutKey } from "../hooks/useShortcuts"
+import type { ShortcutBinding } from "../hooks/useShortcuts"
 
 // ============================================
 // TYPES
@@ -55,19 +51,21 @@ export interface CommandItem {
 interface CommandMenuProps {
     open: boolean
     onClose: () => void
-    onNavigate: (page: string) => void
-    onAction?: (action: string, payload?: any) => void
+    onNavigate: (page: DashboardSectionId | "settings") => void
+    onAction?: (action: string, payload?: unknown) => void
     currentSection?: string
     currentView?: string
     shortcutBindings?: Map<string, ShortcutBinding>
     notificationFolders?: { id: string; title: string; subtitle?: string; icon: string }[]
+    /** Open dashboard tabs, so any of them can be jumped to straight from the menu. */
+    openTabs?: { id: string; label: string; active: boolean }[]
 }
 
 // ============================================
 // COMMAND MENU COMPONENT
 // ============================================
 
-export function CommandMenu({ open, onClose, onNavigate, onAction, currentSection, currentView, shortcutBindings, notificationFolders = [] }: CommandMenuProps) {
+export function CommandMenu({ open, onClose, onNavigate, onAction, currentSection, currentView, shortcutBindings, notificationFolders = [], openTabs = [] }: CommandMenuProps) {
     const [inputValue, setInputValue] = useState("")
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [usingKeyboard, setUsingKeyboard] = useState(false)
@@ -86,15 +84,6 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
 
     // Command registry with all site actions
     const commands: CommandItem[] = useMemo(() => {
-        // Navigation shortcuts
-        const navHomeShortcut = getShortcut('nav-home')
-        const navAccountShortcut = getShortcut('nav-account')
-        const navNotificationsShortcut = getShortcut('nav-notifications')
-        const navCalendarShortcut = getShortcut('nav-calendar')
-        const navClassesShortcut = getShortcut('nav-classes')
-        const navTimetableShortcut = getShortcut('nav-timetable')
-        const navReportsShortcut = getShortcut('nav-reports')
-        const navAttendanceShortcut = getShortcut('nav-attendance')
         const navSettingsShortcut = getShortcut('nav-settings')
 
         // Action shortcuts
@@ -119,27 +108,45 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
         const notifAssignmentsShortcut = getShortcut('notifications-assignments')
         const notifArchiveShortcut = getShortcut('notifications-archive')
 
-        // Settings shortcuts
-        const settingsGeneralShortcut = getShortcut('settings-general')
-        const settingsAppearanceShortcut = getShortcut('settings-appearance')
-        const settingsAnimationsShortcut = getShortcut('settings-animations')
-        const settingsNotificationsShortcut = getShortcut('settings-notifications')
-        const settingsShortcutsShortcut = getShortcut('settings-shortcuts')
-        const settingsThemeBuilderShortcut = getShortcut('settings-theme-builder')
-        const settingsClassColorsShortcut = getShortcut('settings-class-colors')
-        const settingsSyncShortcut = getShortcut('settings-sync')
-        const settingsExportShortcut = getShortcut('settings-export')
+        const navigationItems: CommandItem[] = RELEASED_DASHBOARD_SECTIONS.map((section) => {
+            const shortcut = "shortcutId" in section ? getShortcut(section.shortcutId) : undefined
+            const SectionIcon = section.icon
+            return {
+                id: "shortcutId" in section ? section.shortcutId : `nav-${section.id}`,
+                label: section.navigationLabel,
+                description: section.description,
+                icon: <SectionIcon size={18} />,
+                category: "Navigation",
+                shortcut: shortcut?.keys,
+                shortcutIsSequence: shortcut?.isSequence,
+                keywords: [...section.keywords],
+                action: () => onNavigate(section.id),
+            }
+        })
+
+        const settingsItems: CommandItem[] = RELEASED_SETTINGS_SECTIONS
+            .filter((section) => !("showInCommandMenu" in section) || section.showInCommandMenu)
+            .map((section) => {
+                const shortcut = "shortcutId" in section ? getShortcut(section.shortcutId) : undefined
+                const SectionIcon = section.icon
+                return {
+                    id: `settings-${section.id}`,
+                    label: section.commandLabel,
+                    description: section.description,
+                    icon: <SectionIcon size={18} />,
+                    category: "Settings",
+                    shortcut: shortcut?.keys,
+                    shortcutIsSequence: shortcut?.isSequence,
+                    keywords: ["settings", ...section.keywords],
+                    action: () => {
+                        onAction?.("settings-section", section.id)
+                        onClose()
+                    },
+                }
+            })
 
         const items: CommandItem[] = [
-            // Navigation
-            { id: "nav-home", label: "Home", description: "Dashboard home page", icon: <IconHome size={18} />, category: "Navigation", shortcut: navHomeShortcut?.keys, shortcutIsSequence: navHomeShortcut?.isSequence, keywords: ["dashboard", "main"], action: () => onNavigate("dashboard") },
-            { id: "nav-account", label: "Account", description: "Manage your account settings", icon: <IconUser size={18} />, category: "Navigation", shortcut: navAccountShortcut?.keys, shortcutIsSequence: navAccountShortcut?.isSequence, keywords: ["profile", "settings"], action: () => onNavigate("account") },
-            { id: "nav-notifications", label: "Notifications", description: "View all notices and announcements", icon: <IconBell size={18} />, category: "Navigation", shortcut: navNotificationsShortcut?.keys, shortcutIsSequence: navNotificationsShortcut?.isSequence, action: () => onNavigate("notifications") },
-            { id: "nav-calendar", label: "Calendar", description: "View your calendar and events", icon: <IconCalendar size={18} />, category: "Navigation", shortcut: navCalendarShortcut?.keys, shortcutIsSequence: navCalendarShortcut?.isSequence, keywords: ["schedule", "events"], action: () => onNavigate("calendar") },
-            { id: "nav-classes", label: "Classes", description: "View and manage your classes", icon: <IconSchool size={18} />, category: "Navigation", shortcut: navClassesShortcut?.keys, shortcutIsSequence: navClassesShortcut?.isSequence, keywords: ["subjects", "courses"], action: () => onNavigate("classes") },
-            { id: "nav-timetable", label: "Timetable", description: "View your weekly schedule", icon: <IconTable size={18} />, category: "Navigation", shortcut: navTimetableShortcut?.keys, shortcutIsSequence: navTimetableShortcut?.isSequence, keywords: ["schedule"], action: () => onNavigate("timetable") },
-            { id: "nav-reports", label: "Reports", description: "View your academic reports", icon: <IconReportAnalytics size={18} />, category: "Navigation", shortcut: navReportsShortcut?.keys, shortcutIsSequence: navReportsShortcut?.isSequence, keywords: ["grades", "results"], action: () => onNavigate("reports") },
-            { id: "nav-attendance", label: "Attendance", description: "View attendance records", icon: <IconClipboardCheck size={18} />, category: "Navigation", shortcut: navAttendanceShortcut?.keys, shortcutIsSequence: navAttendanceShortcut?.isSequence, keywords: ["absences", "present"], action: () => onNavigate("attendance") },
+            ...navigationItems,
             { id: "nav-settings", label: "Settings", description: "Manage app settings and preferences", icon: <IconSettings size={18} />, category: "Navigation", shortcut: navSettingsShortcut?.keys, shortcutIsSequence: navSettingsShortcut?.isSequence, keywords: ["preferences", "config"], action: () => onNavigate("settings") },
 
             // Actions
@@ -164,26 +171,40 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
             { id: "notifications-assignments", label: "Assignments", description: "View assignment notifications", icon: <IconChecklist size={18} />, category: "Notifications", shortcut: notifAssignmentsShortcut?.keys, shortcutIsSequence: notifAssignmentsShortcut?.isSequence, keywords: ["notifications", "homework", "assignments"], action: () => { onAction?.("notification-category", "assignments"); onClose(); } },
             { id: "notifications-archive", label: "Archive", description: "View archived notifications", icon: <IconArchive size={18} />, category: "Notifications", shortcut: notifArchiveShortcut?.keys, shortcutIsSequence: notifArchiveShortcut?.isSequence, keywords: ["notifications", "archive", "old"], action: () => { onAction?.("notification-category", "archive"); onClose(); } },
 
-            // Settings Sections
-            { id: "settings-general", label: "General Settings", description: "Open general settings", icon: <IconSettings size={18} />, category: "Settings", shortcut: settingsGeneralShortcut?.keys, shortcutIsSequence: settingsGeneralShortcut?.isSequence, keywords: ["settings", "general", "preferences"], action: () => { onAction?.("settings-section", "general"); onClose(); } },
-            { id: "settings-appearance", label: "Appearance Settings", description: "Open appearance settings", icon: <IconAdjustments size={18} />, category: "Settings", shortcut: settingsAppearanceShortcut?.keys, shortcutIsSequence: settingsAppearanceShortcut?.isSequence, keywords: ["settings", "appearance", "display"], action: () => { onAction?.("settings-section", "appearance"); onClose(); } },
-            { id: "settings-animations", label: "Animation Settings", description: "Control motion and transitions", icon: <IconSparkles size={18} />, category: "Settings", shortcut: settingsAnimationsShortcut?.keys, shortcutIsSequence: settingsAnimationsShortcut?.isSequence, keywords: ["settings", "animations", "motion", "transitions", "effects"], action: () => { onAction?.("settings-section", "animations"); onClose(); } },
-            { id: "settings-notifications", label: "Notification Settings", description: "Configure notification preferences", icon: <IconBell size={18} />, category: "Settings", shortcut: settingsNotificationsShortcut?.keys, shortcutIsSequence: settingsNotificationsShortcut?.isSequence, keywords: ["settings", "notifications"], action: () => { onAction?.("settings-section", "notifications"); onClose(); } },
-            { id: "settings-shortcuts", label: "Keyboard Shortcuts", description: "Customize keyboard shortcuts", icon: <IconKeyboard size={18} />, category: "Settings", shortcut: settingsShortcutsShortcut?.keys, shortcutIsSequence: settingsShortcutsShortcut?.isSequence, keywords: ["settings", "shortcuts", "keyboard", "keys"], action: () => { onAction?.("settings-section", "shortcuts"); onClose(); } },
-            { id: "settings-theme-builder", label: "Theme Builder", description: "Customize your theme", icon: <IconPalette size={18} />, category: "Settings", shortcut: settingsThemeBuilderShortcut?.keys, shortcutIsSequence: settingsThemeBuilderShortcut?.isSequence, keywords: ["settings", "theme", "colors", "customization"], action: () => { onAction?.("settings-section", "theme-builder"); onClose(); } },
-            { id: "settings-class-colors", label: "Class Colors", description: "Customize class colors", icon: <IconSchool size={18} />, category: "Settings", shortcut: settingsClassColorsShortcut?.keys, shortcutIsSequence: settingsClassColorsShortcut?.isSequence, keywords: ["settings", "classes", "colors"], action: () => { onAction?.("settings-section", "class-colors"); onClose(); } },
-            { id: "settings-sync", label: "Sync Settings", description: "Configure data sync", icon: <IconRefresh size={18} />, category: "Settings", shortcut: settingsSyncShortcut?.keys, shortcutIsSequence: settingsSyncShortcut?.isSequence, keywords: ["settings", "sync", "data"], action: () => { onAction?.("settings-section", "sync"); onClose(); } },
-            { id: "settings-export", label: "Export Settings", description: "Export your data", icon: <IconDownload size={18} />, category: "Settings", shortcut: settingsExportShortcut?.keys, shortcutIsSequence: settingsExportShortcut?.isSequence, keywords: ["settings", "export", "download"], action: () => { onAction?.("settings-section", "export"); onClose(); } },
+            ...settingsItems,
         ]
+
+        const tabNewShortcut = getShortcut('tab-new')
+        const tabCloseShortcut = getShortcut('tab-close')
+        const tabNextShortcut = getShortcut('tab-next')
+        const tabPreviousShortcut = getShortcut('tab-previous')
+
+        items.push(
+            { id: "tab-new", label: "New tab", description: "Open another dashboard tab", icon: <IconPlus size={18} />, category: "Tabs", shortcut: tabNewShortcut?.keys, shortcutIsSequence: tabNewShortcut?.isSequence, keywords: ["tab", "open"], action: () => { onAction?.("tab-new"); onClose(); } },
+            { id: "tab-close", label: "Close tab", description: "Close the active dashboard tab", icon: <IconX size={18} />, category: "Tabs", shortcut: tabCloseShortcut?.keys, shortcutIsSequence: tabCloseShortcut?.isSequence, keywords: ["tab", "close"], action: () => { onAction?.("tab-close"); onClose(); } },
+            { id: "tab-next", label: "Next tab", description: "Cycle to the next dashboard tab", icon: <IconArrowRight size={18} />, category: "Tabs", shortcut: tabNextShortcut?.keys, shortcutIsSequence: tabNextShortcut?.isSequence, keywords: ["tab", "cycle"], action: () => { onAction?.("tab-cycle", 1); onClose(); } },
+            { id: "tab-previous", label: "Previous tab", description: "Cycle to the previous dashboard tab", icon: <IconArrowLeft size={18} />, category: "Tabs", shortcut: tabPreviousShortcut?.keys, shortcutIsSequence: tabPreviousShortcut?.isSequence, keywords: ["tab", "cycle"], action: () => { onAction?.("tab-cycle", -1); onClose(); } },
+        )
+
+        openTabs.forEach((tab) => {
+            items.push({
+                id: `tab-switch-${tab.id}`,
+                label: tab.active ? `${tab.label} (current tab)` : tab.label,
+                description: "Switch to this tab",
+                icon: <IconLayoutGrid size={18} />,
+                category: "Tabs",
+                keywords: ["tab", "switch", "jump"],
+                action: () => { onAction?.("tab-switch", tab.id); onClose(); },
+            })
+        })
 
         if (notificationFolders.length > 0) {
             notificationFolders.forEach((folder) => {
-                const FolderIcon = (TablerIcons as unknown as Record<string, React.ComponentType<{ size?: number }>>)[folder.icon] || IconFolder
                 items.push({
                     id: `notifications-folder-${folder.id}`,
                     label: folder.title,
                     description: folder.subtitle || "Open notification folder",
-                    icon: <FolderIcon size={18} />,
+                    icon: <IconExplorerIcon name={folder.icon} size={18} />,
                     category: "Notification Folders",
                     keywords: ["notifications", "folder", folder.title],
                     action: () => {
@@ -195,7 +216,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
         }
 
         return items
-    }, [onNavigate, onAction, onClose, getShortcut, notificationFolders])
+    }, [onNavigate, onAction, onClose, getShortcut, notificationFolders, openTabs])
 
     // Filter and rank commands based on input with priority system
     const filteredCommands = useMemo(() => {
@@ -299,7 +320,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                 setIsClosing(false)
             }, 120)
         }
-    }, [open])
+    }, [open, shouldRender])
 
     // Reset selected index when filter changes
     useEffect(() => {
@@ -380,15 +401,15 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
             // Two regular keys = show "key1 then key2"
             return (
                 <>
-                    <kbd style={kbdStyle}>{shortcut[0].toUpperCase()}</kbd>
+                    <kbd style={kbdStyle}>{formatShortcutKey(shortcut[0])}</kbd>
                     <span style={{ color: "var(--text-muted)", fontSize: "10px", margin: "0 2px" }}>then</span>
-                    <kbd style={kbdStyle}>{shortcut[1].toUpperCase()}</kbd>
+                    <kbd style={kbdStyle}>{formatShortcutKey(shortcut[1])}</kbd>
                 </>
             )
         } else {
             // Modifier key combos - show side by side
             return shortcut.map((key, i) => (
-                <kbd key={i} style={kbdStyle}>{key === 'shift' ? '⇧' : key.toUpperCase()}</kbd>
+                <kbd key={i} style={kbdStyle}>{formatShortcutKey(key)}</kbd>
             ))
         }
     }
@@ -425,6 +446,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
         >
             <div
                 ref={containerRef}
+                data-tour-id="command-menu"
                 className="command-menu-container"
                 onMouseMove={handleMouseMove}
                 style={{
@@ -433,7 +455,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                     backgroundColor: "var(--bg-elevated)",
                     border: "1px solid var(--border-default)",
                     borderRadius: "12px",
-                    boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.7)",
+                    boxShadow: "0 25px 60px -15px rgb(var(--shadow-color) / calc(0.7 * var(--shadow-strength)))",
                     overflow: "hidden",
                     animation: isClosing ? "scaleOut 120ms ease-out forwards" : "scaleIn 120ms ease-out",
                 }}
@@ -481,7 +503,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                     </div>
                 </div>
 
-                {/* Results - custom scrollbar */}
+                {/* Results */}
                 <div
                     ref={listRef}
                     className="command-menu-list"
@@ -556,7 +578,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                                                 )}
                                             </div>
                                             {item.shortcut && (
-                                                <div style={{ display: "flex", gap: "3px", flexShrink: 0, alignItems: "center" }}>
+                                                <div data-shortcut-hint style={{ display: "flex", gap: "3px", flexShrink: 0, alignItems: "center" }}>
                                                     {formatShortcut(item.shortcut, item.shortcutIsSequence)}
                                                 </div>
                                             )}
@@ -579,7 +601,7 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                 </div>
 
                 {/* Footer - compact */}
-                <div style={{
+                <div data-shortcut-hint style={{
                     padding: "8px 16px",
                     borderTop: "1px solid var(--border-subtle)",
                     display: "flex",
@@ -602,8 +624,8 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                 </div>
             </div>
 
-            {/* Global animations + custom scrollbar */}
-            <style jsx global>{`
+            {/* Global animations */}
+            <style>{`
                 @keyframes fadeIn {
                     from { opacity: 0; }
                     to { opacity: 1; }
@@ -631,19 +653,6 @@ export function CommandMenu({ open, onClose, onNavigate, onAction, currentSectio
                         opacity: 0;
                         transform: scale(0.96);
                     }
-                }
-                .command-menu-list::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .command-menu-list::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .command-menu-list::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.15);
-                    border-radius: 3px;
-                }
-                .command-menu-list::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.25);
                 }
             `}</style>
         </div>

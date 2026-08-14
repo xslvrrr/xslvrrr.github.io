@@ -1,14 +1,18 @@
-/* 
+/*
  * Millennium Portal - Global Styles
  * Tailwind CSS v4 with @theme Design System
  */
 
 @import "tailwindcss";
-@source "../pages/**/*.{js,ts,jsx,tsx}";
+@source "../src/screens/**/**.{js,ts,jsx,tsx}";
 @source "../components/**/*.{js,ts,jsx,tsx}";
 @source "../lib/**/*.{js,ts,jsx,tsx}";
 @source "../hooks/**/*.{js,ts,jsx,tsx}";
 @import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -58,6 +62,9 @@
     --radius-lg: 12px;
     --radius-xl: 16px;
 
+    /* Border width (standard 1px hairline used across UI) */
+    --border-width: 1px;
+
     /* Animation Durations (controlled by useAnimationSettings) */
     --anim-duration-fast: 150ms;
     --anim-duration-normal: 200ms;
@@ -79,143 +86,76 @@
     --transition-slow: var(--anim-duration-slow) ease;
     --transition-bounce: var(--anim-duration-bounce) cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    /* Colors - Dark Mode (Default) */
-    --color-bg-base: #08090A;
-    --color-bg-elevated: #0F1011;
-    --color-bg-surface: rgba(255, 255, 255, 0.03);
-    --color-bg-surface-hover: rgba(255, 255, 255, 0.06);
-    --color-bg-overlay: rgba(255, 255, 255, 0.08);
+    /* Legacy app tokens used by existing CSS modules. */
+    --app-bg-base: #08090A;
+    --app-bg-elevated: #0F1011;
+    --app-bg-surface: #161718;
+    --app-bg-surface-hover: #1D1E1F;
+    --app-bg-overlay: #222324;
 
-    --color-accent: #6468F0;
-    --color-accent-hover: #7377F2;
-    --color-accent-active: #5458E0;
-    --color-accent-light: rgba(100, 104, 240, 0.15);
+    --app-accent: #6366F1;
+    --app-accent-hover: #818CF8;
+    --app-accent-active: #4F46E5;
+    --app-accent-light: #1C1D33;
+    --app-accent-gradient: linear-gradient(#6366F1, #6366F1);
+    --app-accent-gradient-hover: linear-gradient(#818CF8, #818CF8);
+    --app-accent-gradient-soft: linear-gradient(#242542, #242542);
 
-    --color-text-primary: #F7F8F8;
-    --color-text-secondary: #A1A5A9;
-    --color-text-tertiary: #6A6A75;
-    --color-text-muted: #4A4A52;
+    --app-text-primary: #F7F8F8;
+    --app-text-secondary: #A1A5A9;
+    --app-text-tertiary: #6A6A75;
+    --app-text-muted: #4A4A52;
 
-    --color-border-subtle: rgba(255, 255, 255, 0.08);
-    --color-border-default: rgba(255, 255, 255, 0.12);
-    --color-border-strong: rgba(255, 255, 255, 0.20);
+    --app-border-subtle: #222324;
+    --app-border-default: #2C2D2E;
+    --app-border-strong: #3F4041;
 
-    --color-hover-bg: rgba(255, 255, 255, 0.04);
-    --color-active-bg: rgba(255, 255, 255, 0.08);
-    --color-focus-ring: rgba(100, 104, 240, 0.4);
+    --app-hover-bg: #191A1B;
+    --app-active-bg: #222324;
+    --app-focus-ring: #31326B;
 }
 
-/* Map semantic app variables to Tailwind v4 color tokens so utilities like
-   bg-popover/text-muted-foreground/border-input generate correctly. */
 @theme inline {
-    --color-background: hsl(var(--background));
-    --color-foreground: hsl(var(--foreground));
-    --color-card: hsl(var(--card));
-    --color-card-foreground: hsl(var(--card-foreground));
-    --color-popover: hsl(var(--popover));
-    --color-popover-foreground: hsl(var(--popover-foreground));
-    --color-primary: hsl(var(--primary));
-    --color-primary-foreground: hsl(var(--primary-foreground));
-    --color-secondary: hsl(var(--secondary));
-    --color-secondary-foreground: hsl(var(--secondary-foreground));
-    --color-muted: hsl(var(--muted));
-    --color-muted-foreground: hsl(var(--muted-foreground));
-    --color-accent: hsl(var(--accent));
-    --color-accent-foreground: hsl(var(--accent-foreground));
-    --color-destructive: hsl(var(--destructive));
-    --color-destructive-foreground: hsl(var(--destructive-foreground));
-    --color-border: hsl(var(--border));
-    --color-input: hsl(var(--input));
-    --color-ring: hsl(var(--ring));
-    --color-sidebar: hsl(var(--sidebar-background));
-    --color-sidebar-foreground: hsl(var(--sidebar-foreground));
-    --color-sidebar-primary: hsl(var(--sidebar-primary));
-    --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-    --color-sidebar-accent: hsl(var(--sidebar-accent));
-    --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
-    --color-sidebar-border: hsl(var(--sidebar-border));
-    --color-sidebar-ring: hsl(var(--sidebar-ring));
-}
-
-/* Global semantic utility fallbacks.
-   These ensure core semantic classes still render correctly if Tailwind's
-   token utility emission is partially misconfigured or stale in dev builds. */
-@layer utilities {
-    .bg-background {
-        background-color: hsl(var(--background));
-    }
-
-    .bg-popover {
-        background-color: hsl(var(--popover));
-    }
-
-    .bg-input\/20 {
-        background-color: hsl(var(--input) / 0.2);
-    }
-
-    .bg-input\/30 {
-        background-color: hsl(var(--input) / 0.3);
-    }
-
-    .text-foreground {
-        color: hsl(var(--foreground));
-    }
-
-    .text-popover-foreground {
-        color: hsl(var(--popover-foreground));
-    }
-
-    .text-muted-foreground {
-        color: hsl(var(--muted-foreground));
-    }
-
-    .border-input {
-        border-color: hsl(var(--input));
-    }
-
-    .ring-foreground\/10 {
-        --tw-ring-color: hsl(var(--foreground) / 0.1);
-    }
-
-    .ring-ring\/30 {
-        --tw-ring-color: hsl(var(--ring) / 0.3);
-    }
-
-    .ring-ring\/50 {
-        --tw-ring-color: hsl(var(--ring) / 0.5);
-    }
-
-    .outline-hidden {
-        outline: 2px solid transparent;
-        outline-offset: 2px;
-    }
-}
-
-/* ============================================
-   GEIST SANS FONT
-   ============================================ */
-@font-face {
-    font-family: 'Geist Sans';
-    src: url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-Regular.woff2') format('woff2');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Geist Sans';
-    src: url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-Medium.woff2') format('woff2');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Geist Sans';
-    src: url('https://cdn.jsdelivr.net/npm/geist@1.2.0/dist/fonts/geist-sans/Geist-SemiBold.woff2') format('woff2');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+    --font-sans: 'Geist Variable', sans-serif;
+    --font-heading: 'Inter Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 /* ============================================
@@ -225,6 +165,15 @@
 :root {
     /* Legacy font variables */
     --font-family: var(--font-sans);
+    --syntax-font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --syntax-bg: #0b0d12;
+    --syntax-fg: #d7dae0;
+    --syntax-keyword: #8da2fb;
+    --syntax-string: #7dd3c7;
+    --syntax-number: #facc6b;
+    --syntax-comment: #737987;
+    --syntax-type: #60a5fa;
+    --syntax-border: rgba(255, 255, 255, 0.09);
     --font-normal: var(--font-weight-normal);
     --font-medium: var(--font-weight-medium);
     --font-semibold: var(--font-weight-semibold);
@@ -249,75 +198,157 @@
     --space-xl: 24px;
 
     /* Dark mode colors (default) */
-    --bg-base: var(--color-bg-base);
-    --bg-elevated: var(--color-bg-elevated);
-    --bg-surface: var(--color-bg-surface);
-    --bg-surface-hover: var(--color-bg-surface-hover);
-    --bg-overlay: var(--color-bg-overlay);
+    --bg-base: var(--app-bg-base);
+    --bg-elevated: var(--app-bg-elevated);
+    --bg-surface: var(--app-bg-surface);
+    --bg-surface-hover: var(--app-bg-surface-hover);
+    --bg-overlay: var(--app-bg-overlay);
 
-    --accent-color: var(--color-accent);
-    --accent-color-hover: var(--color-accent-hover);
-    --accent-color-active: var(--color-accent-active);
-    --accent-color-light: var(--color-accent-light);
-    --accent-gradient: var(--accent-color);
-    --accent-gradient-hover: var(--accent-color-hover);
+    --accent-color: var(--app-accent);
+    --accent-color-hover: var(--app-accent-hover);
+    --accent-color-active: var(--app-accent-active);
+    --accent-color-light: var(--app-accent-light);
+    --accent-gradient: var(--app-accent-gradient);
+    --accent-gradient-hover: var(--app-accent-gradient-hover);
+    --accent-gradient-soft: var(--app-accent-gradient-soft);
 
-    --text-primary: var(--color-text-primary);
-    --text-secondary: var(--color-text-secondary);
-    --text-tertiary: var(--color-text-tertiary);
-    --text-muted: var(--color-text-muted);
+    --text-primary: var(--app-text-primary);
+    --text-secondary: var(--app-text-secondary);
+    --text-tertiary: var(--app-text-tertiary);
+    --text-muted: var(--app-text-muted);
 
-    --border-subtle: var(--color-border-subtle);
-    --border-default: var(--color-border-default);
-    --border-strong: var(--color-border-strong);
+    --border-subtle: var(--app-border-subtle);
+    --border-default: var(--app-border-default);
+    --border-strong: var(--app-border-strong);
 
-    --hover-bg: var(--color-hover-bg);
-    --active-bg: var(--color-active-bg);
-    --focus-ring: var(--color-focus-ring);
+    --hover-bg: var(--app-hover-bg);
+    --active-bg: var(--app-active-bg);
+    --focus-ring: var(--app-focus-ring);
+
+    /* Elevation.
+
+       Every raised surface mixes its shadow from these two, so the ramp can be retuned per theme
+       in one place. `--shadow-color` is a bare RGB triplet for use inside `rgb(... / <alpha>)`,
+       and `--shadow-strength` scales that alpha. Dark mode paints black shadows against near-black
+       and needs the full weight to read at all; light mode is overridden below. */
+    --shadow-color: 0 0 0;
+    --shadow-strength: 1;
 
     /* Legacy Dashboard.module.css variables */
     --main-bg: #08090A;
     --sidebar-bg: #0F1011;
     --content-bg: #0F1011;
-    --card-bg: rgba(255, 255, 255, 0.03);
-    --border-color: rgba(255, 255, 255, 0.08);
-    --hover-card-bg: rgba(255, 255, 255, 0.06);
-    --hover-border-color: rgba(255, 255, 255, 0.12);
-    --input-bg: rgba(255, 255, 255, 0.05);
-    --primary-color: #6468F0;
-    --primary-color-light: rgba(100, 104, 240, 0.15);
+    --card-bg: #161718;
+    --border-color: #222324;
+    --hover-card-bg: #1D1E1F;
+    --hover-border-color: #2C2D2E;
+    --input-bg: #1B1C1D;
+    --primary-color: #6366F1;
+    --primary-color-light: #1C1D33;
 
-    /* Shadcn/ui CSS Variables (HSL format) */
-    --background: 0 0% 7%;
-    --foreground: 0 0% 97%;
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 97%;
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 97%;
-    --primary: 237 85% 66%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 97%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 237 85% 66%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 237 85% 66%;
-    --radius: 8px;
+    /* Shadcn/ui CSS Variables */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.141 0.005 285.823);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.141 0.005 285.823);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.141 0.005 285.823);
+    --tooltip-bg: var(--bg-elevated);
+    --tooltip-foreground: var(--text-primary);
+    --primary: oklch(0.457 0.24 277.023);
+    --primary-foreground: oklch(0.962 0.018 272.314);
+    --secondary: oklch(0.967 0.001 286.375);
+    --secondary-foreground: oklch(0.21 0.006 285.885);
+    --muted: oklch(0.967 0.001 286.375);
+    --muted-foreground: oklch(0.552 0.016 285.938);
+    --accent: oklch(0.967 0.001 286.375);
+    --accent-foreground: oklch(0.21 0.006 285.885);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(0.92 0.004 286.32);
+    --input: oklch(0.92 0.004 286.32);
+    --ring: oklch(0.705 0.015 286.067);
+    --radius: 0.625rem;
 
     /* Sidebar specific (shadcn) */
-    --sidebar-background: 0 0% 3%;
-    --sidebar-foreground: 0 0% 97%;
-    --sidebar-primary: 237 85% 66%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 97%;
-    --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 237 85% 66%;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-background: var(--sidebar);
+    --sidebar-foreground: oklch(0.141 0.005 285.823);
+    --sidebar-primary: oklch(0.511 0.262 276.966);
+    --sidebar-primary-foreground: oklch(0.962 0.018 272.314);
+    --sidebar-accent: oklch(0.967 0.001 286.375);
+    --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+    --sidebar-border: oklch(0.92 0.004 286.32);
+    --sidebar-ring: oklch(0.705 0.015 286.067);
+    --chart-1: oklch(0.785 0.115 274.713);
+    --chart-2: oklch(0.585 0.233 277.117);
+    --chart-3: oklch(0.511 0.262 276.966);
+    --chart-4: oklch(0.457 0.24 277.023);
+    --chart-5: oklch(0.398 0.195 277.366);
+}
+
+.mdCodeBlock {
+    position: relative;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--syntax-border);
+    border-radius: 10px;
+    background: var(--syntax-bg);
+    color: var(--syntax-fg);
+    padding: 12px 13px;
+    font-family: var(--syntax-font-family);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre;
+}
+
+.mdCodeBlock code {
+    display: block;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    color: inherit;
+    font: inherit;
+}
+
+.mdCodeBlock::before {
+    content: attr(data-language);
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    color: var(--syntax-comment);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.mdTaskItem {
+    list-style: none;
+}
+
+.mdTaskItem input {
+    margin-right: 6px;
+    vertical-align: -2px;
+}
+
+.mdTokenKeyword {
+    color: var(--syntax-keyword);
+}
+
+.mdTokenString {
+    color: var(--syntax-string);
+}
+
+.mdTokenNumber {
+    color: var(--syntax-number);
+}
+
+.mdTokenComment {
+    color: var(--syntax-comment);
+}
+
+.mdTokenType {
+    color: var(--syntax-type);
 }
 
 /* ========================================
@@ -328,12 +359,12 @@
     /* Background Layers */
     --bg-base: #F4F5F8;
     --bg-elevated: #FFFFFF;
-    --bg-surface: transparent;
-    --bg-surface-hover: rgba(34, 35, 38, 0.02);
-    --bg-overlay: rgba(34, 35, 38, 0.04);
+    --bg-surface: #FFFFFF;
+    --bg-surface-hover: #FBFBFB;
+    --bg-overlay: #F6F6F6;
 
     /* Accent colors stay the same */
-    --accent-color-active: #5458E0;
+    --accent-color-active: #4F46E5;
 
     /* Text Colors */
     --text-primary: #08090A;
@@ -341,44 +372,56 @@
     --text-tertiary: #6A6A75;
     --text-muted: #9A9AA0;
 
-    /* Borders */
-    --border-subtle: rgba(34, 35, 38, 0.08);
-    --border-default: rgba(34, 35, 38, 0.12);
-    --border-strong: rgba(34, 35, 38, 0.20);
+    /* Borders. A hairline on a white surface needs far more alpha than the same hairline on a dark
+       surface to read as an edge, so light mode does not mirror the dark ramp. These sit at roughly
+       12% / 18% / 28% black on white. */
+    --border-subtle: #E0E0E2;
+    --border-default: #D1D2D4;
+    --border-strong: #B7B8BB;
 
     /* Interactive States */
-    --hover-bg: rgba(34, 35, 38, 0.04);
-    --active-bg: rgba(34, 35, 38, 0.08);
+    --hover-bg: #F6F6F6;
+    --active-bg: #EDEDEE;
+
+    /* Elevation. The dark ramp is pure black at full weight, which on a white page reads as a
+       hard smudge rather than depth. Light mode uses a cool near-slate at roughly a third of the
+       alpha, which is enough separation on white without the harsh edge. */
+    --shadow-color: 15 23 42;
+    --shadow-strength: 0.34;
 
     /* Legacy variables */
     --main-bg: #F4F5F8;
     --sidebar-bg: #F4F5F8;
     --content-bg: #FFFFFF;
-    --card-bg: transparent;
-    --border-color: rgba(34, 35, 38, 0.08);
-    --hover-card-bg: rgba(34, 35, 38, 0.02);
-    --hover-border-color: rgba(34, 35, 38, 0.12);
-    --input-bg: rgba(34, 35, 38, 0.04);
+    --card-bg: #FFFFFF;
+    --border-color: #D1D2D4;
+    --hover-card-bg: #FBFBFB;
+    --hover-border-color: #B7B8BB;
+    --input-bg: #F6F6F6;
 
-    /* Shadcn variables */
-    --background: 0 0% 97%;
-    --foreground: 0 0% 3.5%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.5%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.5%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 3.5%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
+    /* Shadcn variables. These were dark-mode values copied into the light block, so anything painted
+       before lib/theme.ts runs flashed a dark surface on a light page. */
+    --background: #FFFFFF;
+    --foreground: #08090A;
+    --card: #FFFFFF;
+    --card-foreground: #08090A;
+    --popover: #FFFFFF;
+    --popover-foreground: #08090A;
+    --secondary: #F6F6F6;
+    --secondary-foreground: #08090A;
+    --muted: #F4F5F8;
+    --muted-foreground: #6A6A75;
+    --accent: #F6F6F6;
+    --accent-foreground: #08090A;
+    --border: #D1D2D4;
+    --input: #D1D2D4;
 
-    --sidebar-background: 0 0% 97%;
-    --sidebar-foreground: 0 0% 3.5%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 3.5%;
-    --sidebar-border: 0 0% 90%;
+    --sidebar: #F4F5F8;
+    --sidebar-background: var(--sidebar);
+    --sidebar-foreground: #08090A;
+    --sidebar-accent: #F6F6F6;
+    --sidebar-accent-foreground: #08090A;
+    --sidebar-border: #D1D2D4;
 }
 
 /* ============================================
@@ -840,23 +883,27 @@
     opacity: 0;
 }
 
-/* Collapsible animations */
+/* Collapsible animations.
+   The resting style is the *open* one and `data-starting-style`/`data-ending-style` are the
+   collapsed ends, which is the shape Base UI transitions between. Keying the open height off
+   `[data-open]` instead left the panel with no start value, so it snapped open at full height. */
 [data-slot="collapsible-content"] {
     overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transition: max-height var(--anim-duration-normal, 200ms) ease-out,
-        opacity var(--anim-duration-normal, 200ms) ease-out;
-}
-
-[data-slot="collapsible-content"][data-open] {
-    max-height: 1000px;
+    height: var(--collapsible-panel-height);
     opacity: 1;
+    transition: height var(--anim-microInteractions-duration, var(--anim-duration-normal, 200ms)) var(--anim-microInteractions-easing, ease-out),
+        opacity var(--anim-microInteractions-duration, var(--anim-duration-normal, 200ms)) var(--anim-microInteractions-easing, ease-out);
 }
 
-[data-slot="collapsible-content"][data-closed] {
-    max-height: 0;
+[data-slot="collapsible-content"][data-starting-style],
+[data-slot="collapsible-content"][data-ending-style] {
+    height: 0;
     opacity: 0;
+}
+
+/* Fully closed and kept mounted (`keepMounted`/`hiddenUntilFound`): no transition to run. */
+[data-slot="collapsible-content"][hidden]:not([hidden="until-found"]) {
+    display: none;
 }
 
 /* Tabs content animation */
@@ -943,6 +990,19 @@
     animation-timing-function: ease-out;
 }
 
+/* Slow drift for gradient accents shown on theme cards. Globally disabled by
+   [data-animations="disabled"] below, same as every other animation. */
+@keyframes mm-gradient-drift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.mm-gradient-drift {
+    background-size: 260% 260% !important;
+    animation: mm-gradient-drift 18s ease-in-out infinite;
+}
+
 /* ============================================
    ANIMATION CONTROL RULES
    When animations are disabled via data-animations attribute
@@ -951,25 +1011,14 @@
 /* Disable all animations and transitions when globally disabled */
 [data-animations="disabled"] *,
 [data-animations="disabled"] *::before,
-[data-animations="disabled"] *::after,
-[data-reduce-motion="true"] *,
-[data-reduce-motion="true"] *::before,
-[data-reduce-motion="true"] *::after {
+[data-animations="disabled"] *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
 }
 
-/* Respect prefers-reduced-motion at system level */
-@media (prefers-reduced-motion: reduce) {
-    :root:not([data-reduce-motion="false"]) * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-}
+/* Reduced motion is resolved per category by useAnimationSettings. This allows overrides. */
 
 /* Category-specific animation disabling */
 
@@ -984,45 +1033,160 @@
 /* Disable micro-interactions when that category is off */
 [data-anim-micro-interactions="disabled"] [data-slot="switch"],
 [data-anim-micro-interactions="disabled"] [data-slot="switch-thumb"],
+[data-anim-micro-interactions="disabled"] [data-slot="collapsible-content"],
 [data-anim-micro-interactions="disabled"] button {
     transition-duration: 0ms !important;
 }
 
 /* Disable modal/popup animations when that category is off */
-[data-anim-modal="disabled"] .dropdown-animate,
-[data-anim-modal="disabled"] .select-content-animated,
-[data-anim-modal="disabled"] [data-slot="tooltip-content"],
-[data-anim-modal="disabled"] [data-slot="alert-dialog-content"] {
+[data-anim-modal-animations="disabled"] .dropdown-animate,
+[data-anim-modal-animations="disabled"] .select-content-animated,
+[data-anim-modal-animations="disabled"] [data-slot="tooltip-content"],
+[data-anim-modal-animations="disabled"] [data-slot="alert-dialog-content"],
+[data-anim-modal-animations="disabled"] [data-slot="dialog-content"],
+[data-anim-modal-animations="disabled"] [data-slot="dialog-overlay"],
+[data-anim-modal-animations="disabled"] [data-slot="popover-content"],
+[data-anim-modal-animations="disabled"] [data-slot="context-menu-content"],
+[data-anim-modal-animations="disabled"] [data-slot="sheet-content"]:not([data-mobile-sidebar]),
+[data-anim-modal-animations="disabled"] [class*="modal"],
+[data-anim-modal-animations="disabled"] [class*="popup"],
+[data-anim-modal-animations="disabled"] [class*="menu"] {
     animation: none !important;
     transition-duration: 0ms !important;
 }
 
 /* Disable sidebar animations when that category is off */
-[data-anim-sidebar="disabled"] [data-slot="sidebar-gap"],
-[data-anim-sidebar="disabled"] [data-slot="sidebar-container"],
-[data-anim-sidebar="disabled"] [data-slot="sidebar-inner"],
-[data-anim-sidebar="disabled"] [data-slot="sidebar-inset"],
-[data-anim-sidebar="disabled"] [data-sidebar="group-content"],
-[data-anim-sidebar="disabled"] .sidebar-collapse-hide {
+[data-anim-sidebar-animations="disabled"] [data-slot="sidebar-gap"],
+[data-anim-sidebar-animations="disabled"] [data-slot="sidebar-container"],
+[data-anim-sidebar-animations="disabled"] [data-slot="sidebar-inner"],
+[data-anim-sidebar-animations="disabled"] [data-slot="sidebar-inset"],
+[data-anim-sidebar-animations="disabled"] [data-sidebar="group-content"],
+[data-anim-sidebar-animations="disabled"] [data-mobile-sidebar],
+[data-anim-sidebar-animations="disabled"] [class*="sidebar"] {
+    animation: none !important;
     transition-duration: 0ms !important;
 }
 
 /* Disable list stagger animations when that category is off */
-[data-anim-list-stagger="disabled"] .notificationItem,
-[data-anim-list-stagger="disabled"] .quickCard,
-[data-anim-list-stagger="disabled"] .activityItem {
+[data-anim-list-stagger="disabled"] [class*="notificationItem"],
+[data-anim-list-stagger="disabled"] [class*="quickCard"],
+[data-anim-list-stagger="disabled"] [class*="activityItem"],
+[data-anim-list-stagger="disabled"] [data-stagger-item] {
     animation: none !important;
 }
 
 /* Disable loading animations when that category is off */
-[data-anim-loading="disabled"] .loadingSpinner,
-[data-anim-loading="disabled"] .inlineLoaderDot {
+[data-anim-loading-animations="disabled"] .loadingSpinner,
+[data-anim-loading-animations="disabled"] .inlineLoaderDot,
+[data-anim-loading-animations="disabled"] [data-slot="spinner"],
+[data-anim-loading-animations="disabled"] .animate-spin,
+[data-anim-loading-animations="disabled"] .animate-pulse,
+[data-anim-loading-animations="disabled"] [class*="spinner"],
+[data-anim-loading-animations="disabled"] [class*="skeleton"],
+[data-anim-loading-animations="disabled"] [class*="shimmer"] {
     animation: none !important;
 }
 
 /* Disable page transitions when that category is off */
 [data-anim-page-transitions="disabled"] .pageTransition {
     transition: none !important;
+}
+
+/* Category timing and easing. Central override keeps Tailwind and CSS modules aligned. */
+[data-slot="dialog-content"], [data-slot="dialog-overlay"], [data-slot="alert-dialog-content"],
+[data-slot="alert-dialog-overlay"], [data-slot="dropdown-menu-content"], [data-slot="select-content"],
+[data-slot="tooltip-content"], [data-slot="popover-content"], [data-slot="context-menu-content"],
+[data-slot="sheet-content"], [data-slot="sheet-overlay"] {
+    animation-duration: var(--anim-modalAnimations-duration) !important;
+    animation-timing-function: var(--anim-modalAnimations-easing) !important;
+}
+
+[data-slot="sidebar-container"], [data-slot="sidebar-gap"], [data-sidebar="group-content"], [class*="sidebar"] {
+    transition-duration: var(--anim-sidebarAnimations-duration) !important;
+    transition-timing-function: var(--anim-sidebarAnimations-easing) !important;
+}
+
+[data-slot="sheet-content"][data-mobile-sidebar] {
+    animation-duration: var(--anim-sidebarAnimations-duration) !important;
+    animation-timing-function: var(--anim-sidebarAnimations-easing) !important;
+}
+
+[class*="pageTransition"], [class*="calendarContent"], [class*="monthZoomTransition"],
+[class*="zoomToMonth"], [class*="zoomFromMonth"] {
+    animation-duration: var(--anim-pageTransitions-duration) !important;
+    animation-timing-function: var(--anim-pageTransitions-easing) !important;
+    transition-duration: var(--anim-pageTransitions-duration) !important;
+    transition-timing-function: var(--anim-pageTransitions-easing) !important;
+}
+[data-anim-page-transitions="disabled"] [class*="pageTransition"],
+[data-anim-page-transitions="disabled"] [class*="calendarContent"],
+[data-anim-page-transitions="disabled"] [class*="monthZoomTransition"],
+[data-anim-page-transitions="disabled"] [class*="zoomToMonth"],
+[data-anim-page-transitions="disabled"] [class*="zoomFromMonth"] {
+    animation: none !important;
+    transition: none !important;
+}
+
+button, [data-slot="checkbox"] {
+    transition-duration: var(--anim-microInteractions-duration, var(--anim-duration-fast, 150ms));
+    transition-timing-function: var(--anim-microInteractions-easing, ease);
+}
+
+[data-slot="card"], [class*="card"], [class*="Card"] {
+    transition-duration: var(--anim-hoverEffects-duration);
+    transition-timing-function: var(--anim-hoverEffects-easing);
+}
+
+[class*="notificationItem"], [class*="quickCard"], [class*="activityItem"], [data-stagger-item] {
+    animation: mm-list-stagger-in var(--anim-listStagger-duration) var(--anim-listStagger-easing) both;
+}
+
+[class*="message"] {
+    animation-duration: var(--anim-listStagger-duration) !important;
+    animation-timing-function: var(--anim-listStagger-easing) !important;
+}
+
+[class*="spinner"], [class*="Spinner"], [class*="skeleton"], [class*="Skeleton"], [class*="shimmer"],
+.animate-spin, .animate-pulse {
+    animation-duration: var(--anim-loadingAnimations-duration) !important;
+    animation-timing-function: var(--anim-loadingAnimations-easing);
+}
+[class*="notificationItem"]:nth-child(2n), [data-stagger-item]:nth-child(2n) { animation-delay: calc(var(--anim-listStagger-duration) * .225); }
+[class*="notificationItem"]:nth-child(3n), [data-stagger-item]:nth-child(3n) { animation-delay: calc(var(--anim-listStagger-duration) * .45); }
+[class*="notificationItem"]:nth-child(4n), [data-stagger-item]:nth-child(4n) { animation-delay: calc(var(--anim-listStagger-duration) * .675); }
+
+.cn-toast, [data-sonner-toast] {
+    animation-duration: var(--anim-toastAnimations-duration) !important;
+    animation-timing-function: var(--anim-toastAnimations-easing) !important;
+    transition-duration: var(--anim-toastAnimations-duration) !important;
+    transition-timing-function: var(--anim-toastAnimations-easing) !important;
+}
+html[data-anim-toast-animations="enabled"] [data-sonner-toaster],
+html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-toast],
+html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-toast] > * {
+    transition-duration: var(--anim-toastAnimations-duration) !important;
+    transition-timing-function: var(--anim-toastAnimations-easing) !important;
+}
+[data-anim-toast-animations="disabled"] .cn-toast,
+[data-anim-toast-animations="disabled"] [data-sonner-toast] { animation: none !important; transition: none !important; }
+
+[data-anim-hover-effects="disabled"] *:hover { transform: none !important; }
+
+@keyframes mm-list-stagger-in {
+    from { opacity: 0; transform: translateX(16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Tailwind duration utilities otherwise bypass animation settings with fixed milliseconds. */
+:where([data-dashboard-shell="true"]) :where([class*="duration-"]) {
+    transition-duration: var(--anim-duration-fast) !important;
+}
+
+[data-animation-preview] { animation: mm-preview-pulse var(--anim-duration-normal) ease both; }
+@keyframes mm-preview-pulse {
+    0% { opacity: .35; transform: translateY(8px) scale(.96); }
+    65% { opacity: 1; transform: translateY(-2px) scale(1.02); }
+    100% { opacity: 1; transform: none; }
 }
 
 /* ============================================
@@ -1044,6 +1208,8 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+        min-height: 100%;
+    @apply font-sans;
     }
 
     body {
@@ -1051,67 +1217,214 @@
         background-color: var(--bg-base);
         color: var(--text-primary);
         min-height: 100vh;
+    @apply bg-background text-foreground;
+    }
+
+    html:has([data-dashboard-shell="true"]),
+    body:has([data-dashboard-shell="true"]) {
+        height: 100%;
+        overflow: hidden;
+        background: var(--sidebar);
     }
 
     /* Tooltip fallback styling (kept in base so utilities can override) */
     [data-slot="tooltip-content"] {
         padding: 6px 12px;
         border-radius: 6px;
-        border: 1px solid var(--border-default);
-        background: var(--bg-elevated);
-        color: var(--text-primary);
+        border: 0;
+        background: var(--tooltip-bg, var(--popover));
+        color: var(--tooltip-foreground, var(--popover-foreground));
         font-size: 12px;
         line-height: 1.4;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        box-shadow: none;
+        filter:
+            drop-shadow(0 1px 0 var(--border-default))
+            drop-shadow(0 -1px 0 var(--border-default))
+            drop-shadow(1px 0 0 var(--border-default))
+            drop-shadow(-1px 0 0 var(--border-default));
     }
 
     [data-slot="tooltip-arrow"] {
-        fill: var(--bg-elevated);
+        border: 0;
+        fill: var(--tooltip-bg, var(--popover));
+    }
+  * {
+    @apply border-border outline-ring/50;
     }
 }
 
 /* ============================================
-   SCROLLBAR STYLING - 2px, Solid, Themed
+   SCROLLBARS - one thin, themed overlay system
    ============================================ */
-::-webkit-scrollbar {
-    width: 2px;
-    height: 2px;
+:root {
+    --scrollbar-size: calc(var(--border-width) * 2);
+    --scrollbar-thumb: var(--border-default, #2C2D2E);
+    --scrollbar-thumb-hover: var(--border-strong, #3F4041);
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--border-default, rgba(255, 255, 255, 0.12));
-    border-radius: 1px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--border-strong, rgba(255, 255, 255, 0.22));
-}
-
-/* Firefox scrollbar */
 * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-default, rgba(255, 255, 255, 0.12)) transparent;
+    scrollbar-gutter: auto;
 }
 
-/* Hide scrollbar for horizontal scroll containers */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
+/* Firefox: partial ::-webkit-scrollbar only — use standard properties instead */
+@supports not selector(::-webkit-scrollbar-thumb) {
+    * {
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+        scrollbar-width: thin;
+    }
 }
 
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+/* Chromium/Safari: full ::-webkit-scrollbar API; avoid scrollbar-width or it overrides width */
+@supports selector(::-webkit-scrollbar-thumb) {
+    ::-webkit-scrollbar {
+        width: var(--scrollbar-size);
+        height: var(--scrollbar-size);
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--scrollbar-thumb-hover);
+    }
+
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
 }
 
 /* ============================================
    FOCUS STYLES
    ============================================ */
 :focus-visible {
-    outline: none;
+    outline: 2px solid var(--focus-ring, var(--ring));
+    outline-offset: 2px;
+}
+
+/* Accent primitives. Keep --accent-color as color-only fallback for SVG/native APIs.
+   Gradients are painted with `background-image`, never the `background` shorthand: the shorthand
+   silently resets `background-clip`, which defeats the `bg-clip-padding` that buttons and other
+   controls rely on and lets the gradient bleed under the transparent border ring. Origin is pinned
+   to the border box so the gradient still spans the whole control, and clip to the border box so it
+   stops exactly on the rounded outline with neither a spill nor a hairline gap. `overflow: hidden`
+   applies the same boundary to anything rendered inside the control. */
+.accent-fill,
+.accent-soft {
+    background-image: var(--accent-gradient);
+    background-origin: border-box;
+    background-clip: border-box;
+    overflow: hidden;
+}
+
+.accent-fill {
+    color: var(--accent-text-color, var(--primary-foreground));
+}
+
+.accent-fill:hover {
+    background-image: var(--accent-gradient-hover);
+}
+
+.accent-soft {
+    background-image: var(--accent-gradient-soft);
+}
+
+.accent-border {
+    border-color: transparent !important;
+    background:
+        linear-gradient(var(--accent-border-surface, var(--bg-elevated)), var(--accent-border-surface, var(--bg-elevated))) padding-box,
+        var(--accent-gradient) border-box;
+}
+
+.accent-text {
+    color: var(--accent-color);
+}
+
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+    .accent-text {
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .accent-text > svg,
+    svg.accent-text {
+        color: var(--accent-color);
+        -webkit-text-fill-color: initial;
+    }
+}
+
+[data-slot="input"]:focus-visible,
+[data-slot="textarea"]:focus-visible,
+[data-slot="select-trigger"]:focus-visible,
+[data-slot="combobox-search-field"]:focus-within,
+[data-slot="input-group"]:focus-within {
+    border-color: transparent !important;
+    outline: none !important;
+    background:
+        linear-gradient(var(--input-bg, var(--background)), var(--input-bg, var(--background))) padding-box,
+        var(--accent-gradient) border-box !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent) !important;
+}
+
+[data-slot="combobox-search-field"] > input:focus-visible,
+[data-slot="input-group"] [data-slot="input-group-control"]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+:is(
+    [data-slot="empty-description"],
+    [data-slot="field-description"],
+    [data-slot="item-description"]
+) > a:hover {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Same gradient boundary as .accent-fill. The switch keeps its thumb inside the rounded track and
+   the progress/slider fills stop on their own outline instead of painting under the border ring. */
+[data-slot="checkbox"][data-checked],
+[data-slot="radio-group-item"][data-checked],
+[data-slot="switch"][data-checked],
+[data-slot="progress-indicator"],
+[data-slot="slider-range"] {
+    border-color: transparent;
+    background-color: transparent !important;
+    background-image: var(--accent-gradient) !important;
+    background-origin: border-box !important;
+    background-clip: border-box !important;
+}
+
+/* Unchecked switches share the clip so both states end on the same edge. `overflow` is deliberately
+   left alone here: the switch's `::after` is its enlarged pointer target and clipping it would
+   shrink the hit area. */
+[data-slot="switch"] {
+    background-origin: border-box;
+    background-clip: border-box;
+}
+
+[data-slot="slider-thumb"] {
+    border-color: transparent !important;
+    background:
+        linear-gradient(#fff, #fff) padding-box,
+        var(--accent-gradient) border-box !important;
+}
+
+[data-slot="slider-thumb"]:has(input:focus-visible) {
+    outline: 2px solid var(--focus-ring, var(--ring));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--focus-ring, var(--ring)) 25%, transparent);
 }
 
 /* ============================================
@@ -1151,10 +1464,10 @@
         margin: 12px;
         margin-left: 0;
         border-radius: 12px;
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        box-shadow: 0 1px 3px 0 rgb(var(--shadow-color) / calc(0.1 * var(--shadow-strength))), 0 1px 2px -1px rgb(var(--shadow-color) / calc(0.1 * var(--shadow-strength)));
         border: 1px solid var(--border-default);
         /* Background color contrast - lighter than sidebar */
-        background-color: hsl(var(--background));
+        background-color: var(--content-bg);
         overflow: hidden;
     }
 
@@ -1165,7 +1478,7 @@
 
     /* Ensure sidebar wrapper has the proper dark background for contrast */
     [data-slot="sidebar-wrapper"]:has([data-variant="inset"]) {
-        background-color: hsl(var(--sidebar-background));
+        background-color: var(--sidebar);
     }
 }
 
@@ -1176,7 +1489,7 @@
 
 /* Sidebar container padding */
 [data-sidebar="sidebar"] {
-    padding: 8px;
+    padding: 4px;
 }
 
 /* Sidebar group spacing */
@@ -1188,7 +1501,7 @@
 [data-sidebar="group-label"] {
     font-size: 12px;
     font-weight: 500;
-    color: hsl(var(--sidebar-foreground) / 0.5);
+    color: var(--text-tertiary);
     padding-left: 8px;
     margin-bottom: 4px;
 }
@@ -1200,17 +1513,17 @@
     align-items: center;
     gap: 4px;
     user-select: none;
-    transition: color 0.25s ease;
+    transition: color var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing);
     position: relative;
 }
 
 [data-sidebar="group-label"][data-collapsible]:hover {
-    color: hsl(var(--sidebar-foreground) / 0.7);
+    color: var(--text-secondary);
 }
 
 /* Arrow rotation for collapsible - positioned to animate smoothly */
 [data-sidebar="group-label"] svg {
-    transition: transform 0.25s ease !important;
+    transition: transform var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
     flex-shrink: 0;
 }
 
@@ -1222,8 +1535,8 @@
 [data-sidebar="group-content"] {
     display: grid;
     grid-template-rows: 1fr;
-    transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.2s ease !important;
+    transition: grid-template-rows var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing),
+        opacity var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
 }
 
 [data-sidebar="group-content"]>* {
@@ -1237,10 +1550,10 @@
 
 /* Sidebar menu button enhancements */
 [data-sidebar="menu-button"] {
-    padding: 10px 12px;
-    gap: 12px;
+    padding: var(--space-sm);
+    gap: var(--space-sm);
     font-size: 14px;
-    transition: all 0.25s ease !important;
+    transition: all var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
 }
 
 /* Icons - use theme-aware colors */
@@ -1248,7 +1561,7 @@
     width: 18px;
     height: 18px;
     color: var(--icon-color-secondary, hsl(0 0% 55%));
-    transition: color 0.25s ease !important;
+    transition: color var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
 }
 
 [data-sidebar="menu-button"]:hover svg,
@@ -1256,16 +1569,16 @@
     color: var(--icon-color, hsl(0 0% 95%));
 }
 
-/* Active state - use transparent overlay for proper UI tint */
+/* Active state - solid grey state token */
 [data-sidebar="menu-button"][data-active="true"] {
-    background-color: var(--sidebar-active-transparent, hsl(var(--sidebar-accent)));
-    color: hsl(var(--sidebar-accent-foreground));
+    background-color: var(--sidebar-active-solid, var(--sidebar-accent));
+    color: var(--sidebar-accent-foreground);
 }
 
-/* Enhanced hover effects - use transparent overlay */
+/* Enhanced hover effects - solid grey state token */
 [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
-    background-color: var(--sidebar-accent-transparent, hsl(var(--sidebar-accent) / 0.7));
-    color: hsl(var(--sidebar-foreground));
+    background-color: var(--sidebar-accent-solid, var(--sidebar-accent));
+    color: var(--sidebar-foreground);
 }
 
 /* User profile header styling */
@@ -1288,8 +1601,8 @@
     gap: 8px;
 }
 
-/* Avatar positioning - use fixed left position to avoid tween on resize */
-[data-slot="sidebar-header"] button>div:first-child {
+/* Avatar positioning - use fixed positioning behavior to avoid tween on resize */
+[data-sidebar="profile-card"] .sidebar-profile-avatar {
     flex-shrink: 0;
     position: relative;
     z-index: 1;
@@ -1298,7 +1611,7 @@
 
 /* Sidebar collapse hide - visibility-based transition instead of display:none */
 .sidebar-collapse-hide {
-    transition: opacity 0.25s ease, max-width 0.25s ease, visibility 0.25s ease !important;
+    transition: opacity var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), max-width var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), visibility var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
     overflow: hidden;
     max-width: 200px;
 }
@@ -1325,21 +1638,61 @@
 
 /* Sidebar collapse/expand animation - SMOOTH */
 [data-slot="sidebar-gap"] {
-    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: width var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
 }
 
 [data-slot="sidebar-container"] {
-    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-        right 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-        width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: left var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing),
+        right var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing),
+        width var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
 }
 
 [data-slot="sidebar-inner"] {
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: transform var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
 }
 
 [data-slot="sidebar-inset"] {
-    transition: margin 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: margin var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
+}
+
+/* Native macOS overlay titlebar. Only top-left sidebar hotspot reveals traffic lights. */
+.desktop-window-drag-region {
+    position: fixed;
+    z-index: 70;
+    top: 0;
+    right: 0;
+    left: 88px;
+    height: 34px;
+}
+
+/* The zone only defines where the pointer reveals the traffic lights. It must not take pointer
+   events of its own: it sits over the native buttons it reveals, and the reveal is driven by a
+   window-level pointermove handler rather than by hit testing this element. */
+.desktop-window-controls-hover-zone {
+    position: fixed;
+    z-index: 80;
+    top: 0;
+    left: 0;
+    width: 88px;
+    height: 42px;
+    pointer-events: none;
+}
+
+/* Traffic lights overlay the top of the sidebar, so the sidebar's own contents slide down while
+   they are visible. The offset lands on the sidebar's inner surface rather than on whichever slot
+   happens to come first, so it applies to every sidebar that opts in — the settings sidebar leads
+   with a header, the main sidebar leads with its content. Transitioning the property that
+   actually changes is what makes it slide instead of jump. */
+html.desktop-shell [data-desktop-window-controls-offset] [data-slot="sidebar-inner"] {
+    padding-top: 0;
+    transition: padding-top var(--anim-sidebarAnimations-duration, var(--anim-duration-fast))
+        var(--anim-sidebarAnimations-easing, ease);
+}
+
+html.desktop-shell.desktop-window-controls-visible
+    [data-desktop-window-controls-offset]
+    [data-slot="sidebar-inner"] {
+    padding-top: 28px;
 }
 
 /* Keep category arrows visible in collapsed mode - override Tailwind opacity:0 */
@@ -1352,7 +1705,7 @@
 
 /* Arrow stays in place during sidebar collapse - use fixed padding, not calc() */
 [data-sidebar="group-label"] {
-    transition: padding 0.25s ease !important;
+    transition: padding var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
     padding-left: 8px;
     padding-right: 8px;
     /* Maintain consistent height in both states */
@@ -1362,7 +1715,7 @@
 
 [data-sidebar="group-label"] svg {
     flex-shrink: 0;
-    transition: transform 0.25s ease !important;
+    transition: transform var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
 }
 
 [data-collapsible="icon"] [data-sidebar="group-label"] svg {
@@ -1448,9 +1801,8 @@
     background: var(--content-bg) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: var(--radius-sm) !important;
-    padding: 6px !important;
     min-width: 180px !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 8px 24px rgb(var(--shadow-color) / calc(0.55 * var(--shadow-strength))) !important;
     outline: none !important;
 }
 
@@ -1458,14 +1810,11 @@
 [data-slot="context-menu-sub-trigger"],
 [data-slot="context-menu-radio-item"],
 [data-slot="context-menu-checkbox-item"] {
-    padding: 8px 12px !important;
     border-radius: var(--radius-sm) !important;
     color: var(--text-primary) !important;
     font-size: 13px !important;
-    cursor: pointer !important;
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
     transition: background-color 0.1s ease !important;
 }
 
@@ -1491,7 +1840,7 @@
 }
 
 [data-slot="context-menu-item"][data-variant="destructive"]:hover {
-    background: rgba(239, 68, 68, 0.1) !important;
+    background: #2A1113 !important;
 }
 
 [data-slot="context-menu-separator"] {
@@ -1506,4 +1855,214 @@
     color: var(--text-tertiary) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
+}
+
+/*
+ ---break---
+ */
+
+.dark {
+    --background: var(--bg-elevated);
+    --foreground: var(--text-primary);
+    --card: var(--bg-surface);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-elevated);
+    --popover-foreground: var(--text-primary);
+    --tooltip-bg: var(--bg-elevated);
+    --tooltip-foreground: var(--text-primary);
+    --primary: oklch(0.398 0.195 277.366);
+    --primary-foreground: oklch(0.962 0.018 272.314);
+    --secondary: var(--bg-surface);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--bg-surface);
+    --muted-foreground: var(--text-tertiary);
+    --accent: var(--hover-bg);
+    --accent-foreground: var(--text-primary);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: var(--border-default);
+    --input: var(--border-default);
+    --ring: oklch(0.552 0.016 285.938);
+    --chart-1: oklch(0.785 0.115 274.713);
+    --chart-2: oklch(0.585 0.233 277.117);
+    --chart-3: oklch(0.511 0.262 276.966);
+    --chart-4: oklch(0.457 0.24 277.023);
+    --chart-5: oklch(0.398 0.195 277.366);
+    --sidebar: var(--bg-base);
+    --sidebar-background: var(--sidebar);
+    --sidebar-foreground: var(--text-primary);
+    --sidebar-primary: oklch(0.585 0.233 277.117);
+    --sidebar-primary-foreground: oklch(0.962 0.018 272.314);
+    --sidebar-accent: var(--hover-bg);
+    --sidebar-accent-foreground: var(--text-primary);
+    --sidebar-border: var(--border-default);
+    --sidebar-ring: oklch(0.552 0.016 285.938);
+}
+
+[data-sonner-toaster][data-x-position="center"] {
+    left: 50% !important;
+    right: auto !important;
+    width: min(92vw, 460px) !important;
+    transform: translateX(-50%) !important;
+}
+
+[data-sonner-toaster][data-x-position="center"] [data-sonner-toast] {
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    backdrop-filter: none !important;
+}
+
+@keyframes millennium-confetti {
+    0% {
+        opacity: 0;
+        transform: translate(0, 16px) rotate(0deg) scale(0.8);
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--confetti-x), var(--confetti-y)) rotate(var(--confetti-rotate)) scale(1);
+    }
+}
+
+@media (max-width: 767px) {
+    [data-shortcut-hint],
+    [data-slot="kbd"],
+    [data-slot="kbd-group"],
+    [data-slot$="-shortcut"] {
+        display: none !important;
+    }
+}
+
+/* ============================================
+   POINTER CURSORS SETTING
+   ============================================ */
+
+/* Settings > General > "Use pointer cursors". The flag is written to <html> by the dashboard
+   shell so it also reaches portalled UI (dialogs, dropdowns, popovers, selects, tooltips,
+   context menus), which render outside the dashboard container.
+
+   Only interactive elements are targeted, so specialised cursors on non-interactive surfaces
+   (col-resize splitters, crosshair/text drawing canvases) are left alone. Disabled controls are
+   excluded so they keep `not-allowed`, and anything inside a `data-editing="true"` container is
+   excluded so Home/notification drag modes keep their grab/grabbing cursors. */
+
+:root[data-pointer-cursors="true"] :is(
+    button,
+    a[href],
+    summary,
+    [role="button"],
+    [role="link"],
+    [role="menuitem"],
+    [role="menuitemcheckbox"],
+    [role="menuitemradio"],
+    [role="option"],
+    [role="tab"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="radio"],
+    [data-slot="switch"],
+    [data-slot="checkbox"],
+    [data-slot="radio-group-item"],
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="context-menu-item"],
+    [data-slot="context-menu-sub-trigger"],
+    [data-slot="context-menu-checkbox-item"],
+    [data-slot="context-menu-radio-item"],
+    [data-slot="menubar-item"],
+    [data-slot="select-item"],
+    [data-slot="select-trigger"],
+    [data-slot="command-item"],
+    [data-slot="tabs-trigger"],
+    [data-slot="toggle"],
+    [data-slot="toggle-group-item"],
+    [data-slot="accordion-trigger"],
+    [data-slot="sidebar-menu-button"],
+    [data-slot="sidebar-menu-sub-button"],
+    [data-slot="pagination-link"]
+):not(:disabled):not([aria-disabled="true"]):not([data-disabled]):not([data-editing="true"] *) {
+    cursor: pointer;
+}
+
+:root[data-pointer-cursors="false"] :is(
+    button,
+    a[href],
+    summary,
+    [role="button"],
+    [role="link"],
+    [role="menuitem"],
+    [role="menuitemcheckbox"],
+    [role="menuitemradio"],
+    [role="option"],
+    [role="tab"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="radio"],
+    [data-slot="switch"],
+    [data-slot="checkbox"],
+    [data-slot="radio-group-item"],
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="context-menu-item"],
+    [data-slot="context-menu-sub-trigger"],
+    [data-slot="context-menu-checkbox-item"],
+    [data-slot="context-menu-radio-item"],
+    [data-slot="menubar-item"],
+    [data-slot="select-item"],
+    [data-slot="select-trigger"],
+    [data-slot="command-item"],
+    [data-slot="tabs-trigger"],
+    [data-slot="toggle"],
+    [data-slot="toggle-group-item"],
+    [data-slot="accordion-trigger"],
+    [data-slot="sidebar-menu-button"],
+    [data-slot="sidebar-menu-sub-button"],
+    [data-slot="pagination-link"],
+    [data-slot="card"][data-clickable="true"]
+):not(:disabled):not([aria-disabled="true"]):not([data-disabled]):not([data-editing="true"] *) {
+    cursor: default !important;
+}
+
+/* Settings search highlight
+   -------------------------------------------------------------------------
+   A search result scrolls to the control it names and flashes it, otherwise a
+   hit deep inside a long settings page lands the user in the middle of rows
+   with nothing telling them which one they asked for. lib/settings-focus.ts
+   adds and removes this class; the ring is a box-shadow rather than an outline
+   so it never competes with a control's own focus ring. */
+.settings-focus-flash {
+    border-radius: 12px;
+    animation: mm-settings-focus-flash 1.6s ease-out forwards;
+}
+
+.settings-focus-flash:focus {
+    outline: none;
+}
+
+@keyframes mm-settings-focus-flash {
+    0% {
+        box-shadow: 0 0 0 2px var(--accent-color);
+        background-color: color-mix(in srgb, var(--accent-color) 12%, transparent);
+    }
+    70% {
+        box-shadow: 0 0 0 2px var(--accent-color);
+        background-color: color-mix(in srgb, var(--accent-color) 8%, transparent);
+    }
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+        background-color: transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-focus-flash {
+        animation-duration: 1.6s;
+        animation-timing-function: steps(1, end);
+    }
 }

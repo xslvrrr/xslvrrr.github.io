@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-request-classroom-browser-permission"
+description = "Enables the request_classroom_browser_permission command without any pre-configured scope."
+commands.allow = ["request_classroom_browser_permission"]
+
+[[permission]]
+identifier = "deny-request-classroom-browser-permission"
+description = "Denies the request_classroom_browser_permission command without any pre-configured scope."
+commands.deny = ["request_classroom_browser_permission"]

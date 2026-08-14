@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID.education.millennium.desktop"],
+        "components": [
+          {
+            "/": "/app/open*",
+            "comment": "Bridge desktop app launches through the open-app page."
+          }
+        ]
+      }
+    ]
+  }
+}

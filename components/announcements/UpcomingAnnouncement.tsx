@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Link as RouterLink } from "@tanstack/react-router"
 import { IconArrowRight, IconSparkles, IconClockHour4 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -19,9 +20,6 @@ interface UpcomingAnnouncementProps {
 /**
  * Bottom-right teaser pointing at `/changelog`. It mirrors the guided-tour announcement, but runs
  * the artwork in greyscale at roughly half speed so it reads as "not here yet".
- *
- * The action is a plain anchor rather than a router link: this renders under both the Next pages
- * router and the TanStack router, and neither one's link primitive is available in both.
  */
 export function UpcomingAnnouncement({
   userId,
@@ -58,11 +56,13 @@ export function UpcomingAnnouncement({
       dismissLabel="Dismiss upcoming release announcement"
       onDismiss={handleDismiss}
       action={
-        <Button className={styles.action} asChild>
-          <a href="/changelog" onClick={handleDismiss}>
-            View the changelog
-            <IconArrowRight data-icon="inline-end" />
-          </a>
+        <Button
+          className={styles.action}
+          onClick={handleDismiss}
+          render={<RouterLink to="/changelog" />}
+        >
+          View the changelog
+          <IconArrowRight data-icon="inline-end" />
         </Button>
       }
     />

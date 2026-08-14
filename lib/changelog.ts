@@ -7,6 +7,10 @@
  *
  * Section ids are persisted as bump keys, so renaming one discards its existing bumps. Add new
  * sections rather than repurposing old ids.
+ *
+ * Nothing here may describe a surface the build does not ship. Google Classroom, past papers, and
+ * the desktop application are all built but held back, so they have no section — see
+ * `preRelease` in `components/dashboard/navigation/dashboardRegistry.ts`.
  */
 
 /** 14 August 2026, 5:00 PM AEST (UTC+10, no daylight saving in August). */
@@ -46,31 +50,12 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
         body: "API endpoints are file routes with explicit request handlers. Shared portal, Supabase, Stripe, and cryptographic logic now lives in one place instead of being duplicated across pages, which makes behaviour consistent no matter where you trigger it.",
       },
       {
+        title: "One database history",
+        body: "Every schema change is an ordered migration applied before the code that depends on it, and portal snapshots are merged inside the database under a row lock rather than read out, edited, and written back.",
+      },
+      {
         title: "Release verification in CI",
-        body: "Locked installs, typechecking, and production builds run on every change, with a separate desktop pipeline for native packages. Broken builds no longer reach you.",
-      },
-    ],
-  },
-  {
-    id: "desktop",
-    title: "The Millennium desktop app",
-    summary: "A real native application for macOS and Windows, not a wrapped web page.",
-    entries: [
-      {
-        title: "Native shell built on Tauri 2",
-        body: "The desktop app runs a Rust host with a local asset and API server, so the interface stays responsive even on slow connections and starts up far faster than the browser.",
-      },
-      {
-        title: "Encrypted offline cache",
-        body: "Your portal and Classroom data is cached in a local SQLite database encrypted with a master key held in the operating system credential store. Close your laptop, reopen it offline, and your timetable is still there.",
-      },
-      {
-        title: "Signed automatic updates",
-        body: "The app checks for signed updates at startup, every 30 minutes, and whenever it returns to the foreground. Installing is one click from the sidebar, with progress and an automatic relaunch.",
-      },
-      {
-        title: "Deep links and browser handoff",
-        body: "Logging in from the web hands off to the desktop app through short-lived, single-use tokens with PKCE, so you never retype credentials to move between the two.",
+        body: "Locked installs, typechecking, and production builds run on every change. Broken builds no longer reach you.",
       },
     ],
   },
@@ -84,12 +69,12 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
         body: "Both the Chrome and Firefox extensions have been removed entirely. They needed broad page permissions, broke whenever a portal page changed, and were a constant source of silent sync failures.",
       },
       {
-        title: "Replaced by the Puppeteer system",
-        body: "Sync now runs server-side. Direct HTTP is the default path and a controlled Puppeteer browser session is the compatibility fallback for pages that genuinely need a real renderer. Nothing runs inside your browser any more.",
+        title: "Replaced by server-side sync",
+        body: "Sync now runs on the server. Direct HTTP is the default path and a controlled browser session is the compatibility fallback for pages that genuinely need a real renderer. Nothing runs inside your browser any more.",
       },
       {
         title: "One code path, one set of bugs",
-        body: "Web and desktop share the same sync engine, so a fix applies everywhere at once instead of needing three separate extension updates.",
+        body: "There is a single sync engine, so a fix applies everywhere at once instead of needing separate extension updates.",
       },
     ],
   },
@@ -100,19 +85,23 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
     entries: [
       {
         title: "Per-source toggles",
-        body: "Timetable, notices, classes, attendance, reports, and Classroom can each be enabled or disabled independently. Turn off what you do not use and sync gets faster and quieter.",
+        body: "Timetable, notices, classes, attendance, and reports can each be enabled or disabled independently. Turn off what you do not use and sync gets faster and quieter.",
       },
       {
         title: "Visible sync status",
-        body: "Every source shows when it last succeeded, what it changed, and why it failed if it did. No more guessing whether the data on screen is current.",
+        body: "Every source shows when it last succeeded, what it changed, and why it failed if it did. A run that loses one portal page now says so and keeps the sections it did fetch, instead of reporting a plain failure.",
       },
       {
         title: "Review before it sticks",
         body: "Room changes and unenrolments surface as review prompts rather than silently rewriting your timetable, so a portal glitch cannot quietly erase a class.",
       },
       {
+        title: "Deep runs for past years",
+        body: "An ultra run walks a range of school years one at a time, reporting progress as it goes and rolling back to your last good snapshot if you cancel it.",
+      },
+      {
         title: "Retention and deletion",
-        body: "Clear a single source or delete every cached copy — cloud, browser, and desktop — in one coordinated operation.",
+        body: "Clear a single source or delete every cached copy — cloud and browser — in one coordinated operation.",
       },
     ],
   },
@@ -131,7 +120,11 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
       },
       {
         title: "Bring your own provider",
-        body: "Connect your own model provider, or on desktop use your existing ChatGPT or Claude account through the local CLI. Entitlements and usage budgets are enforced server-side.",
+        body: "Connect your own OpenRouter, Anthropic, or OpenAI credentials and choose exactly which models the assistant may use. Entitlements and usage budgets are enforced server-side, never from what the browser claims.",
+      },
+      {
+        title: "Tone and thinking",
+        body: "Pick how the assistant writes, and whether it shows its reasoning summarised or not at all.",
       },
     ],
   },
@@ -141,8 +134,20 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
     summary: "A complete study surface built into the dashboard.",
     entries: [
       {
-        title: "Flashcard sets and review",
-        body: "Create sets by hand or have the assistant generate them from your class material, then review them with scheduling that prioritises what you are about to forget.",
+        title: "Sets, cards, and real scheduling",
+        body: "Create sets by hand or have the assistant draft them from your class material, then review them with FSRS scheduling that prioritises what you are about to forget. Card types cover question and answer, typed answers, cloze deletions, and image occlusion.",
+      },
+      {
+        title: "Find any card",
+        body: "A card browser searches your whole collection by set, tag, type, state, lapses, stability, and dates, then suspends, buries, reschedules, retags, or deletes whatever the search returned.",
+      },
+      {
+        title: "Focused sessions",
+        body: "Run a saved or ad-hoc search as a session, ordered blocked by topic, mixed to make you tell topics apart, or adapted to what is most overdue. Each session explains the order it chose.",
+      },
+      {
+        title: "Statistics that mean something",
+        body: "Reviews, time studied, a recall estimate, a daily activity map, and a forecast of what your current schedule will ask for — each with a plain-language reading of what the number implies.",
       },
       {
         title: "Offline-first review",
@@ -150,30 +155,38 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
       },
       {
         title: "Exam plans and sharing",
-        body: "Build a plan around an exam date and let it pace your daily reviews, or subscribe to a shared deck and keep your own schedule while its author keeps updating the content.",
+        body: "Build a plan around an exam date and let it pace your daily reviews, or share a set by code and let someone take a copy while keeping their own schedule. Revoking a share removes the link from your page rather than leaving a dead row behind.",
+      },
+      {
+        title: "Import and export",
+        body: "Bring in existing decks, and download a complete copy of your sets, cards, and review history at any time.",
       },
     ],
   },
   {
     id: "home-editing",
-    title: "Advanced home editing",
-    summary: "Home became a canvas instead of a fixed grid.",
+    title: "Home, arranged the way you want",
+    summary: "Home is a layout you edit in place rather than a fixed arrangement.",
     entries: [
       {
-        title: "Free-canvas layout",
-        body: "In advanced mode, drag any card anywhere. Cards follow your cursor directly and are allowed to overlap mid-drag, then settle into place once you let go — no more fighting a grid that repacks itself while you are still moving.",
+        title: "Move, span, and place cards",
+        body: "Drag any card to reorder it, send it to either column, or let it span the full width. Placement is explicit, so a card that simply grew taller no longer throws unrelated cards into the other column.",
       },
       {
-        title: "Resizing and simple mode",
-        body: "Resize cards to the shape you actually want, or stay in simple mode for a tidy stacked layout that needs no arranging at all. Switching between them keeps your content.",
+        title: "Draw over the top",
+        body: "Free ink, text, lines, and images sit on their own layer above the cards, for the notes and arrows a card cannot hold.",
+      },
+      {
+        title: "Two card styles",
+        body: "Choose between clean minimal surfaces and richer stylised cards from one setting. Both behave identically when dragged and resized.",
       },
       {
         title: "Layouts that follow you",
-        body: "Your arrangement is saved per account and restored on web and desktop, with an account-scoped local fallback so it still loads offline.",
+        body: "Your arrangement is saved per account and restored on every device, with an account-scoped local fallback so it still loads offline.",
       },
       {
-        title: "Horizontal and vertical scrolling",
-        body: "The canvas scrolls on both axes, so zoomed-in browsers and wide arrangements no longer clip cards out of reach.",
+        title: "Reachable at any zoom",
+        body: "Home scrolls on both axes, so a zoomed-in browser or a wide arrangement no longer clips cards out of reach.",
       },
     ],
   },
@@ -183,20 +196,20 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
     summary: "Nearly every card on Home was rebuilt or extended.",
     entries: [
       {
-        title: "Minimal and stylised themes",
-        body: "Choose between clean shadcn surfaces and richer stylised cards from a single setting. Both now behave correctly in simple and advanced layouts, including drag behaviour and overlap rules.",
-      },
-      {
         title: "Quick access, rebuilt",
-        body: "Quick access is its own card rather than being buried inside another one, and it works the same way in both card themes.",
+        body: "Quick access is its own card rather than being buried inside another one, and each shortcut can be renamed and tinted.",
       },
       {
         title: "Timetable and notices",
         body: "The timetable card shows the current and next period with room changes highlighted, and notices are grouped, filterable, and no longer duplicate themselves.",
       },
       {
-        title: "Classroom and study cards",
-        body: "New cards surface upcoming Classroom coursework and flashcards that are due, so the things with deadlines are visible without navigating anywhere.",
+        title: "Attendance and study",
+        body: "An attendance snapshot and a due-cards card put the two things with real deadlines in front of you without navigating anywhere.",
+      },
+      {
+        title: "A note that stays",
+        body: "The Home note is a full markdown editor, saved with the rest of your layout.",
       },
     ],
   },
@@ -207,7 +220,7 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
     entries: [
       {
         title: "Multiple pages at once",
-        body: "Open Classes, Reports, and Study side by side as tabs and switch between them instantly. Each tab keeps its own scroll position, filters, and state.",
+        body: "Open Classes, Reports, and Flashcards side by side as tabs and switch between them instantly. Each tab keeps its own scroll position, filters, and state.",
       },
       {
         title: "Persistent across sessions",
@@ -233,8 +246,8 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
         body: "Attendance is broken down by class and by term so a single bad week is distinguishable from an ongoing pattern.",
       },
       {
-        title: "Explained gaps",
-        body: "Where the portal reports nothing for a period, the page says so explicitly instead of silently counting it as present.",
+        title: "Careful filling, clearly marked",
+        body: "Optional filling infers a skipped roll only from marked periods in the same class, always shows which values were inferred, and can be turned off entirely.",
       },
       {
         title: "Configurable thresholds",
@@ -244,20 +257,28 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
   },
   {
     id: "reports",
-    title: "Report annotations",
-    summary: "Reports are now something you can work with, not just read.",
+    title: "Reports you can work in",
+    summary: "Reports are now something you read, mark up, and compare inside Millennium.",
     entries: [
       {
-        title: "Annotate any report",
-        body: "Add your own notes against a subject, a grade, or a specific comment, and they persist across syncs so a re-fetch never wipes what you wrote.",
+        title: "A real PDF reader",
+        body: "Stored reports open in a viewer built for them: smooth zoom with the wheel, trackpad, pinch, or keyboard, selectable text, and pages that render as you reach them rather than all at once.",
       },
       {
-        title: "Generated PDFs",
-        body: "Export a clean PDF of any report — with or without your annotations — using signed, expiring links rather than exposing raw storage paths.",
+        title: "Annotate anything",
+        body: "Draw, highlight, add lines, arrows, and text notes, then erase or undo them. Marks are saved against the report and survive a re-sync.",
       },
       {
-        title: "Comparison across periods",
-        body: "Put reports from different periods next to each other to see how a subject moved, instead of opening them one at a time.",
+        title: "Split the view",
+        body: "Divide the reader into as many panes as you need, each showing a different report, split further either way, and drag the divider between them. Splitting always adds a pane — it never replaces the one you were reading.",
+      },
+      {
+        title: "Called by their own names",
+        body: "Reports are labelled with the name the portal gave them everywhere they appear, including the file you download, instead of a generated title or an internal id.",
+      },
+      {
+        title: "Opening and closing, animated",
+        body: "Moving between the archive and a report is a deliberate transition rather than an instant swap, so it is obvious which one you are looking at.",
       },
     ],
   },
@@ -267,20 +288,20 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
     summary: "Classes was rebuilt on the new component system from scratch.",
     entries: [
       {
-        title: "One view of every class",
-        body: "Portal classes and Classroom courses are merged into a single list, so a subject appears once with everything attached to it rather than twice in two places.",
+        title: "Everything about one class in one place",
+        body: "Enrolment details, lessons, teachers, room history, per-class attendance rates, and the periods a class actually occupies, gathered from the class list, the timetable, and the attendance register together.",
       },
       {
-        title: "Real filtering and grouping",
-        body: "Filter by teacher, period, or source, and group however you prefer. The view survives navigation instead of resetting each time.",
-      },
-      {
-        title: "Honest empty states",
-        body: "When the portal returns nothing for a counter, the page explains why rather than displaying a confident zero.",
+        title: "Past classes stay separate",
+        body: "Classes you are no longer in are kept and labelled rather than deleted or mixed into your current load, and you can hide or restore one yourself.",
       },
       {
         title: "Per-class colours",
         body: "Assign a colour to each class and it carries through the timetable, calendar, home cards, and reports.",
+      },
+      {
+        title: "Subjects that stop disappearing",
+        body: "A routine sync reports only the classes whose counters moved. Millennium now merges that into the subjects you already have instead of replacing them with it, which is what left the page showing one or two subjects until you signed in again.",
       },
     ],
   },
@@ -299,7 +320,15 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
       },
       {
         title: "Local events",
-        body: "Add your own events alongside portal data, with recurrence, and keep them entirely local to your account.",
+        body: "Add your own events alongside portal data, with recurrence, duplicate cleaning, and a description tooltip, and keep them entirely local to your account.",
+      },
+      {
+        title: "Choose what appears",
+        body: "Every calendar has a checkbox, including the school calendar built from portal data, which previously could not be switched off.",
+      },
+      {
+        title: "Hovering means hovering",
+        body: "Pointing at an event highlights the event. It no longer lights up the hour or day cell the event happens to start in.",
       },
     ],
   },
@@ -313,8 +342,12 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
         body: "Changes apply to the dashboard behind the editor as you make them. You are looking at your actual Home, timetable, and cards while you tune colours, not an isolated preview panel.",
       },
       {
-        title: "Full token control",
-        body: "Generate a complete theme from one base colour, then override individual tokens — surfaces, borders, text tiers, accents — as far as you want to take it.",
+        title: "Simple or complete",
+        body: "Generate a whole theme from one base colour, contrast, and appearance, or open the advanced builder and set every token — surfaces, borders, text tiers, accents, gradients, and syntax colours.",
+      },
+      {
+        title: "A gallery to start from",
+        body: "A set of curated colourways you can apply in one click. Picking one adds it to your own themes, so it is a starting point rather than a preset you are locked into.",
       },
       {
         title: "Consistent everywhere",
@@ -322,7 +355,7 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
       },
       {
         title: "Save, switch, and share",
-        body: "Keep multiple themes, switch between them instantly, and carry them across web and desktop.",
+        body: "Keep multiple themes, switch between them instantly, and export or import one as a shareable code.",
       },
     ],
   },
@@ -336,8 +369,8 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
         body: "Page transitions, modals, sidebars, cards, tooltips, and toasts each have their own controls. Turn off the ones that get in your way and keep the ones that help.",
       },
       {
-        title: "Duration and easing",
-        body: "Adjust timing and easing curves per category, from near-instant to deliberately slow, and see the effect immediately.",
+        title: "A real curve editor",
+        body: "Shape any category's easing by dragging points on a curve, scrub the timeline, and watch a live preview of the thing you are tuning.",
       },
       {
         title: "Reduced-motion aware",
@@ -356,7 +389,7 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
     entries: [
       {
         title: "Folders and rules",
-        body: "Sort notices into folders, and have new ones routed automatically so the things that matter to you are not buried under whole-school announcements.",
+        body: "Sort notices into folders, and write rules that file new ones automatically so the things that matter to you are not buried under whole-school announcements.",
       },
       {
         title: "Automatic archiving",
@@ -368,7 +401,7 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
       },
       {
         title: "Read state that holds",
-        body: "Read and unread state persists across devices and survives a re-sync.",
+        body: "Read and unread state persists across devices and survives a re-sync, and the sidebar itself can be reordered, resized, and pruned.",
       },
     ],
   },
@@ -382,12 +415,12 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
         body: "Change your display name, preferred name, contact details, and profile image directly. Previously the page could only show what the portal reported.",
       },
       {
-        title: "Session and device visibility",
-        body: "See where you are signed in, including desktop installations, and sign out of anything you do not recognise.",
+        title: "Data freshness in the open",
+        body: "See exactly how current each part of your dashboard is, and trigger a fresh sync from the same place.",
       },
       {
         title: "Export and deletion",
-        body: "Export a complete signed copy of your account data, or delete the account along with every portal and Classroom cache in one coordinated operation.",
+        body: "Export a complete signed copy of your account data, or delete the account along with every cached copy in one coordinated operation.",
       },
     ],
   },
@@ -402,34 +435,38 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
       },
       {
         title: "New controls throughout",
-        body: "Card styling, sidebar order and visibility, attendance thresholds, sync sources, assistant providers, animation categories, and data retention are all configurable now.",
+        body: "Card styling, sidebar order and visibility, attendance thresholds, sync sources, assistant providers, animation categories, flashcard review controls, and data retention are all configurable now.",
       },
       {
-        title: "Search and keyboard shortcuts",
-        body: "Find any setting by name, and remap the dashboard's keyboard shortcuts to whatever suits you.",
+        title: "Search that finds the control",
+        body: "Search settings by name and land on the individual switch, not the page that contains it.",
       },
       {
         title: "Sensible defaults and reset",
         body: "Every section can be reset to its default independently, so experimenting no longer risks a dashboard you cannot restore.",
       },
+      {
+        title: "Shortcuts you choose",
+        body: "Every navigation and settings shortcut can be rebound, including multi-key sequences.",
+      },
     ],
   },
   {
-    id: "classroom",
-    title: "Google Classroom sync",
-    summary: "Classroom work sits alongside your portal data instead of in another tab.",
+    id: "guides",
+    title: "Guided tours",
+    summary: "A walkthrough of the dashboard, for whichever version of it is new to you.",
     entries: [
       {
-        title: "Desktop-native extraction",
-        body: "Classroom sync runs through the desktop app with real operating-system consent, gated on an actual permission check rather than only an in-app dialog.",
+        title: "Two tours",
+        body: "New accounts get the full walkthrough. Returning accounts get a shorter one covering only what changed, and can start the full tour from the end of it.",
       },
       {
-        title: "Coursework in the dashboard",
-        body: "Assignments, due dates, and course structure appear on Home, in Classes, and in the dedicated Classroom view, filtered and grouped the same way as everything else.",
+        title: "Interactive, not a slideshow",
+        body: "Steps that need a panel open, open it themselves, and the highlighted control stays fully usable while the guide is on it.",
       },
       {
-        title: "Ownership and retention controls",
-        body: "Synced Classroom data is scoped to your account with explicit retention rules, and deleting it removes both the cloud copy and the local cache.",
+        title: "Always replayable",
+        body: "Both tours live in Settings and can be replayed at any time without touching your preferences or data.",
       },
     ],
   },
@@ -447,6 +484,10 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
         body: "Portal credentials and session cookies are encrypted before storage, and browser caches are scoped per account so shared devices cannot leak between users.",
       },
       {
+        title: "Reports fetched safely",
+        body: "Stored report PDFs are served from your own account's storage path, verified before they are saved, and never reachable through a guessable URL.",
+      },
+      {
         title: "Redacted structured logging",
         body: "Server logs are structured and redacted, with liveness and readiness endpoints and startup validation that refuses to run with a misconfigured environment.",
       },
@@ -458,16 +499,24 @@ export const UPCOMING_CHANGELOG: readonly ChangelogSection[] = [
     summary: "Too many individual fixes to list, spread across every surface.",
     entries: [
       {
+        title: "Data correctness",
+        body: "Duplicate notices, drifting week rotations, stale timetable entries after a room change, and — the big one — subjects and timetable periods vanishing after a routine background sync until you signed in again.",
+      },
+      {
         title: "Layout and scrolling",
         body: "Clipped content, unreachable cards at browser zoom, sidebars that overlapped the content area, and modals that trapped scroll have all been addressed.",
       },
       {
-        title: "Data correctness",
-        body: "Duplicate notices, drifting week rotations, stale timetable entries after a room change, and counters that reported zero instead of unknown are fixed at the source rather than patched in the view.",
+        title: "Reading and marking up documents",
+        body: "Selecting text in a report no longer paints a ghost copy of it over the page, the eraser has an eraser's cursor instead of a “not allowed” sign, and zooming quickly no longer leaves pages half-drawn.",
+      },
+      {
+        title: "Waiting states",
+        body: "Every flashcards tab now says it is loading instead of showing an empty panel that was indistinguishable from having nothing.",
       },
       {
         title: "Authentication reliability",
-        body: "Intermittent false credential rejections, sessions lost on desktop after a successful remote login, and deep-link callbacks consumed twice have all been resolved.",
+        body: "Intermittent false credential rejections, sessions lost after a successful remote login, and callbacks consumed twice have all been resolved.",
       },
       {
         title: "Consistency work",

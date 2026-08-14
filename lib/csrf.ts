@@ -11,6 +11,7 @@ export function crossOriginMutationResponse(request: Request): Response | null {
   const requestUrl = new URL(request.url)
   const allowedOrigins = new Set([requestUrl.origin])
   if (requestUrl.protocol === 'http:' && requestUrl.hostname === 'localhost' && requestUrl.port === '3001') {
+    allowedOrigins.add('http://millennium-five.vercel.app')
     allowedOrigins.add('http://localhost:3000')
   }
   if (

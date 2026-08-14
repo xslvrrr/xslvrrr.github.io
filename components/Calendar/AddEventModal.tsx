@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CalendarEvent, CalendarSource } from '../../types/calendar';
+import type { CalendarEvent, CalendarSource } from '../../types/calendar';
 import styles from './Calendar.module.css';
 import {
     IconX,
@@ -67,6 +67,7 @@ export default function AddEventModal({
     onDelete,
 }: AddEventModalProps) {
     const isEditing = !!editingEvent;
+    const eventCalendars = calendars.filter(calendar => calendar.id !== 'classes');
 
     // Properly handle the initial date - use local timezone
     const getDefaultValues = () => {
@@ -115,8 +116,8 @@ export default function AddEventModal({
             startTime: `${String(hour).padStart(2, '0')}:00`,
             endTime: `${String(Math.min(hour + 1, 23)).padStart(2, '0')}:00`,
             allDay: initialAllDay,
-            color: calendars.find(c => c.isLocal)?.color || '#3b82f6',
-            calendarId: calendars.find(c => c.isLocal)?.id || calendars[0]?.id || '',
+            color: eventCalendars.find(c => c.isLocal)?.color || '#3b82f6',
+            calendarId: eventCalendars.find(c => c.isLocal)?.id || eventCalendars[0]?.id || '',
         };
     };
 
@@ -133,7 +134,7 @@ export default function AddEventModal({
     const [selectedCalendar, setSelectedCalendar] = useState(defaults.calendarId);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    const selectedCalendarSource = calendars.find(c => c.id === selectedCalendar);
+    const selectedCalendarSource = eventCalendars.find(c => c.id === selectedCalendar);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -147,7 +148,9 @@ export default function AddEventModal({
         const startDate = new Date(year, month - 1, day, startHour, startMin, 0, 0);
         const endDate = new Date(year, month - 1, day, endHour, endMin, 0, 0);
 
-        const calendar = calendars.find(c => c.id === selectedCalendar);
+        if (selectedCalendar === 'classes') return;
+
+        const calendar = eventCalendars.find(c => c.id === selectedCalendar);
 
         onSave({
             id: editingEvent?.id,
@@ -220,8 +223,10 @@ export default function AddEventModal({
 
                     <div className={styles.formRow}>
                         <div className={styles.formGroup}>
-                            <label className={styles.checkboxLabel}>
+                            <label className={styles.checkboxLabel} htmlFor="all-day-event">
                                 <input
+                                    id="all-day-event"
+                                    className={styles.checkboxInput}
                                     type="checkbox"
                                     checked={allDay}
                                     onChange={e => setAllDay(e.target.checked)}
@@ -333,7 +338,7 @@ export default function AddEventModal({
                         <ComboboxField
                             value={selectedCalendar}
                             onChange={setSelectedCalendar}
-                            options={calendars.map(cal => ({ value: cal.id, label: cal.name }))}
+                            options={eventCalendars.map(cal => ({ value: cal.id, label: cal.name }))}
                         />
                     </div>
 
@@ -349,19 +354,17 @@ export default function AddEventModal({
                                 </button>
                                 <AlertDialogContent style={{
                                     maxWidth: '450px',
-                                    padding: '24px',
                                     backgroundColor: 'var(--bg-elevated)',
                                     border: '1px solid var(--border-default)',
                                     borderRadius: '12px',
                                     outline: 'none',
                                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                                 }}>
-                                    <AlertDialogHeader style={{ marginBottom: '16px' }}>
+                                    <AlertDialogHeader>
                                         <AlertDialogTitle style={{
                                             fontSize: '18px',
                                             fontWeight: 600,
                                             color: 'var(--text-primary)',
-                                            marginBottom: '8px',
                                         }}>
                                             Delete Event
                                         </AlertDialogTitle>

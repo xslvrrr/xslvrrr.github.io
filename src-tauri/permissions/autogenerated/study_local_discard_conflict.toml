@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-study-local-discard-conflict"
+description = "Enables the study_local_discard_conflict command without any pre-configured scope."
+commands.allow = ["study_local_discard_conflict"]
+
+[[permission]]
+identifier = "deny-study-local-discard-conflict"
+description = "Denies the study_local_discard_conflict command without any pre-configured scope."
+commands.deny = ["study_local_discard_conflict"]

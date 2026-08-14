@@ -5,25 +5,113 @@ interface FetchOptions extends RequestInit {
   timeout?: number;
 }
 
+export interface JsonFetchResult<T> {
+  response: Response;
+  data: T | null;
+}
+
+export class HttpProtocolError extends Error {
+  readonly status: number;
+
+  constructor(response: Response, detail: string) {
+    super(`${detail} (HTTP ${response.status})`);
+    this.name = 'HttpProtocolError';
+    this.status = response.status;
+  }
+}
+
+export interface RequiredJsonContract<T> {
+  name: string;
+  validate?: (value: unknown) => value is T;
+}
+
+function createDeadlineSignal(timeout: number, sourceSignal?: AbortSignal | null) {
+  const controller = new AbortController();
+  const forwardAbort = () => controller.abort(sourceSignal?.reason);
+  if (sourceSignal?.aborted) forwardAbort();
+  else sourceSignal?.addEventListener('abort', forwardAbort, { once: true });
+  const timeoutId = setTimeout(() => {
+    controller.abort(new DOMException(`Request exceeded ${timeout}ms`, 'TimeoutError'));
+  }, timeout);
+  return {
+    signal: controller.signal,
+    clear: () => {
+      clearTimeout(timeoutId);
+      sourceSignal?.removeEventListener('abort', forwardAbort);
+    },
+  };
+}
+
 export async function fetchWithTimeout(
   url: string,
   options: FetchOptions = {}
 ): Promise<Response> {
   const { timeout = 10000, ...fetchOptions } = options;
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const deadline = createDeadlineSignal(timeout, fetchOptions.signal);
 
   try {
     const response = await fetch(url, {
       ...fetchOptions,
-      signal: controller.signal,
+      signal: deadline.signal,
     });
-    clearTimeout(timeoutId);
     return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
+  } finally {
+    deadline.clear();
+  }
+}
+
+export async function fetchJsonWithTimeout<T = any>(
+  url: string,
+  options: FetchOptions = {},
+): Promise<JsonFetchResult<T>> {
+  const { timeout = 10_000, ...fetchOptions } = options;
+  const deadline = createDeadlineSignal(timeout, fetchOptions.signal);
+  try {
+    const response = await fetch(url, { ...fetchOptions, signal: deadline.signal });
+    const text = await response.text();
+    let data: T | null = null;
+    if (text) {
+      try {
+        data = JSON.parse(text) as T;
+      } catch {
+        data = null;
+      }
+    }
+    return { response, data };
+  } finally {
+    deadline.clear();
+  }
+}
+
+export async function fetchRequiredJsonWithTimeout<T = unknown>(
+  url: string,
+  options: FetchOptions = {},
+  contract: RequiredJsonContract<T> = { name: 'Server response' },
+): Promise<JsonFetchResult<T>> {
+  const { timeout = 10_000, ...fetchOptions } = options;
+  const deadline = createDeadlineSignal(timeout, fetchOptions.signal);
+  try {
+    const response = await fetch(url, { ...fetchOptions, signal: deadline.signal });
+    const text = await response.text();
+    if (!text.trim()) {
+      throw new HttpProtocolError(response, `${contract.name} was empty`);
+    }
+
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new HttpProtocolError(response, `${contract.name} was not valid JSON`);
+    }
+
+    if (contract.validate && !contract.validate(data)) {
+      throw new HttpProtocolError(response, `${contract.name} did not match the expected JSON contract`);
+    }
+
+    return { response, data: data as T };
+  } finally {
+    deadline.clear();
   }
 }
 

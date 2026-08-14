@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-detect-classroom-browsers"
+description = "Enables the detect_classroom_browsers command without any pre-configured scope."
+commands.allow = ["detect_classroom_browsers"]
+
+[[permission]]
+identifier = "deny-detect-classroom-browsers"
+description = "Denies the detect_classroom_browsers command without any pre-configured scope."
+commands.deny = ["detect_classroom_browsers"]

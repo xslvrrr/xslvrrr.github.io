@@ -1,0 +1,35 @@
+/* Fills the dashboard content frame instead of floating above it in a dialog. */
+.viewerShell {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+
+.viewerHeader {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viewerActions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.viewerHint {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .viewerShell { padding: 8px; }
+  .viewerHint { display: none; }
+}

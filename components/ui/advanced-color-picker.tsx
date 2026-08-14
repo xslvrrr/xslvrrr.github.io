@@ -252,7 +252,8 @@ export function AdvancedColorPicker({
 }: AdvancedColorPickerProps) {
     const [isOpen, setIsOpen] = React.useState(false)
     const [internalValue, setInternalValue] = React.useState(defaultValue)
-    const [isGradient, setIsGradientState] = React.useState(false)
+    const currentValue = value ?? internalValue
+    const [isGradient, setIsGradientState] = React.useState(() => enableGradient && isGradientValue(currentValue))
     const [gradient, setGradientState] = React.useState<GradientValue>(
         gradientValue || {
             type: 'linear',
@@ -270,7 +271,6 @@ export function AdvancedColorPicker({
     const initialGradientRef = React.useRef(gradient)
     const initialIsGradientRef = React.useRef(isGradient)
 
-    const currentValue = value ?? internalValue
     const initialParsed = parseColorValue(currentValue, defaultValue)
     const [hsv, setHsvState] = React.useState<HSV>(() => {
         const parsed = hexToHsv(initialParsed.hex)
@@ -299,6 +299,14 @@ export function AdvancedColorPicker({
     }, [gradientValue])
 
     React.useEffect(() => {
+        if (!enableGradient) {
+            setIsGradientState(false)
+            return
+        }
+        setIsGradientState(isGradientValue(currentValue))
+    }, [currentValue, enableGradient])
+
+    React.useEffect(() => {
         if (isOpen) {
             initialValueRef.current = currentValue
             initialGradientRef.current = gradient
@@ -307,7 +315,7 @@ export function AdvancedColorPicker({
                 setActiveStopId(gradient.stops[0].id)
             }
         }
-    }, [isOpen])
+    }, [isOpen, currentValue, isGradient, activeStopId, gradient])
 
     const handleChange = React.useCallback((color: string) => {
         isInternalChange.current = true
@@ -408,7 +416,7 @@ export function AdvancedColorPickerTrigger({
     ...props
 }: AdvancedColorPickerTriggerProps) {
     const { value, isGradient, gradient, setIsOpen } = useAdvancedColorPicker()
-    const background = isGradient ? generateGradientCSS(gradient, 90) : value
+    const background = isGradientValue(value) ? value : isGradient ? generateGradientCSS(gradient, 90) : value
 
     return (
         <button
@@ -504,8 +512,12 @@ export function AdvancedColorPickerPanel({
     React.useEffect(() => {
         if (isOpen) {
             setRenderPanel(true)
+            setIsAnimatingOut(false)
+            setIsAnimatingIn(false)
             requestAnimationFrame(() => {
-                setIsAnimatingIn(true)
+                requestAnimationFrame(() => {
+                    setIsAnimatingIn(true)
+                })
             })
         } else if (renderPanel) {
             setIsAnimatingOut(true)
@@ -516,7 +528,7 @@ export function AdvancedColorPickerPanel({
             }, 200)
             return () => clearTimeout(timer)
         }
-    }, [isOpen])
+    }, [isOpen, renderPanel])
 
     const activeStop = React.useMemo(() => {
         if (!isGradient || !activeStopId) return null
@@ -532,7 +544,7 @@ export function AdvancedColorPickerPanel({
             }
             setHexInput(activeStop.color)
         }
-    }, [activeStopId, activeStop?.color])
+    }, [activeStopId, activeStop?.color, activeStop])
 
     React.useEffect(() => {
         setHsvState(hsv)
@@ -820,7 +832,7 @@ export function AdvancedColorPickerPanel({
                 style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    backgroundColor: '#101114',
                     opacity: isVisible ? 1 : 0,
                     transition: 'opacity 200ms ease-out',
                 }}
@@ -831,23 +843,24 @@ export function AdvancedColorPickerPanel({
             <div 
                 style={{
                     position: 'relative',
-                    width: '320px',
+                    width: '360px',
                     backgroundColor: 'var(--bg-elevated)',
-                    borderLeft: '1px solid var(--border-subtle)',
+                    borderLeft: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.15)',
+                    boxShadow: '-10px 0 32px rgb(var(--shadow-color) / calc(0.9 * var(--shadow-strength)))',
                     opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateX(0)' : 'translateX(16px)',
-                    transition: 'opacity 200ms ease-out, transform 200ms ease-out',
+                    transform: isVisible ? 'translateX(0)' : 'translateX(100%)',
+                    transformOrigin: 'right center',
+                    transition: 'opacity 180ms ease-out, transform 260ms cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
             >
                 {/* Header */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
-                    padding: '16px 20px',
+                    gap: '10px',
+                    padding: '12px 16px',
                     borderBottom: '1px solid var(--border-subtle)',
                 }}>
                     <button
@@ -859,15 +872,15 @@ export function AdvancedColorPickerPanel({
                             width: '32px',
                             height: '32px',
                             padding: 0,
-                            background: 'transparent',
+                            background: 'var(--bg-elevated)',
                             border: 'none',
                             borderRadius: '6px',
                             color: 'var(--text-secondary)',
                             cursor: 'pointer',
-                            transition: 'all 120ms ease',
+                            transition: 'background-color 120ms ease, color 120ms ease',
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
                     >
                         <IconArrowLeft size={18} />
                     </button>
@@ -876,7 +889,7 @@ export function AdvancedColorPickerPanel({
                         fontWeight: 600,
                         color: 'var(--text-primary)',
                     }}>
-                        {isGradient ? 'Gradient Editor' : 'Color Picker'}
+                        {isGradient ? 'Gradient Editor' : 'Colour Picker'}
                     </span>
                 </div>
 
@@ -884,10 +897,10 @@ export function AdvancedColorPickerPanel({
                 <div style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: '20px',
+                    padding: '16px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '20px',
+                    gap: '16px',
                 }}>
                     {/* Mode Toggle - Using SettingRow style */}
                     {(showGradientMode || enableGradient) && (
@@ -913,7 +926,7 @@ export function AdvancedColorPickerPanel({
                                     width: '36px',
                                     height: '20px',
                                     padding: 0,
-                                    background: isGradient ? 'var(--accent-gradient)' : 'rgba(120, 120, 130, 0.4)',
+                                    background: isGradient ? 'var(--accent-gradient)' : '#52525B',
                                     border: '1px solid var(--border-default)',
                                     borderRadius: '10px',
                                     cursor: 'pointer',
@@ -928,7 +941,7 @@ export function AdvancedColorPickerPanel({
                                     height: '14px',
                                     backgroundColor: '#fff',
                                     borderRadius: '50%',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                    boxShadow: '0 1px 3px rgb(var(--shadow-color) / calc(0.9 * var(--shadow-strength)))',
                                     transition: 'left 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
                                 }} />
                             </button>
@@ -962,7 +975,7 @@ export function AdvancedColorPickerPanel({
                             borderRadius: '50%',
                             border: '2px solid white',
                             backgroundColor: displayHex,
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(0,0,0,0.1)',
+                            boxShadow: '0 2px 6px #000000, inset 0 0 0 1px #2C2D2E',
                             pointerEvents: 'none',
                         }} />
                     </div>
@@ -993,7 +1006,7 @@ export function AdvancedColorPickerPanel({
                             borderRadius: '50%',
                             border: '2px solid white',
                             backgroundColor: `hsl(${localHsv.h}, 100%, 50%)`,
-                            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                            boxShadow: '0 1px 4px rgb(var(--shadow-color) / calc(0.9 * var(--shadow-strength)))',
                             pointerEvents: 'none',
                         }} />
                     </div>
@@ -1025,7 +1038,7 @@ export function AdvancedColorPickerPanel({
                                 borderRadius: '50%',
                                 border: '2px solid white',
                                 backgroundColor: hexToRgba(displayHex, alpha),
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                                boxShadow: '0 1px 4px rgb(var(--shadow-color) / calc(0.9 * var(--shadow-strength)))',
                                 pointerEvents: 'none',
                             }} />
                         </div>
@@ -1098,8 +1111,8 @@ export function AdvancedColorPickerPanel({
                                             border: '2px solid white',
                                             backgroundColor: stop.color,
                                             boxShadow: activeStopId === stop.id 
-                                                ? '0 0 0 2px var(--accent-color), 0 2px 6px rgba(0,0,0,0.3)'
-                                                : '0 1px 4px rgba(0,0,0,0.3)',
+                                                ? '0 0 0 2px var(--accent-color), 0 2px 6px #000000'
+                                                : '0 1px 4px #000000',
                                             transition: 'width 150ms, height 150ms, box-shadow 150ms',
                                         }} />
                                     </div>
@@ -1171,7 +1184,7 @@ export function AdvancedColorPickerPanel({
                                         borderRadius: '50%',
                                         background: 'white',
                                         border: '1px solid var(--border-subtle)',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                        boxShadow: '0 1px 2px rgb(var(--shadow-color) / calc(0.9 * var(--shadow-strength)))',
                                         pointerEvents: 'none',
                                     }} />
                                 </div>
@@ -1194,7 +1207,7 @@ export function AdvancedColorPickerPanel({
                                         borderRadius: '6px',
                                         color: 'var(--text-secondary)',
                                         cursor: 'pointer',
-                                        transition: 'all 120ms ease',
+                                        transition: 'background-color 120ms ease, color 120ms ease',
                                     }}
                                     onMouseEnter={e => {
                                         e.currentTarget.style.background = 'var(--hover-bg)'
@@ -1224,7 +1237,7 @@ export function AdvancedColorPickerPanel({
                                         color: gradient.stops.length <= 2 ? 'var(--text-muted)' : 'var(--text-secondary)',
                                         cursor: gradient.stops.length <= 2 ? 'not-allowed' : 'pointer',
                                         opacity: gradient.stops.length <= 2 ? 0.5 : 1,
-                                        transition: 'all 120ms ease',
+                                        transition: 'opacity 120ms ease, background-color 120ms ease, color 120ms ease',
                                     }}
                                 >
                                     <IconMinus size={14} />
@@ -1245,7 +1258,7 @@ export function AdvancedColorPickerPanel({
                             flexShrink: 0,
                             background: isGradient ? generateGradientCSS(gradient, 90) : hexToRgba(displayHex, alpha),
                             backgroundRepeat: 'no-repeat',
-                            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                            boxShadow: 'inset 0 0 0 1px #2C2D2E',
                         }} />
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <input
@@ -1267,8 +1280,14 @@ export function AdvancedColorPickerPanel({
                                     textTransform: 'uppercase',
                                     outline: 'none',
                                 }}
-                                onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-color)'}
-                                onBlur={e => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+                                onFocus={e => {
+                                    e.currentTarget.style.borderColor = 'transparent'
+                                    e.currentTarget.style.background = 'linear-gradient(var(--bg-surface), var(--bg-surface)) padding-box, var(--accent-gradient) border-box'
+                                }}
+                                onBlur={e => {
+                                    e.currentTarget.style.borderColor = 'var(--border-subtle)'
+                                    e.currentTarget.style.background = 'var(--bg-surface)'
+                                }}
                             />
                             {showOpacity && !isGradient && (
                                 <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
@@ -1292,7 +1311,7 @@ export function AdvancedColorPickerPanel({
                             textTransform: 'uppercase', 
                             letterSpacing: '0.5px',
                         }}>
-                            {isGradient ? 'Gradient Presets' : 'Color Presets'}
+                            {isGradient ? 'Gradient Presets' : 'Colour Presets'}
                         </span>
                         
                         {isGradient ? (
@@ -1332,7 +1351,7 @@ export function AdvancedColorPickerPanel({
                                                 : 'none',
                                             boxShadow: displayHex?.toLowerCase() === color.toLowerCase()
                                                 ? '0 0 0 2px var(--accent-color)'
-                                                : 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                                                : 'inset 0 0 0 1px #2C2D2E',
                                             cursor: 'pointer',
                                             transition: 'transform 120ms ease',
                                         }}
@@ -1348,7 +1367,7 @@ export function AdvancedColorPickerPanel({
                 {/* Footer */}
                 <div style={{
                     flexShrink: 0,
-                    padding: '16px 20px',
+                    padding: '12px 16px',
                     borderTop: '1px solid var(--border-subtle)',
                     background: 'var(--bg-elevated)',
                 }}>
@@ -1375,7 +1394,7 @@ export function AdvancedColorPickerPanel({
                         onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                     >
                         <IconCheck size={16} />
-                        Apply Color
+                        Apply Colour
                     </button>
                 </div>
             </div>

@@ -1,0 +1,8 @@
+{
+  "app": {
+    "security": {
+      "capabilities": ["default"],
+      "csp": "default-src 'self' http://localhost:14200; script-src 'self' 'unsafe-eval' http://localhost:14200; style-src 'self' 'unsafe-inline' http://localhost:14200; img-src 'self' data: http://localhost:14200; font-src 'self' data: http://localhost:14200; connect-src 'self' http://localhost:14200 ws://localhost:14200 ipc: http://ipc.localhost; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; frame-ancestors 'none'"
+    }
+  }
+}

@@ -1,0 +1,109 @@
+.root {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.split {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.split[data-orientation='vertical'] { flex-direction: row; }
+.split[data-orientation='horizontal'] { flex-direction: column; }
+
+.splitChild {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+/* Hit area is wider than the visible line so the divider stays grabbable at any zoom. */
+.divider {
+  position: relative;
+  flex: none;
+  background: var(--border);
+  transition: background-color var(--anim-duration-fast, 150ms) ease;
+}
+
+.divider:hover,
+.divider:active { background: var(--primary); }
+
+.divider[data-orientation='vertical'] {
+  width: 2px;
+  margin: 0 3px;
+  cursor: col-resize;
+}
+
+.divider[data-orientation='horizontal'] {
+  height: 2px;
+  margin: 3px 0;
+  cursor: row-resize;
+}
+
+.divider[data-orientation='vertical']::after {
+  position: absolute;
+  content: '';
+  inset: 0 -5px;
+}
+
+.divider[data-orientation='horizontal']::after {
+  position: absolute;
+  content: '';
+  inset: -5px 0;
+}
+
+.pane {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 8px;
+}
+
+.paneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panePicker {
+  min-width: 0;
+  max-width: 260px;
+  flex: 1;
+}
+
+.paneControls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+.paneBody {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.paneEmpty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}

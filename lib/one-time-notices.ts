@@ -6,7 +6,6 @@
  */
 
 export type OneTimeNoticeId =
-  | "classes-coverage"
   | "sync-review"
   | "flashcards-reminder"
   | "guided-tours"
@@ -22,7 +21,6 @@ export interface OneTimeNoticeDefinition {
   readonly clearsTourPreferences?: boolean
 }
 
-export const CLASSES_COVERAGE_NOTICE_KEY = "millennium-classes-coverage-notice"
 export const SYNC_REVIEW_ACK_KEY = "millennium_acked_sync_review_v1"
 export const STUDY_REMINDER_KEY_PREFIX = "millennium-study-reminder:"
 export const TOUR_PREFERENCES_KEY_PREFIX = "millennium-tour-preferences"
@@ -35,12 +33,6 @@ export const ONE_TIME_NOTICES: readonly OneTimeNoticeDefinition[] = [
     description: "Re-arms the welcome / what's new announcement and both dashboard tours.",
     storageKeys: [`${TOUR_PREFERENCES_KEY_PREFIX}*`],
     clearsTourPreferences: true,
-  },
-  {
-    id: "classes-coverage",
-    label: "Classes coverage notice",
-    description: "Shows the explanation for zeroed portal counters on the Classes page again.",
-    storageKeys: [`${CLASSES_COVERAGE_NOTICE_KEY}*`],
   },
   {
     id: "sync-review",

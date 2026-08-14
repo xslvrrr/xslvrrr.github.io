@@ -11,7 +11,7 @@ interface SimpleTooltipProps {
 
 /**
  * A simple tooltip wrapper that provides legacy API compatibility
- * while using the Radix-based tooltip under the hood.
+ * while using the Base UI tooltip under the hood.
  */
 export function SimpleTooltip({
     children,
@@ -20,10 +20,8 @@ export function SimpleTooltip({
 }: SimpleTooltipProps) {
     return (
         <Tooltip>
-            <TooltipTrigger asChild>
-                <div className="inline-flex">
-                    {children}
-                </div>
+            <TooltipTrigger render={<div className="inline-flex" />}>
+                {children}
             </TooltipTrigger>
             <TooltipContent side={position}>
                 {text}

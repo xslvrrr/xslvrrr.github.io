@@ -1,5 +1,14 @@
 import { supabaseAdmin } from './supabase';
-import type { Notice, NotificationState } from '../types/portal';
+import { logger } from './logger';
+import { normalizeClassroomSnapshot } from './classroom-data';
+import { assertUsefulPortalSyncData, getPortalDataCounts } from './portal-data-integrity';
+import {
+    buildPortalSyncDelta,
+    isPortalSyncFingerprint,
+    type PortalSyncFingerprint,
+} from './portal-sync-diff';
+import type { ClassroomSnapshot } from '../types/classroom';
+import type { Notice, NotificationState, PortalAccount } from '../types/portal';
 
 export interface UserSettings {
     theme: 'light' | 'dark' | 'system';
@@ -37,10 +46,69 @@ interface UserRow {
     local_calendars?: any[] | null;
     notification_folders?: any[] | null;
     home_settings?: any | null;
+    home_layout?: any | null;
+    animation_settings?: any | null;
     google_events?: any[] | null;
     google_calendars?: any[] | null;
     theme_builder_state?: any | null;
     theme_builder_custom?: any[] | null;
+    assistant_chats?: any[] | null;
+    assistant_skills?: any[] | null;
+    annotations?: any[] | null;
+    portal_credentials?: unknown | null;
+}
+
+export interface PortalSyncUserState {
+    user: User;
+    portalCredentialEnvelope: unknown | null;
+    portalSyncFingerprint: PortalSyncFingerprint | null;
+}
+
+interface PersistedPortalUserRow {
+    id: string;
+    millennium_uid: string | null;
+    name: string;
+    school: string;
+    settings: UserSettings | null;
+    created_at: string;
+    last_sync: string | null;
+    changed: boolean;
+    changed_sections: string[] | null;
+}
+
+export interface UserIdentity {
+    id: string;
+    millenniumUid: string;
+    name: string;
+    school: string;
+}
+
+export interface UserPortalData {
+    millenniumUid: string;
+    name: string;
+    school: string;
+    portalData: unknown | null;
+    lastSync: string;
+}
+
+export type UserPortalManifest = Omit<UserPortalData, 'portalData'>;
+
+// Keep large static profile image blobs out of recurring portal-data reads.
+const USER_PORTAL_SELECT = 'id, millennium_uid, email, name, school, settings, created_at, last_sync, portal_data';
+const USER_PORTAL_WITH_PROFILE_SELECT = 'id, millennium_uid, email, name, school, settings, created_at, last_sync, portal_data, profile_image';
+const MAX_NOTICE_HTML_CHARS = 64 * 1024;
+
+function compactNoticeHtml(value: unknown, plainText: string): string | undefined {
+    if (typeof value !== 'string' || !value.trim()) return undefined;
+
+    const compacted = value
+        // Inline base64 images made single notices several megabytes. Images are
+        // decorative portal payload; keep surrounding text and markup.
+        .replace(/<img\b[^>]*\bsrc\s*=\s*["']?data:[^>]*>/gi, '')
+        .replace(/data:[^"'\s>]+/gi, '')
+        .trim();
+    if (!compacted || compacted === plainText) return undefined;
+    return compacted.slice(0, MAX_NOTICE_HTML_CHARS);
 }
 
 function mapUser(row: UserRow): User {
@@ -98,20 +166,19 @@ function collectNoticeDates(notice: Partial<Notice>): string[] {
 function getNoticeMergeKey(notice: Partial<Notice>): string {
     return [
         notice.title?.trim().toLowerCase() || '',
-        notice.preview?.trim().toLowerCase() || '',
-        notice.content?.trim().toLowerCase() || '',
-        notice.contentHtml?.trim().toLowerCase() || ''
+        (notice.content || notice.preview)?.trim().toLowerCase() || '',
     ].join('::');
 }
 
 function normalizeNoticeShape(notice: Partial<Notice>): Notice {
     const dates = collectNoticeDates(notice);
+    const content = typeof notice.content === 'string' ? notice.content : '';
 
     return {
         title: typeof notice.title === 'string' ? notice.title : '',
         preview: typeof notice.preview === 'string' ? notice.preview : '',
-        content: typeof notice.content === 'string' ? notice.content : '',
-        contentHtml: typeof notice.contentHtml === 'string' ? notice.contentHtml : undefined,
+        content,
+        contentHtml: compactNoticeHtml(notice.contentHtml, content),
         date: dates.length > 0 ? dates[dates.length - 1] : normalizeNoticeDate(notice.date) || undefined,
         dates: dates.length > 0 ? dates : undefined,
         currentDay: typeof notice.currentDay === 'string' ? notice.currentDay : undefined
@@ -164,6 +231,58 @@ function mergeNotices(existingNotices: unknown, incomingNotices: unknown): Notic
     });
 }
 
+function mergeRecordsByKey<T>(
+    existing: T[] | undefined,
+    incoming: T[] | undefined,
+    getKey: (item: T) => string,
+): T[] {
+    const merged = new Map<string, T>();
+    [...(existing || []), ...(incoming || [])].forEach((item) => {
+        const key = getKey(item);
+        if (!key) return;
+        const previous = merged.get(key);
+        merged.set(key, previous && typeof previous === 'object' && typeof item === 'object'
+            ? { ...(previous as any), ...(item as any) }
+            : item);
+    });
+    return Array.from(merged.values());
+}
+
+function mergeTimetable(existing: any, incoming: any): any {
+    const keyFor = (entry: any) => [
+        entry?.day || '',
+        entry?.period || '',
+        entry?.classCode || entry?.course || entry?.subject || '',
+    ].join('::');
+
+    if (Array.isArray(existing) || Array.isArray(incoming)) {
+        return mergeRecordsByKey(
+            Array.isArray(existing) ? existing : [],
+            Array.isArray(incoming) ? incoming : [],
+            keyFor,
+        );
+    }
+
+    return {
+        weekA: mergeRecordsByKey(existing?.weekA, incoming?.weekA, keyFor),
+        weekB: mergeRecordsByKey(existing?.weekB, incoming?.weekB, keyFor),
+    };
+}
+
+function mergeAttendance(existing: any, incoming: any): any {
+    return {
+        yearly: mergeRecordsByKey(existing?.yearly, incoming?.yearly, (entry: any) => String(entry?.year || '')),
+        subjects: mergeRecordsByKey(
+            existing?.subjects,
+            incoming?.subjects,
+            (entry: any) => String(entry?.classCode || entry?.course || ''),
+        ),
+        absences: incoming?.absences?.length ? incoming.absences : (existing?.absences || []),
+        recentPeriods: incoming?.recentPeriods?.length ? incoming.recentPeriods : (existing?.recentPeriods || []),
+        totals: incoming?.totals || existing?.totals,
+    };
+}
+
 // Get default user settings
 export function getDefaultSettings(): UserSettings {
     return {
@@ -178,7 +297,7 @@ export function getDefaultSettings(): UserSettings {
 export async function findUserByMillenniumUid(millenniumUid: string): Promise<User | null> {
     const { data, error } = await supabaseAdmin
         .from('users')
-        .select('*')
+        .select(USER_PORTAL_SELECT)
         .eq('millennium_uid', millenniumUid)
         .maybeSingle();
 
@@ -189,13 +308,74 @@ export async function findUserByMillenniumUid(millenniumUid: string): Promise<Us
     return data ? mapUser(data as UserRow) : null;
 }
 
-// Find user by ID
-export async function findUserById(id: string): Promise<User | null> {
+export async function findUserIdentityById(id: string): Promise<UserIdentity | null> {
     const { data, error } = await supabaseAdmin
         .from('users')
-        .select('*')
+        .select('id, millennium_uid, name, school')
         .eq('id', id)
         .maybeSingle();
+
+    if (error && !isNotFoundError(error)) throw error;
+    if (!data) return null;
+    return {
+        id: data.id,
+        millenniumUid: data.millennium_uid || '',
+        name: data.name,
+        school: data.school,
+    };
+}
+
+export async function getUserPortalManifest(id: string): Promise<UserPortalManifest | null> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('millennium_uid, name, school, last_sync')
+        .eq('id', id)
+        .maybeSingle();
+
+    if (error && !isNotFoundError(error)) throw error;
+    if (!data) return null;
+    return {
+        millenniumUid: data.millennium_uid || '',
+        name: data.name,
+        school: data.school,
+        lastSync: data.last_sync || '',
+    };
+}
+
+export async function findUserPortalDataById(id: string): Promise<UserPortalData | null> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('millennium_uid, name, school, portal_data, last_sync')
+        .eq('id', id)
+        .maybeSingle();
+
+    if (error && !isNotFoundError(error)) throw error;
+    if (!data) return null;
+    return {
+        millenniumUid: data.millennium_uid || '',
+        name: data.name,
+        school: data.school,
+        portalData: data.portal_data ?? null,
+        lastSync: data.last_sync || '',
+    };
+}
+
+export async function getUserReports(userId: string): Promise<any[]> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('reports:portal_data->reports')
+        .eq('id', userId)
+        .maybeSingle();
+    if (error && !isNotFoundError(error)) throw error;
+    return Array.isArray(data?.reports) ? data.reports : [];
+}
+
+// Find user by ID
+export async function findUserById(id: string, options: { includeProfileImage?: boolean } = {}): Promise<User | null> {
+    const query = supabaseAdmin.from('users');
+    const { data, error } = options.includeProfileImage
+        ? await query.select(USER_PORTAL_WITH_PROFILE_SELECT).eq('id', id).maybeSingle()
+        : await query.select(USER_PORTAL_SELECT).eq('id', id).maybeSingle();
 
     if (error && !isNotFoundError(error)) {
         throw error;
@@ -204,124 +384,335 @@ export async function findUserById(id: string): Promise<User | null> {
     return data ? mapUser(data as UserRow) : null;
 }
 
-// Create or update user from extension sync
-export async function upsertUserFromSync(data: {
-    user: { name: string; school: string; uid: string };
-    timetable?: any[];
-    notices?: any[];
-    grades?: any[];
-    attendance?: any[];
-    calendar?: any[];
-    reports?: any[];
-    classes?: any[];
-    lastUpdated: string;
-}): Promise<User> {
-    const millenniumUid = data.user.uid || '';
+export async function findUserSessionById(id: string): Promise<Pick<User, 'id' | 'millenniumUid' | 'name' | 'school' | 'profileImage'> | null> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('id, millennium_uid, name, school, profile_image')
+        .eq('id', id)
+        .maybeSingle();
 
-    const existing = millenniumUid ? await findUserByMillenniumUid(millenniumUid) : null;
+    if (error && !isNotFoundError(error)) throw error;
+    if (!data) return null;
 
-    const mergedNotices = mergeNotices(existing?.portalData?.notices, data.notices);
-
-    const portalData = {
-        timetable: data.timetable || [],
-        notices: mergedNotices,
-        grades: data.grades || [],
-        attendance: data.attendance || [],
-        calendar: data.calendar || [],
-        reports: data.reports || [],
-        classes: data.classes || []
+    return {
+        id: data.id,
+        millenniumUid: data.millennium_uid || '',
+        name: data.name,
+        school: data.school,
+        profileImage: data.profile_image || null,
     };
+}
 
-    if (!existing) {
-        const { data: inserted, error } = await supabaseAdmin
+export async function getUserLastSync(id: string): Promise<string | null> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('last_sync')
+        .eq('id', id)
+        .maybeSingle();
+    if (error && !isNotFoundError(error)) throw error;
+    return data?.last_sync || null;
+}
+
+export async function getUserCreatedAt(id: string): Promise<string | null> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('created_at')
+        .eq('id', id)
+        .maybeSingle();
+    if (error && !isNotFoundError(error)) throw error;
+    return data?.created_at || null;
+}
+
+export async function findUserForPortalSync(id: string, syncSignature: string): Promise<PortalSyncUserState | null> {
+    const [userResult, fingerprintResult] = await Promise.all([
+        supabaseAdmin
             .from('users')
-            .insert({
-                millennium_uid: millenniumUid || null,
-                name: data.user.name,
-                school: data.user.school,
-                settings: getDefaultSettings(),
-                last_sync: data.lastUpdated,
-                portal_data: portalData
-            })
-            .select('*')
-            .single();
+            .select('id, millennium_uid, email, name, school, settings, created_at, last_sync, portal_credentials, reports:portal_data->reports')
+            .eq('id', id)
+            .maybeSingle(),
+        supabaseAdmin
+            .from('portal_sync_fingerprints')
+            .select('fingerprint')
+            .eq('user_id', id)
+            .eq('signature', syncSignature)
+            .maybeSingle(),
+    ]);
+    const { data, error } = userResult;
 
-        if (error) {
-            throw error;
-        }
+    if (error && !isNotFoundError(error)) throw error;
+    if (fingerprintResult.error && !isNotFoundError(fingerprintResult.error)) throw fingerprintResult.error;
+    if (!data) return null;
 
-        return mapUser(inserted as UserRow);
+    const fingerprint = isPortalSyncFingerprint(fingerprintResult.data?.fingerprint)
+        ? fingerprintResult.data.fingerprint
+        : null;
+    return {
+        user: {
+            ...mapUser(data as unknown as UserRow),
+            portalData: {
+                reports: Array.isArray(data.reports) ? data.reports : [],
+            },
+        },
+        portalCredentialEnvelope: data.portal_credentials ?? null,
+        portalSyncFingerprint: fingerprint,
+    };
+}
+
+export async function getUserPortalCredentialEnvelope(userId: string): Promise<unknown | null> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('portal_credentials')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (error && !isNotFoundError(error)) {
+        throw error;
     }
 
-    const { data: updated, error } = await supabaseAdmin
+    return data?.portal_credentials ?? null;
+}
+
+export async function updateUserPortalCredentialEnvelope(userId: string, envelope: unknown): Promise<void> {
+    const { error } = await supabaseAdmin
         .from('users')
         .update({
-            name: data.user.name || existing.name,
-            school: data.user.school || existing.school,
-            last_sync: data.lastUpdated,
-            portal_data: portalData
+            portal_credentials: envelope,
+            portal_credentials_updated_at: new Date().toISOString(),
         })
-        .eq('id', existing.id)
-        .select('*')
-        .single();
+        .eq('id', userId);
 
     if (error) {
         throw error;
     }
+}
 
-    return mapUser(updated as UserRow);
+export async function clearUserPortalCredentialEnvelope(userId: string): Promise<void> {
+    const { error } = await supabaseAdmin
+        .from('users')
+        .update({ portal_credentials: null, portal_credentials_updated_at: null })
+        .eq('id', userId);
+    if (error) throw error;
+}
+
+// Create or update user from portal sync.
+export async function persistPortalSyncSnapshot(data: {
+    user: { name: string; school: string; uid: string };
+    account?: PortalAccount;
+    timetable?: any;
+    notices?: any[];
+    grades?: any[];
+    attendance?: any;
+    calendar?: any[];
+    reports?: any[];
+    classes?: any[];
+    syncMeta?: any;
+    lastUpdated: string;
+}, options: {
+    existingUser?: User | null;
+    portalCredentialEnvelope?: unknown;
+    syncSignature?: string;
+    previousFingerprint?: PortalSyncFingerprint | null;
+} = {}): Promise<User & { portalChanged: boolean }> {
+    const millenniumUid = data.user.uid || '';
+    const existing = Object.prototype.hasOwnProperty.call(options, 'existingUser')
+        ? options.existingUser ?? null
+        : null;
+    if (existing?.millenniumUid && millenniumUid && existing.millenniumUid !== millenniumUid) {
+        throw new Error('Portal account identity changed during sync');
+    }
+    assertUsefulPortalSyncData(data, 'Portal sync returned no usable data; keeping the last known good data instead');
+
+    // Database RPC merges under a row lock. Existing multi-megabyte portal_data
+    // never crosses PostgREST during recurring sync.
+    const portalData: any = {
+        ...(data.account ? { account: data.account } : {}),
+        timetable: data.timetable,
+        notices: mergeNotices([], data.notices),
+        grades: data.grades || [],
+        attendance: data.attendance,
+        calendar: data.calendar || [],
+        reports: data.reports || [],
+        classes: data.classes || [],
+        syncMeta: data.syncMeta,
+    };
+    portalData.syncCounts = getPortalDataCounts(portalData);
+    const diff = options.syncSignature
+        ? buildPortalSyncDelta(
+            portalData,
+            options.previousFingerprint,
+            data.lastUpdated,
+        )
+        : null;
+    const databaseDelta = diff
+        ? Object.keys(diff.delta).length > 0
+            ? {
+                ...diff.delta,
+                syncMeta: portalData.syncMeta,
+                syncCounts: portalData.syncCounts,
+            }
+            : {}
+        : portalData;
+
+    const updateCredentials = Object.prototype.hasOwnProperty.call(options, 'portalCredentialEnvelope');
+    const { data: persisted, error } = await supabaseAdmin.rpc('merge_portal_snapshot', {
+        p_user_id: existing?.id || null,
+        p_millennium_uid: millenniumUid || null,
+        p_name: data.user.name,
+        p_school: data.user.school,
+        p_settings: existing?.settings || getDefaultSettings(),
+        p_snapshot: databaseDelta,
+        p_last_sync: data.lastUpdated,
+        p_update_credentials: updateCredentials,
+        p_portal_credentials: updateCredentials ? options.portalCredentialEnvelope ?? null : null,
+        p_sync_signature: options.syncSignature || null,
+        p_sync_fingerprint: diff?.fingerprint || null,
+    });
+
+    if (error) throw error;
+    const row = (Array.isArray(persisted) ? persisted[0] : persisted) as PersistedPortalUserRow | null;
+    if (!row) throw new Error('Portal snapshot merge returned no user');
+    let accountChanged = false;
+    if (data.account) {
+        const accountResult = await supabaseAdmin.rpc('merge_portal_account', {
+            p_user_id: row.id,
+            p_account: data.account,
+        });
+        if (accountResult.error) {
+            const code = String(accountResult.error.code || '');
+            const message = String(accountResult.error.message || '');
+            const migrationMissing = code === 'PGRST202'
+                || code === '42883'
+                || /merge_portal_account/i.test(message);
+            if (!migrationMissing) throw accountResult.error;
+            logger.warn('[Portal Sync] Account persistence RPC is unavailable until the latest migration is applied.');
+        } else {
+            accountChanged = accountResult.data === true;
+        }
+    }
+    const changedSections = new Set(Array.isArray(row.changed_sections) ? row.changed_sections : []);
+    const portalDelta = row.changed
+        ? Object.fromEntries(Object.entries(databaseDelta).filter(([key]) => (
+            changedSections.has(key) || key === 'syncMeta' || key === 'syncCounts'
+        )))
+        : {};
+    if (data.account) portalDelta.account = data.account;
+
+    return {
+        id: row.id,
+        millenniumUid: row.millennium_uid || '',
+        name: row.name,
+        school: row.school,
+        settings: row.settings || getDefaultSettings(),
+        createdAt: row.created_at,
+        lastSync: row.last_sync || data.lastUpdated,
+        portalData: portalDelta,
+        profileImage: null,
+        portalChanged: row.changed || accountChanged,
+    };
+}
+
+export async function replaceUserPortalData(userId: string, portalData: any | null, lastSync?: string | null): Promise<User | null> {
+    const existing = await findUserIdentityById(userId);
+    if (!existing) return null;
+
+    const nextLastSync = lastSync ?? portalData?.lastUpdated ?? new Date().toISOString();
+    const { error } = await supabaseAdmin
+        .from('users')
+        .update({
+            last_sync: nextLastSync,
+            portal_data: portalData,
+        })
+        .eq('id', userId);
+
+    if (error) throw error;
+    return {
+        ...existing,
+        settings: getDefaultSettings(),
+        createdAt: '',
+        lastSync: nextLastSync,
+        portalData: portalData ?? undefined,
+        profileImage: null,
+    };
+}
+
+export async function wipeUserPortalData(userId: string): Promise<User | null> {
+    const existing = await findUserIdentityById(userId);
+    if (!existing) return null;
+
+    const { error } = await supabaseAdmin
+        .from('users')
+        .update({
+            last_sync: null,
+            portal_data: null,
+            portal_credentials: null,
+            portal_credentials_updated_at: null,
+        })
+        .eq('id', userId);
+
+    if (error) throw error;
+    return {
+        ...existing,
+        settings: getDefaultSettings(),
+        createdAt: '',
+        lastSync: '',
+        portalData: undefined,
+        profileImage: null,
+    };
 }
 
 // Update user settings
 export async function updateUserSettings(userId: string, settings: Partial<UserSettings>): Promise<User | null> {
-    const existing = await findUserById(userId);
-    if (!existing) return null;
+    const { data: row, error: readError } = await supabaseAdmin
+        .from('users')
+        .select('id, millennium_uid, name, school, settings, created_at, last_sync')
+        .eq('id', userId)
+        .maybeSingle();
+    if (readError && !isNotFoundError(readError)) throw readError;
+    if (!row) return null;
 
-    const mergedSettings = { ...existing.settings, ...settings };
+    const mergedSettings = { ...(row.settings || getDefaultSettings()), ...settings };
 
-    const { data, error } = await supabaseAdmin
+    const { error } = await supabaseAdmin
         .from('users')
         .update({ settings: mergedSettings })
-        .eq('id', userId)
-        .select('*')
-        .maybeSingle();
+        .eq('id', userId);
 
-    if (error && !isNotFoundError(error)) {
-        throw error;
-    }
-
-    return data ? mapUser(data as UserRow) : null;
+    if (error) throw error;
+    return {
+        id: row.id,
+        millenniumUid: row.millennium_uid || '',
+        name: row.name,
+        school: row.school,
+        settings: mergedSettings,
+        createdAt: row.created_at,
+        lastSync: row.last_sync || '',
+        profileImage: null,
+    };
 }
 
 export async function updateUserProfileImage(userId: string, profileImage: string | null): Promise<User | null> {
-    const existing = await findUserById(userId);
-    if (!existing) return null;
-
     const { data, error } = await supabaseAdmin
         .from('users')
         .update({ profile_image: profileImage })
         .eq('id', userId)
-        .select('*')
+        .select('id, millennium_uid, name, school, profile_image')
         .maybeSingle();
 
     if (error && !isNotFoundError(error)) {
         throw error;
     }
 
-    return data ? mapUser(data as UserRow) : null;
-}
-
-// Get all users (for admin purposes)
-export async function getAllUsers(): Promise<User[]> {
-    const { data, error } = await supabaseAdmin
-        .from('users')
-        .select('*');
-
-    if (error) {
-        throw error;
-    }
-
-    return (data || []).map(row => mapUser(row as UserRow));
+    if (!data) return null;
+    return {
+        id: data.id,
+        millenniumUid: data.millennium_uid || '',
+        name: data.name,
+        school: data.school,
+        settings: getDefaultSettings(),
+        createdAt: '',
+        lastSync: '',
+        profileImage: data.profile_image || null,
+    };
 }
 
 // Delete user
@@ -412,10 +803,10 @@ export async function updateUserLocalCalendar(
     };
 }
 
-export async function getUserPreferences(userId: string): Promise<{ homeSettings: any; notificationFolders: any[] }> {
+export async function getUserPreferences(userId: string): Promise<{ homeSettings: any; homeLayout: any; notificationFolders: any[]; animationSettings: any; attendanceSettings: any; tourPreferences: unknown }> {
     const { data, error } = await supabaseAdmin
         .from('users')
-        .select('home_settings, notification_folders')
+        .select('home_settings, home_layout, notification_folders, animation_settings, attendance_settings, tour_preferences')
         .eq('id', userId)
         .maybeSingle();
 
@@ -425,21 +816,37 @@ export async function getUserPreferences(userId: string): Promise<{ homeSettings
 
     return {
         homeSettings: data?.home_settings || null,
-        notificationFolders: (data?.notification_folders as any[]) || []
+        homeLayout: data?.home_layout || null,
+        notificationFolders: (data?.notification_folders as any[]) || [],
+        animationSettings: data?.animation_settings || null,
+        attendanceSettings: data?.attendance_settings || { perfectEffectEnabled: true, fillingEnabled: true },
+        tourPreferences: data?.tour_preferences || null
     };
 }
 
 export async function updateUserPreferences(
     userId: string,
-    payload: { homeSettings?: any; notificationFolders?: any[] }
-): Promise<{ homeSettings: any; notificationFolders: any[] }> {
+    payload: { homeSettings?: any; homeLayout?: any; notificationFolders?: any[]; animationSettings?: any; attendanceSettings?: any; tourPreferences?: unknown }
+): Promise<{ homeSettings: any; homeLayout: any; notificationFolders: any[]; animationSettings: any; attendanceSettings: any; tourPreferences: unknown }> {
     // Only update fields that are explicitly provided to avoid wiping the other
     const updatePayload: Record<string, any> = {};
     if (payload.homeSettings !== undefined) {
         updatePayload.home_settings = payload.homeSettings;
     }
+    if (payload.homeLayout !== undefined) {
+        updatePayload.home_layout = payload.homeLayout;
+    }
     if (payload.notificationFolders !== undefined) {
         updatePayload.notification_folders = payload.notificationFolders;
+    }
+    if (payload.animationSettings !== undefined) {
+        updatePayload.animation_settings = payload.animationSettings;
+    }
+    if (payload.attendanceSettings !== undefined) {
+        updatePayload.attendance_settings = payload.attendanceSettings;
+    }
+    if (payload.tourPreferences !== undefined) {
+        updatePayload.tour_preferences = payload.tourPreferences;
     }
 
     // Nothing to update — just return current state
@@ -451,7 +858,7 @@ export async function updateUserPreferences(
         .from('users')
         .update(updatePayload)
         .eq('id', userId)
-        .select('home_settings, notification_folders')
+        .select('home_settings, home_layout, notification_folders, animation_settings, attendance_settings, tour_preferences')
         .maybeSingle();
 
     if (error && !isNotFoundError(error)) {
@@ -460,8 +867,64 @@ export async function updateUserPreferences(
 
     return {
         homeSettings: data?.home_settings || payload.homeSettings || null,
-        notificationFolders: (data?.notification_folders as any[]) || payload.notificationFolders || []
+        homeLayout: data?.home_layout || payload.homeLayout || null,
+        notificationFolders: (data?.notification_folders as any[]) || payload.notificationFolders || [],
+        animationSettings: data?.animation_settings || payload.animationSettings || null,
+        attendanceSettings: data?.attendance_settings || payload.attendanceSettings || { perfectEffectEnabled: true, fillingEnabled: true },
+        tourPreferences: data?.tour_preferences || payload.tourPreferences || null
     };
+}
+
+// ============================================
+// ANNOTATIONS (DESKTOP OFFLINE NOTES)
+// ============================================
+
+export async function getUserAnnotations(userId: string): Promise<any[]> {
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('annotations, home_settings')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (error && !isNotFoundError(error)) {
+        throw error;
+    }
+
+    if (Array.isArray(data?.annotations)) {
+        return data?.annotations || [];
+    }
+
+    const fallback = (data?.home_settings as any)?.annotations;
+    return Array.isArray(fallback) ? fallback : [];
+}
+
+export async function updateUserAnnotations(userId: string, annotations: any[]): Promise<any[]> {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('users')
+            .update({ annotations })
+            .eq('id', userId)
+            .select('annotations')
+            .maybeSingle();
+
+        if (error && !isNotFoundError(error)) {
+            throw error;
+        }
+
+        if (Array.isArray(data?.annotations)) {
+            return data?.annotations || [];
+        }
+    } catch (error: any) {
+        if (!String(error?.message || '').toLowerCase().includes('column')) {
+            throw error;
+        }
+    }
+
+    const { homeSettings } = await getUserPreferences(userId);
+    const nextHome = { ...(homeSettings || {}), annotations };
+
+    await updateUserPreferences(userId, { homeSettings: nextHome });
+    return annotations;
 }
 
 export async function updateUserGoogleCalendarMirror(
@@ -572,170 +1035,186 @@ export async function updateUserThemeBuilder(
 }
 
 // ============================================
-// GOOGLE CLASSROOM DATA STORAGE
+// ASSISTANT CHAT THREADS / SKILLS
 // ============================================
 
-export interface ClassroomCourse {
-    id: string;
-    name: string;
-    section?: string;
-    teacher?: string;
-    link?: string;
-    classworkLink?: string;
-    streamLink?: string;
-    scraped?: boolean;
-    lastSyncedAt?: string;
+function isMissingColumnError(error: any): boolean {
+    const message = String(error?.message || '').toLowerCase();
+    return message.includes('column') || error?.code === '42703' || error?.code === 'PGRST204';
 }
 
-export interface ClassroomItem {
-    id: string;
-    courseId: string;
-    courseName: string;
-    type: 'assignment' | 'material' | 'announcement';
-    title: string;
-    description?: string;
-    descriptionHtml?: string;
-    dueDate?: string | null;
-    dueText?: string;
-    maxPoints?: number | null;
-    link?: string;
-    postedTime?: string | null;
-    submissionState?: string;
-    contentHash?: string;
-    scrapedAt?: string;
-    scraped?: boolean;
+export async function getUserAssistantState(userId: string): Promise<{ threads: any[]; skills: any[] }> {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('users')
+            .select('assistant_chats, assistant_skills, home_settings')
+            .eq('id', userId)
+            .maybeSingle();
+
+        if (error && !isNotFoundError(error)) {
+            throw error;
+        }
+
+        return {
+            threads: (data?.assistant_chats as any[]) || ((data?.home_settings as any)?.assistantChats as any[]) || [],
+            skills: (data?.assistant_skills as any[]) || ((data?.home_settings as any)?.assistantSkills as any[]) || [],
+        };
+    } catch (error: any) {
+        if (!isMissingColumnError(error)) {
+            throw error;
+        }
+
+        const { homeSettings } = await getUserPreferences(userId);
+        return {
+            threads: Array.isArray(homeSettings?.assistantChats) ? homeSettings.assistantChats : [],
+            skills: Array.isArray(homeSettings?.assistantSkills) ? homeSettings.assistantSkills : [],
+        };
+    }
 }
 
-export interface ClassroomData {
-    courses: ClassroomCourse[];
-    items: ClassroomItem[];
-    lastUpdated: string;
-    lastFullSync?: string;
-    syncStats?: {
-        totalSyncs: number;
-        lastSyncMode?: 'full' | 'incremental' | 'deep';
-        lastSyncItemsAdded?: number;
-        lastSyncItemsUpdated?: number;
+export async function getUserAssistantPortalSnapshot(
+    userId: string
+): Promise<{ name?: string; school?: string; portalData: any | null }> {
+    const { data, error } = await supabaseAdmin.rpc('get_assistant_portal_snapshot', {
+        p_user_id: userId,
+    });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    return {
+        name: typeof row?.name === 'string' ? row.name : undefined,
+        school: typeof row?.school === 'string' ? row.school : undefined,
+        portalData: row?.portal_data ?? null,
     };
 }
 
-interface ClassroomRow {
-    scope: string;
-    courses: ClassroomCourse[] | null;
-    items: ClassroomItem[] | null;
-    last_updated: string | null;
-    last_full_sync: string | null;
-    sync_stats: ClassroomData['syncStats'] | null;
+export async function updateUserAssistantState(
+    userId: string,
+    payload: { threads?: any[]; skills?: any[] }
+): Promise<{ threads: any[]; skills: any[] }> {
+    const existing = await getUserAssistantState(userId);
+    const next = {
+        threads: payload.threads ?? existing.threads,
+        skills: payload.skills ?? existing.skills,
+    };
+
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('users')
+            .update({
+                assistant_chats: next.threads,
+                assistant_skills: next.skills,
+            })
+            .eq('id', userId)
+            .select('assistant_chats, assistant_skills')
+            .maybeSingle();
+
+        if (error && !isNotFoundError(error)) {
+            throw error;
+        }
+
+        return {
+            threads: (data?.assistant_chats as any[]) || next.threads,
+            skills: (data?.assistant_skills as any[]) || next.skills,
+        };
+    } catch (error: any) {
+        if (!isMissingColumnError(error)) {
+            throw error;
+        }
+    }
+
+    const { homeSettings } = await getUserPreferences(userId);
+    await updateUserPreferences(userId, {
+        homeSettings: {
+            ...(homeSettings || {}),
+            assistantChats: next.threads,
+            assistantSkills: next.skills,
+        },
+    });
+    return next;
 }
 
-// Get classroom data
-export async function getClassroomData(scope: string = 'global'): Promise<ClassroomData> {
+// ============================================
+// USER-OWNED CLASSROOM SNAPSHOTS
+// ============================================
+
+interface ClassroomDataRow {
+    snapshot: unknown;
+}
+
+export async function getUserClassroomData(userId: string): Promise<ClassroomSnapshot | null> {
     const { data, error } = await supabaseAdmin
         .from('classroom_data')
-        .select('*')
-        .eq('scope', scope)
+        .select('snapshot')
+        .eq('user_id', userId)
         .maybeSingle();
 
     if (error && !isNotFoundError(error)) {
         throw error;
     }
+    if (!data) return null;
 
-    if (!data) {
-        return { courses: [], items: [], lastUpdated: '' };
-    }
-
-    const row = data as ClassroomRow;
-    return {
-        courses: row.courses || [],
-        items: row.items || [],
-        lastUpdated: row.last_updated || '',
-        lastFullSync: row.last_full_sync || undefined,
-        syncStats: row.sync_stats || undefined
-    };
+    return normalizeClassroomSnapshot((data as ClassroomDataRow).snapshot);
 }
 
-export async function getLatestClassroomData(): Promise<{ scope: string; data: ClassroomData } | null> {
+export async function getUserClassroomLastSyncedAt(userId: string): Promise<string | null> {
     const { data, error } = await supabaseAdmin
         .from('classroom_data')
-        .select('*')
-        .order('last_updated', { ascending: false })
-        .limit(1);
-
-    if (error) {
-        throw error;
-    }
-
-    if (!data || data.length === 0) {
-        return null;
-    }
-
-    const row = data[0] as ClassroomRow;
-    return {
-        scope: row.scope,
-        data: {
-            courses: row.courses || [],
-            items: row.items || [],
-            lastUpdated: row.last_updated || '',
-            lastFullSync: row.last_full_sync || undefined,
-            syncStats: row.sync_stats || undefined
-        }
-    };
+        .select('last_synced_at')
+        .eq('user_id', userId)
+        .maybeSingle();
+    if (error && !isNotFoundError(error)) throw error;
+    return data?.last_synced_at || null;
 }
 
-// Store/update classroom data from extension sync
-export async function upsertClassroomData(data: {
-    scope?: string;
-    courses: ClassroomCourse[];
-    items: ClassroomItem[];
-    lastUpdated: string;
-    syncMode?: 'full' | 'incremental' | 'deep';
-    itemsAdded?: number;
-    itemsUpdated?: number;
-}): Promise<ClassroomData> {
-    const scope = data.scope || 'global';
+export class ClassroomSnapshotReplacementError extends Error {
+    readonly reason: 'partial' | 'stale';
 
-    const existing = await getClassroomData(scope);
-
-    // Update sync stats
-    const syncStats = existing.syncStats || { totalSyncs: 0 };
-    syncStats.totalSyncs = (syncStats.totalSyncs || 0) + 1;
-    syncStats.lastSyncMode = data.syncMode || 'full';
-    syncStats.lastSyncItemsAdded = data.itemsAdded || 0;
-    syncStats.lastSyncItemsUpdated = data.itemsUpdated || 0;
-
-    const merged: ClassroomData = {
-        courses: data.courses,
-        items: data.items,
-        lastUpdated: data.lastUpdated,
-        lastFullSync: data.syncMode === 'full' || data.syncMode === 'deep'
-            ? data.lastUpdated
-            : existing.lastFullSync,
-        syncStats,
-    };
-
-    const { data: saved, error } = await supabaseAdmin
-        .from('classroom_data')
-        .upsert({
-            scope,
-            courses: merged.courses,
-            items: merged.items,
-            last_updated: merged.lastUpdated,
-            last_full_sync: merged.lastFullSync || null,
-            sync_stats: merged.syncStats || null
-        }, { onConflict: 'scope' })
-        .select('*')
-        .single();
-
-    if (error) {
-        throw error;
+    constructor(reason: 'partial' | 'stale') {
+        super(reason === 'partial'
+            ? 'Partial Classroom data cannot replace the current snapshot.'
+            : 'Older Classroom data cannot replace the current snapshot.');
+        this.name = 'ClassroomSnapshotReplacementError';
+        this.reason = reason;
     }
+}
 
-    const row = saved as ClassroomRow;
-    return {
-        courses: row.courses || [],
-        items: row.items || [],
-        lastUpdated: row.last_updated || '',
-        lastFullSync: row.last_full_sync || undefined,
-        syncStats: row.sync_stats || undefined
-    };
+export async function replaceUserClassroomData(
+    userId: string,
+    snapshot: ClassroomSnapshot
+): Promise<ClassroomSnapshot> {
+    const normalized = normalizeClassroomSnapshot(snapshot);
+    const retentionExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabaseAdmin.rpc('replace_classroom_snapshot', {
+        p_user_id: userId,
+        p_snapshot: normalized,
+        p_schema_version: normalized.version,
+        p_integrity: normalized.sync.integrity,
+        p_course_count: normalized.sync.counts.courses,
+        p_item_count: normalized.sync.counts.items,
+        p_last_synced_at: normalized.sync.syncedAt,
+        p_retention_expires_at: retentionExpiresAt,
+    });
+
+    if (error) throw error;
+    const result: unknown = Array.isArray(data) ? data[0] : data;
+    if (!result || typeof result !== 'object' || Array.isArray(result)) {
+        throw new Error('Classroom snapshot replacement returned an invalid result');
+    }
+    const replaced = Reflect.get(result, 'replaced');
+    const reason = Reflect.get(result, 'reason');
+    if (replaced === true) return normalized;
+    if (reason === 'partial' || reason === 'stale') {
+        throw new ClassroomSnapshotReplacementError(reason);
+    }
+    throw new Error('Classroom snapshot replacement was not completed');
+}
+
+export async function deleteUserClassroomData(userId: string): Promise<boolean> {
+    const { data, error } = await supabaseAdmin.rpc('delete_classroom_snapshot', {
+        p_user_id: userId,
+    });
+    if (error) throw error;
+
+    const result: unknown = Array.isArray(data) ? data[0] : data;
+    return Boolean(result && typeof result === 'object' && !Array.isArray(result) && Reflect.get(result, 'deleted') === true);
 }
