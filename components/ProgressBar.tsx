@@ -1,47 +1,27 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouterState } from '@tanstack/react-router';
 
 export default function ProgressBar() {
-  const router = useRouter();
+  const location = useRouterState({ select: (state) => state.location });
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    setLoading(true);
+    setProgress(65);
 
-    const handleStart = () => {
-      setLoading(true);
-      setProgress(0);
-      
-      // Simulate progress
-      timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) return prev;
-          return prev + Math.random() * 10;
-        });
-      }, 200);
-    };
-
-    const handleComplete = () => {
+    const timer = window.setTimeout(() => {
       setProgress(100);
-      setTimeout(() => {
+      window.setTimeout(() => {
         setLoading(false);
         setProgress(0);
       }, 200);
-      if (timer) clearInterval(timer);
-    };
-
-    router.events.on('routeChangeStart', handleStart);
-    router.events.on('routeChangeComplete', handleComplete);
-    router.events.on('routeChangeError', handleComplete);
+    }, 120);
 
     return () => {
-      router.events.off('routeChangeStart', handleStart);
-      router.events.off('routeChangeComplete', handleComplete);
-      router.events.off('routeChangeError', handleComplete);
-      if (timer) clearInterval(timer);
+      window.clearTimeout(timer);
     };
-  }, [router]);
+  }, [location.href]);
 
   if (!loading) return null;
 

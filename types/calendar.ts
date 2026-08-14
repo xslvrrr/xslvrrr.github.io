@@ -20,6 +20,7 @@ export interface CalendarSource {
     id: string;
     name: string;
     color: string;
+    icon?: string;
     visible: boolean;
     isLocal?: boolean;
     isGoogle?: boolean;

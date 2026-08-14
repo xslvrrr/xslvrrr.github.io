@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-study-local-apply-snapshot"
+description = "Enables the study_local_apply_snapshot command without any pre-configured scope."
+commands.allow = ["study_local_apply_snapshot"]
+
+[[permission]]
+identifier = "deny-study-local-apply-snapshot"
+description = "Denies the study_local_apply_snapshot command without any pre-configured scope."
+commands.deny = ["study_local_apply_snapshot"]

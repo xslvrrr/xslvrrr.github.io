@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-secure-cache-record-exists"
+description = "Enables the secure_cache_record_exists command without any pre-configured scope."
+commands.allow = ["secure_cache_record_exists"]
+
+[[permission]]
+identifier = "deny-secure-cache-record-exists"
+description = "Denies the secure_cache_record_exists command without any pre-configured scope."
+commands.deny = ["secure_cache_record_exists"]

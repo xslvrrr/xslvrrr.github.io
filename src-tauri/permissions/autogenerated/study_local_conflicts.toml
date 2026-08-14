@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-study-local-conflicts"
+description = "Enables the study_local_conflicts command without any pre-configured scope."
+commands.allow = ["study_local_conflicts"]
+
+[[permission]]
+identifier = "deny-study-local-conflicts"
+description = "Denies the study_local_conflicts command without any pre-configured scope."
+commands.deny = ["study_local_conflicts"]

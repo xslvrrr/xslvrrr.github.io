@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { ComboboxSearchField } from '../ui/combobox-search-field';
 import styles from './Calendar.module.css';
 
 interface ComboboxOption {
@@ -34,24 +35,33 @@ export default function ComboboxField({
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button type="button" className={styles.comboTrigger}>
-                    <span>{selected?.label || placeholder}</span>
-                    <IconChevronDown size={14} />
-                </button>
+            <PopoverTrigger
+                render={(
+                    <button
+                        type="button"
+                        className={styles.comboTrigger}
+                        aria-expanded={open}
+                    />
+                )}
+            >
+                <span>{selected?.label || placeholder}</span>
+                <IconChevronDown size={14} />
             </PopoverTrigger>
-            <PopoverContent className={styles.comboContent}>
-                <input
+            <PopoverContent align="start" className={styles.comboContent}>
+                <ComboboxSearchField
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    className={styles.comboSearch}
+                    onClear={() => setQuery('')}
                     placeholder="Search..."
+                    aria-label="Search options"
                 />
-                <div className={styles.comboList}>
+                <div className={styles.comboList} role="listbox">
                     {filtered.map((option) => (
                         <button
                             key={option.value}
                             type="button"
+                            role="option"
+                            aria-selected={option.value === value}
                             className={styles.comboItem}
                             onClick={() => {
                                 onChange(option.value);

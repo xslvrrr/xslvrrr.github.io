@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-study-local-library"
+description = "Enables the study_local_library command without any pre-configured scope."
+commands.allow = ["study_local_library"]
+
+[[permission]]
+identifier = "deny-study-local-library"
+description = "Denies the study_local_library command without any pre-configured scope."
+commands.deny = ["study_local_library"]

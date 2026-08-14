@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { CalendarSource, CalendarEvent } from '../../types/calendar';
-import { Notice } from '../../types/portal';
+import type { CalendarSource, CalendarEvent } from '../../types/calendar';
+import type { Notice } from '../../types/portal';
 import styles from './Calendar.module.css';
-import { IconChevronLeft, IconChevronRight, IconCheck, IconBell, IconCalendarEvent, IconClock, IconPlus, IconTrash, IconEdit, IconPalette } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconCheck, IconBell, IconCalendarEvent, IconClock, IconPlus, IconTrash, IconEdit, IconPalette, IconIcons } from '@tabler/icons-react';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -14,6 +14,7 @@ import {
     ColorPickerTrigger,
     ColorPickerContent,
 } from '../ui/color-picker';
+import { getIconExplorerLabel, IconExplorer, IconExplorerIcon } from '../ui/icon-explorer';
 
 type NoticeWithIndex = Notice & { originalIndex?: number };
 
@@ -26,10 +27,11 @@ interface CalendarSidebarProps {
     onNoticeClick?: (notice: any) => void;
     events?: CalendarEvent[];
     firstDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-    onCreateCalendar?: (name: string, color?: string) => void;
+    onCreateCalendar?: (name: string, color?: string) => CalendarSource | null | void;
     onRemoveCalendar?: (calendarId: string) => void;
     onRenameCalendar?: (calendarId: string, name: string) => void;
     onChangeCalendarColor?: (calendarId: string, color: string) => void;
+    onChangeCalendarIcon?: (calendarId: string, icon: string) => void;
     duplicateCount?: number;
     onSmartClean?: () => void;
     smartCleanBusy?: boolean;
@@ -41,6 +43,9 @@ const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const rotateDays = (firstDayOfWeek: number) => {
     return [...DAY_LABELS.slice(firstDayOfWeek), ...DAY_LABELS.slice(0, firstDayOfWeek)];
 };
+
+const isGradientValue = (value?: string) => Boolean(value && value.includes('gradient'));
+const colorBackground = (value?: string) => ({ background: value || '#3b82f6' });
 
 export default function CalendarSidebar({
     currentDate,
@@ -55,6 +60,7 @@ export default function CalendarSidebar({
     onRemoveCalendar,
     onRenameCalendar,
     onChangeCalendarColor,
+    onChangeCalendarIcon,
     duplicateCount = 0,
     onSmartClean,
     smartCleanBusy = false,
@@ -67,12 +73,16 @@ export default function CalendarSidebar({
     const [isCreateClosing, setIsCreateClosing] = useState(false);
     const [newCalendarName, setNewCalendarName] = useState('');
     const [newCalendarColor, setNewCalendarColor] = useState('#3b82f6');
+    const [newCalendarIcon, setNewCalendarIcon] = useState('IconCalendarEvent');
     const [renameTarget, setRenameTarget] = useState<CalendarSource | null>(null);
     const [isRenameClosing, setIsRenameClosing] = useState(false);
     const [renameCalendarName, setRenameCalendarName] = useState('');
     const [colorTarget, setColorTarget] = useState<CalendarSource | null>(null);
     const [colorDraft, setColorDraft] = useState('#3b82f6');
     const [isColorClosing, setIsColorClosing] = useState(false);
+    const [iconTarget, setIconTarget] = useState<CalendarSource | null>(null);
+    const [iconDraft, setIconDraft] = useState('IconCalendarEvent');
+    const [isIconClosing, setIsIconClosing] = useState(false);
     const colorPresets = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899'];
 
     const closeCreateModal = () => {
@@ -96,6 +106,14 @@ export default function CalendarSidebar({
         setTimeout(() => {
             setColorTarget(null);
             setIsColorClosing(false);
+        }, 140);
+    };
+
+    const closeIconModal = () => {
+        setIsIconClosing(true);
+        setTimeout(() => {
+            setIconTarget(null);
+            setIsIconClosing(false);
         }, 140);
     };
 
@@ -219,7 +237,7 @@ export default function CalendarSidebar({
                         transform: isAnimating
                             ? `translateX(${animationDirection === 'left' ? '10px' : '-10px'})`
                             : 'translateX(0)',
-                        transition: 'all 0.15s ease',
+                        transition: 'all var(--anim-duration-fast) var(--anim-microInteractions-easing)',
                     }}
                 >
                     {rotateDays(firstDayOfWeek).map(day => (
@@ -268,7 +286,7 @@ export default function CalendarSidebar({
                             });
                             return (
                                 <div key={event.id} className={`${styles.upcomingEventItem} ${styles.currentEventItem}`}>
-                                    <div className={styles.upcomingEventColor} style={{ backgroundColor: event.color || '#3b82f6' }} />
+                                    <div className={styles.upcomingEventColor} style={colorBackground(event.color)} />
                                     <div className={styles.upcomingEventContent}>
                                         <div className={styles.upcomingEventTitle}>{event.title}</div>
                                         <div className={styles.upcomingEventTime}>
@@ -294,7 +312,7 @@ export default function CalendarSidebar({
                             });
                             return (
                                 <div key={event.id} className={styles.upcomingEventItem}>
-                                    <div className={styles.upcomingEventColor} style={{ backgroundColor: event.color || '#3b82f6' }} />
+                                    <div className={styles.upcomingEventColor} style={colorBackground(event.color)} />
                                     <div className={styles.upcomingEventContent}>
                                         <div className={styles.upcomingEventTitle}>{event.title}</div>
                                         <div className={styles.upcomingEventTime}>
@@ -326,23 +344,25 @@ export default function CalendarSidebar({
                         const isProtected = calendar.isGoogle || calendar.id === 'classes';
                         const isPrimaryGoogleCalendar = calendar.isGoogle && (calendar.id === 'primary' || calendar.name.trim().toLowerCase() === 'google calendar');
                         const canRecolor = !isPrimaryGoogleCalendar;
+                        const canChangeIcon = calendar.id !== 'classes';
                         return (
                             <ContextMenu key={calendar.id}>
-                                <ContextMenuTrigger asChild>
-                                    <div className={styles.calendarItemRow}>
+                                <ContextMenuTrigger render={<div className={styles.calendarItemRow} />}>
                                         <button className={styles.calendarItem} onClick={() => onToggleCalendar?.(calendar.id)}>
                                             <div
                                                 className={`${styles.calendarCheckbox} ${calendar.visible ? styles.checked : ''}`}
                                                 style={{
-                                                    backgroundColor: calendar.visible ? calendar.color : 'transparent',
-                                                    borderColor: calendar.color,
+                                                    background: calendar.visible ? calendar.color : 'transparent',
+                                                    borderColor: calendar.visible
+                                                        ? isGradientValue(calendar.color) ? 'transparent' : calendar.color
+                                                        : isGradientValue(calendar.color) ? 'var(--border-color)' : calendar.color,
                                                 }}
                                             >
                                                 {calendar.visible && <IconCheck size={12} />}
                                             </div>
+                                            <IconExplorerIcon name={calendar.icon || 'IconCalendarEvent'} size={14} className={styles.calendarListIcon} />
                                             <span className={styles.calendarName}>{calendar.name}</span>
                                         </button>
-                                    </div>
                                 </ContextMenuTrigger>
                                 <ContextMenuContent>
                                     <ContextMenuItem
@@ -366,6 +386,16 @@ export default function CalendarSidebar({
                                         {canRecolor ? 'Change Colour' : 'Change Colour (Unavailable)'}
                                     </ContextMenuItem>
                                     <ContextMenuItem
+                                        disabled={!canChangeIcon}
+                                        onClick={() => {
+                                            setIconTarget(calendar);
+                                            setIconDraft(calendar.icon || 'IconCalendarEvent');
+                                        }}
+                                    >
+                                        <IconIcons size={14} />
+                                        Change Icon
+                                    </ContextMenuItem>
+                                    <ContextMenuItem
                                         variant="destructive"
                                         disabled={isProtected}
                                         onClick={() => onRemoveCalendar?.(calendar.id)}
@@ -380,25 +410,27 @@ export default function CalendarSidebar({
                 </div>
             </div>
 
-            <div className={styles.sidebarFooterAction}>
-                <div
-                    className={styles.smartCleanTooltipHost}
-                    data-tooltip={smartCleanHint}
-                >
-                    <button
-                        className={`${styles.smartCleanBtn} ${smartCleanBusy ? styles.smartCleanBtnBusy : ''}`}
-                        onClick={() => onSmartClean?.()}
-                        disabled={smartCleanBusy || !onSmartClean || duplicateCount <= 0}
-                        aria-busy={smartCleanBusy}
+            {onSmartClean && (
+                <div className={styles.sidebarFooterAction}>
+                    <div
+                        className={styles.smartCleanTooltipHost}
+                        data-tooltip={smartCleanHint}
                     >
-                        <IconTrash size={14} />
-                        <span>{smartCleanBusy ? 'Cleaning...' : 'Smart Cleaner'}</span>
-                        {duplicateCount > 0 && !smartCleanBusy && (
-                            <span className={styles.smartCleanCount}>{duplicateCount}</span>
-                        )}
-                    </button>
+                        <button
+                            className={`${styles.smartCleanBtn} ${smartCleanBusy ? styles.smartCleanBtnBusy : ''}`}
+                            onClick={() => onSmartClean?.()}
+                            disabled={smartCleanBusy || duplicateCount <= 0}
+                            aria-busy={smartCleanBusy}
+                        >
+                            <IconTrash size={14} />
+                            <span>{smartCleanBusy ? 'Cleaning...' : 'Smart Cleaner'}</span>
+                            {duplicateCount > 0 && !smartCleanBusy && (
+                                <span className={styles.smartCleanCount}>{duplicateCount}</span>
+                            )}
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {showCreate && (
                 <div className={`${styles.modalOverlay} ${isCreateClosing ? styles.closing : ''}`} onClick={closeCreateModal}>
@@ -426,9 +458,13 @@ export default function CalendarSidebar({
                                     onClick={() => {
                                         const trimmed = newCalendarName.trim();
                                         if (!trimmed) return;
-                                        onCreateCalendar?.(trimmed, newCalendarColor);
+                                        const created = onCreateCalendar?.(trimmed, newCalendarColor);
+                                        if ((created as any)?.id) {
+                                            onChangeCalendarIcon?.((created as any).id, newCalendarIcon);
+                                        }
                                         setNewCalendarName('');
                                         setNewCalendarColor('#3b82f6');
+                                        setNewCalendarIcon('IconCalendarEvent');
                                         closeCreateModal();
                                     }}
                                 >
@@ -450,11 +486,24 @@ export default function CalendarSidebar({
                                             key={`new-${color}`}
                                             type="button"
                                             className={`${styles.colorSwatch} ${newCalendarColor === color ? styles.selected : ''}`}
-                                            style={{ backgroundColor: color }}
+                                            style={colorBackground(color)}
                                             onClick={() => setNewCalendarColor(color)}
                                         />
                                     ))}
                                 </div>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Icon</label>
+                                <IconExplorer
+                                    value={newCalendarIcon}
+                                    onSelect={setNewCalendarIcon}
+                                    trigger={
+                                        <button type="button" className={styles.calendarIconPickerBtn}>
+                                            <IconExplorerIcon name={newCalendarIcon} size={16} />
+                                            <span>{getIconExplorerLabel(newCalendarIcon)}</span>
+                                        </button>
+                                    }
+                                />
                             </div>
                         </div>
                     </div>
@@ -525,7 +574,7 @@ export default function CalendarSidebar({
                                             key={`edit-${color}`}
                                             type="button"
                                             className={`${styles.colorSwatch} ${colorDraft === color ? styles.selected : ''}`}
-                                            style={{ backgroundColor: color }}
+                                            style={colorBackground(color)}
                                             onClick={() => setColorDraft(color)}
                                         />
                                     ))}
@@ -538,6 +587,44 @@ export default function CalendarSidebar({
                                     onClick={() => {
                                         onChangeCalendarColor?.(colorTarget.id, colorDraft);
                                         closeColorModal();
+                                    }}
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {iconTarget && (
+                <div className={`${styles.modalOverlay} ${isIconClosing ? styles.closing : ''}`} onClick={closeIconModal}>
+                    <div className={styles.modal} style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                            <h2>Calendar Icon</h2>
+                            <button className={styles.modalCloseBtn} onClick={closeIconModal}>×</button>
+                        </div>
+                        <div className={styles.modalForm}>
+                            <div className={styles.formGroup}>
+                                <label>{iconTarget.name}</label>
+                                <IconExplorer
+                                    value={iconDraft}
+                                    onSelect={setIconDraft}
+                                    trigger={
+                                        <button type="button" className={styles.calendarIconPickerBtn}>
+                                            <IconExplorerIcon name={iconDraft} size={16} />
+                                            <span>{getIconExplorerLabel(iconDraft)}</span>
+                                        </button>
+                                    }
+                                />
+                            </div>
+                            <div className={styles.modalActions}>
+                                <button className={styles.cancelBtn} onClick={closeIconModal}>Cancel</button>
+                                <button
+                                    className={styles.saveBtn}
+                                    onClick={() => {
+                                        onChangeCalendarIcon?.(iconTarget.id, iconDraft);
+                                        closeIconModal();
                                     }}
                                 >
                                     Save

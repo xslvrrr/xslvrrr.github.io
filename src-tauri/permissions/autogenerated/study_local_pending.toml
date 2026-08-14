@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-study-local-pending"
+description = "Enables the study_local_pending command without any pre-configured scope."
+commands.allow = ["study_local_pending"]
+
+[[permission]]
+identifier = "deny-study-local-pending"
+description = "Denies the study_local_pending command without any pre-configured scope."
+commands.deny = ["study_local_pending"]

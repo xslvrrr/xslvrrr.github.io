@@ -1,0 +1,137 @@
+.root {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.controls {
+  position: absolute;
+  z-index: 20;
+  bottom: 16px;
+  left: 50%;
+  display: flex;
+  max-width: calc(100% - 24px);
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  transform: translateX(-50%);
+}
+
+.zoomLabel {
+  min-width: 46px;
+  border-radius: 8px;
+  background: var(--popover);
+  padding: 4px 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.textInput { max-width: 420px; }
+
+/* `safe center` keeps the page centred while it fits, then falls back to start-aligned so the
+   left edge stays reachable once zoom pushes the page wider than the pane. */
+.viewport {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  justify-content: safe center;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--muted) 80%, black);
+  /* Vertical panning stays with the browser; pinch is handled by the pointer listeners. */
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+}
+
+.viewport[data-tool='draw'],
+.viewport[data-tool='line'],
+.viewport[data-tool='eraser'] { touch-action: none; }
+
+/* Panning is a pointer-driven scroll, so the page under the cursor must not start a text or image
+   drag part-way through the gesture. */
+.viewport[data-tool='hand'] {
+  cursor: grab;
+  user-select: none;
+}
+
+.viewport[data-tool='hand']:active { cursor: grabbing; }
+.viewport[data-tool='hand'] * { cursor: inherit; }
+
+.pageStack {
+  display: flex;
+  width: fit-content;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.pageWrapper {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.surface {
+  position: relative;
+  flex: none;
+  line-height: 0;
+  background: white;
+  box-shadow: 0 12px 40px rgb(0 0 0 / .2);
+}
+
+.surface[data-tool='draw'],
+.surface[data-tool='line'] { cursor: crosshair; }
+.surface[data-tool='text'] { cursor: text; }
+.surface[data-tool='eraser'] { cursor: not-allowed; }
+.surface canvas { display: block; background: white; }
+
+.pageLabel {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.overlay[data-eraser='true'] { pointer-events: auto; }
+.overlay[data-eraser='true'] polyline { pointer-events: stroke; cursor: not-allowed; }
+
+.annotationText {
+  position: absolute;
+  transform: translate(-3px, -50%);
+  line-height: 1;
+  pointer-events: auto;
+}
+
+.status {
+  display: flex;
+  flex: 1;
+  min-height: 200px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted-foreground);
+}
+
+.spinner { animation: spin 1s linear infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }

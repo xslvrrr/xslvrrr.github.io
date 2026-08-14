@@ -5,4 +5,4 @@ Disallow: /dashboard
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://millennium-five.vercel.app/sitemap.xml
+Sitemap: http://millennium-five.vercel.app/sitemap.xml

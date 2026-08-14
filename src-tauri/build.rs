@@ -1,0 +1,46 @@
+const COMMANDS: &[&str] = &[
+    "set_window_controls_visible",
+    "detect_assistant_clis",
+    "run_assistant_cli",
+    "cancel_assistant_cli",
+    "detect_classroom_browsers",
+    "get_classroom_browser_permission",
+    "request_classroom_browser_permission",
+    "start_classroom_sync",
+    "continue_classroom_sync",
+    "get_classroom_sync_status",
+    "cancel_classroom_sync",
+    "disconnect_classroom",
+    "open_browser_permission_settings",
+    "get_classroom_automation_diagnostics",
+    "repair_classroom_automation",
+    "desktop_shell_status",
+    "desktop_shell_check",
+    "read_desktop_identity",
+    "write_desktop_identity",
+    "read_secure_cache",
+    "secure_cache_record_exists",
+    "write_secure_cache",
+    "read_saved_classroom_snapshot",
+    "delete_saved_classroom_snapshot",
+    "write_desktop_bootstrap",
+    "delete_secure_cache",
+    "clear_secure_owner",
+    "clear_secure_cache",
+    "study_local_status",
+    "study_local_library",
+    "study_local_apply_snapshot",
+    "study_local_apply_changes",
+    "study_local_record_review",
+    "study_local_pending",
+    "study_local_conflicts",
+    "study_local_resolve",
+    "study_local_discard_conflict",
+    "study_local_clear",
+];
+
+fn main() {
+    let attributes = tauri_build::Attributes::new()
+        .app_manifest(tauri_build::AppManifest::new().commands(COMMANDS));
+    tauri_build::try_build(attributes).expect("failed to prepare Tauri application");
+}

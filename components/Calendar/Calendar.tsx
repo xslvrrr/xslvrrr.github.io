@@ -1,8 +1,10 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { CalendarEvent as CalendarEventType, CalendarSource } from '../../types/calendar';
-import { Notice } from '../../types/portal';
+import type { CSSProperties } from 'react';
+import type { CalendarEvent as CalendarEventType, CalendarSource } from '../../types/calendar';
+import type { Notice } from '../../types/portal';
 import CalendarSidebar from './CalendarSidebar';
 import CalendarEventComponent from './CalendarEventComponent';
+import { EventDescriptionTooltip } from './EventDescriptionTooltip';
 import AddEventModal from './AddEventModal';
 import styles from './Calendar.module.css';
 import {
@@ -35,20 +37,26 @@ interface CalendarProps {
     hasNotification?: boolean;
     firstDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
     eventColorMode?: 'independent' | 'calendar';
-    onCreateCalendar?: (name: string, color?: string) => void;
+    onCreateCalendar?: (name: string, color?: string) => CalendarSource | null | void;
     onRemoveCalendar?: (calendarId: string) => void;
     onRenameCalendar?: (calendarId: string, name: string) => void;
     onChangeCalendarColor?: (calendarId: string, color: string) => void;
+    onChangeCalendarIcon?: (calendarId: string, icon: string) => void;
     duplicateCount?: number;
     onSmartClean?: () => void;
     smartCleanBusy?: boolean;
     smartCleanHint?: string;
+    showTimelineSeconds?: boolean;
     monthDayClickView?: 'day' | 'week';
     // External control props
     externalViewMode?: ViewMode;
+    onViewModeChange?: (viewMode: ViewMode) => void;
     externalGoToToday?: number; // Increment to trigger go to today
+    externalGoToPrev?: number;
+    externalGoToNext?: number;
     showCreateModal?: boolean;
     onCreateModalClose?: () => void;
+    onVisibleRangeChange?: (range: { start: Date; end: Date }) => void;
 }
 
 type ViewMode = 'day' | 'week' | 'month';
@@ -65,6 +73,8 @@ const toDayKey = (date: Date): string => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 };
+
+const colorBackground = (value?: string): CSSProperties => ({ background: value || '#3b82f6' });
 
 export default function Calendar({
     events,
@@ -84,17 +94,24 @@ export default function Calendar({
     onRemoveCalendar,
     onRenameCalendar,
     onChangeCalendarColor,
+    onChangeCalendarIcon,
     duplicateCount = 0,
     onSmartClean,
     smartCleanBusy = false,
     smartCleanHint,
+    showTimelineSeconds = false,
     monthDayClickView = 'day',
     externalViewMode,
+    onViewModeChange,
     externalGoToToday,
+    externalGoToPrev,
+    externalGoToNext,
     showCreateModal = false,
     onCreateModalClose,
+    onVisibleRangeChange,
 }: CalendarProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<ViewMode>(externalViewMode || 'week');
     const [prevViewMode, setPrevViewMode] = useState<ViewMode>('week');
     const [showAddModal, setShowAddModal] = useState(false);
@@ -105,6 +122,9 @@ export default function Calendar({
     const [duplicatingEvent, setDuplicatingEvent] = useState<CalendarEventType | null>(null);
     const [isAnimating, setIsAnimating] = useState(false);
     const [animationClass, setAnimationClass] = useState('');
+    const [displayCalendarIds, setDisplayCalendarIds] = useState<Set<string>>(
+        () => new Set(calendars.filter(calendar => calendar.visible).map(calendar => calendar.id))
+    );
 
     // Transition state for seamless view changes
     const [transitionType, setTransitionType] = useState<string | null>(null);
@@ -113,6 +133,8 @@ export default function Calendar({
 
     // Ref for external go to today trigger
     const prevGoToTodayRef = useRef(externalGoToToday);
+    const prevGoToPrevRef = useRef(externalGoToPrev);
+    const prevGoToNextRef = useRef(externalGoToNext);
 
     // View toggle refs for sliding indicator
     const toggleContainerRef = useRef<HTMLDivElement>(null);
@@ -121,18 +143,77 @@ export default function Calendar({
     const monthBtnRef = useRef<HTMLButtonElement>(null);
     const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
-    // Live current time synced to system clock (minute resolution for performance)
+    // Live current time synced to system clock.
     const [currentTime, setCurrentTime] = useState(new Date());
     const timeGridRef = useRef<HTMLDivElement>(null);
     const minuteIntervalRef = useRef<number | null>(null);
+    const transitionTimersRef = useRef<number[]>([]);
+    const calendarFadeTimersRef = useRef<number[]>([]);
 
-    // Update time every minute, aligned to the next minute boundary
+    const clearTransitionTimers = useCallback(() => {
+        transitionTimersRef.current.forEach(window.clearTimeout);
+        transitionTimersRef.current = [];
+    }, []);
+
+    const scheduleTransitionTimer = useCallback((callback: () => void, delay: number) => {
+        const timerId = window.setTimeout(() => {
+            transitionTimersRef.current = transitionTimersRef.current.filter(id => id !== timerId);
+            callback();
+        }, delay);
+
+        transitionTimersRef.current.push(timerId);
+        return timerId;
+    }, []);
+
+    useEffect(() => clearTransitionTimers, [clearTransitionTimers]);
+
+    useEffect(() => {
+        const visibleIds = new Set(calendars.filter(calendar => calendar.visible).map(calendar => calendar.id));
+
+        setDisplayCalendarIds(prev => {
+            const next = new Set(prev);
+            visibleIds.forEach(id => next.add(id));
+
+            const fadingOut = [...prev].filter(id => !visibleIds.has(id));
+            if (fadingOut.length > 0) {
+                const timerId = window.setTimeout(() => {
+                    setDisplayCalendarIds(current => {
+                        const settled = new Set(current);
+                        fadingOut.forEach(id => {
+                            if (!visibleIds.has(id)) settled.delete(id);
+                        });
+                        return settled;
+                    });
+                }, 160);
+                calendarFadeTimersRef.current.push(timerId);
+            }
+
+            return next;
+        });
+
+        return () => {
+            calendarFadeTimersRef.current.forEach(window.clearTimeout);
+            calendarFadeTimersRef.current = [];
+        };
+    }, [calendars]);
+
+    // Update time every minute by default, or every second when opted in.
     useEffect(() => {
         const syncToMinute = () => {
             setCurrentTime(new Date());
         };
 
         syncToMinute();
+        if (showTimelineSeconds) {
+            minuteIntervalRef.current = window.setInterval(syncToMinute, 1000);
+            return () => {
+                if (minuteIntervalRef.current) {
+                    window.clearInterval(minuteIntervalRef.current);
+                    minuteIntervalRef.current = null;
+                }
+            };
+        }
+
         const now = new Date();
         const msToNextMinute = ((60 - now.getSeconds()) * 1000) - now.getMilliseconds();
 
@@ -148,7 +229,7 @@ export default function Calendar({
                 minuteIntervalRef.current = null;
             }
         };
-    }, []);
+    }, [showTimelineSeconds]);
 
     // Scroll to current time on mount and view change
     useEffect(() => {
@@ -250,14 +331,54 @@ export default function Calendar({
         return Math.ceil(monthDays.length / 7);
     }, [monthDays]);
 
+    const visibleRange = useMemo(() => {
+        if (viewMode === 'day') {
+            const start = new Date(currentDate);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 1);
+            return { start, end };
+        }
+
+        if (viewMode === 'week') {
+            const start = new Date(weekStart);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 7);
+            return { start, end };
+        }
+
+        const start = new Date(monthDays[0]?.date || new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+        start.setHours(0, 0, 0, 0);
+        const finalVisibleDay = monthDays[monthDays.length - 1]?.date || start;
+        const end = new Date(finalVisibleDay);
+        end.setHours(0, 0, 0, 0);
+        end.setDate(end.getDate() + 1);
+        return { start, end };
+    }, [currentDate, monthDays, viewMode, weekStart]);
+
+    useEffect(() => {
+        onVisibleRangeChange?.(visibleRange);
+    }, [onVisibleRangeChange, visibleRange]);
+
+    const zoomOriginStyle = useMemo(() => {
+        const selectedIndex = monthDays.findIndex(({ date }) => toDayKey(date) === toDayKey(currentDate));
+        const safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+        const column = safeIndex % 7;
+        const row = Math.floor(safeIndex / 7);
+
+        return {
+            '--calendar-zoom-origin-x': `${((column + 0.5) / 7) * 100}%`,
+            '--calendar-zoom-origin-y': `${((row + 0.5) / Math.max(monthGridRows, 1)) * 100}%`,
+        } as CSSProperties;
+    }, [currentDate, monthDays, monthGridRows]);
+
 
     // Combine all visible events
     const allEvents = useMemo(() => {
-        const visibleCalendarIds = new Set(calendars.filter(c => c.visible).map(c => c.id));
         return [...events, ...classEvents].filter(
-            e => visibleCalendarIds.has(e.calendarId)
+            e => displayCalendarIds.has(e.calendarId)
         );
-    }, [events, classEvents, calendars]);
+    }, [events, classEvents, displayCalendarIds]);
 
     const calendarMap = useMemo(() => {
         return new Map(calendars.map(calendar => [calendar.id, calendar]));
@@ -269,6 +390,10 @@ export default function Calendar({
         }
         return event.color || calendarMap.get(event.calendarId)?.color || '#3b82f6';
     }, [eventColorMode, calendarMap]);
+
+    const isEventFadingOut = useCallback((event: CalendarEventType) => (
+        calendarMap.get(event.calendarId)?.visible === false
+    ), [calendarMap]);
 
     const coloredEvents = useMemo(
         () => allEvents.map(event => ({ ...event, color: getEventColor(event) })),
@@ -370,16 +495,25 @@ export default function Calendar({
         } else {
             setTransitionApplied(false);
         }
-    }, [transitionType]);
+    }, [transitionType, isDayWeekTransition]);
 
     // View mode change with seamless transition animations
-    const changeViewMode = (newMode: ViewMode) => {
-        if (newMode === viewMode) return;
+    const changeViewMode = useCallback((newMode: ViewMode) => {
+        clearTransitionTimers();
+        setTransitionApplied(false);
+
+        if (newMode === viewMode) {
+            setIsAnimating(false);
+            setTransitionType(null);
+            setTransitionPhase('idle');
+            return;
+        }
 
         const from = viewMode;
         const to = newMode;
 
-        setPrevViewMode(viewMode);
+        setPrevViewMode(from);
+        setViewMode(newMode);
         setIsAnimating(true);
 
         // Determine transition type
@@ -394,68 +528,49 @@ export default function Calendar({
         setTransitionType(transition);
         setTransitionPhase('animating');
 
-        // For day<->week, we render all 7 days during the transition
-        // Both directions: keep current view during animation, switch after
-        if (transition === 'dayToWeek') {
-            // Keep showing day view (which shows weekDays during transition)
-            // Animate, then switch view mode at the end
-            setTimeout(() => {
-                setTransitionPhase('ending');
-                // Switch view mode after animation completes
-                setTimeout(() => {
-                    setViewMode(newMode);
-                    setIsAnimating(false);
-                    setTransitionType(null);
-                    setTransitionPhase('idle');
-                }, 420);
-            }, 20);
-        } else if (transition === 'weekToDay') {
-            // Don't switch view mode yet - animate first, then switch
-            setTimeout(() => {
-                setTransitionPhase('ending');
-                // Switch view mode after animation completes
-                setTimeout(() => {
-                    setViewMode(newMode);
-                    setIsAnimating(false);
-                    setTransitionType(null);
-                    setTransitionPhase('idle');
-                }, 420);
-            }, 20);
-        } else if (transition === 'weekToMonth' || transition === 'monthToWeek' || transition === 'dayToMonth' || transition === 'monthToDay') {
-            // Week↔Month and Day↔Month: simple crossfade
-            // Switch view mode immediately, let CSS handle the fade
-            setViewMode(newMode);
-            setTimeout(() => {
-                setTransitionPhase('ending');
-                setTimeout(() => {
-                    setIsAnimating(false);
-                    setTransitionType(null);
-                    setTransitionPhase('idle');
-                }, 300);
-            }, 20);
+        const duration = transition === 'dayToWeek' || transition === 'weekToDay' ? 420 : 300;
+        scheduleTransitionTimer(() => {
+            setTransitionPhase('ending');
+            scheduleTransitionTimer(() => {
+                setIsAnimating(false);
+                setTransitionType(null);
+                setTransitionPhase('idle');
+                setTransitionApplied(false);
+            }, duration);
+        }, 20);
+    }, [clearTransitionTimers, scheduleTransitionTimer, viewMode]);
+
+    const requestViewMode = useCallback((newMode: ViewMode) => {
+        if (externalViewMode !== undefined && onViewModeChange) {
+            onViewModeChange(newMode);
+            return;
         }
-    };
+
+        changeViewMode(newMode);
+    }, [changeViewMode, externalViewMode, onViewModeChange]);
 
     // Navigation handlers
-    const getNavAmount = () => {
+    const getNavAmount = useCallback(() => {
         switch (viewMode) {
             case 'day': return 1;
             case 'week': return 7;
             case 'month': return 0; // Special handling for month
         }
-    };
+    }, [viewMode]);
 
     const goToToday = () => {
         setAnimationClass(styles.fadeSlide);
         setIsAnimating(true);
         setTimeout(() => {
-            setCurrentDate(new Date());
+            const today = new Date();
+            setCurrentDate(today);
+            setSelectedDate(today);
             setIsAnimating(false);
             setAnimationClass('');
         }, 200);
     };
 
-    const goToPrev = () => {
+    const goToPrev = useCallback(() => {
         setAnimationClass(styles.slideRight);
         setIsAnimating(true);
         setTimeout(() => {
@@ -472,9 +587,9 @@ export default function Calendar({
                 setAnimationClass('');
             }, 200);
         }, 150);
-    };
+    }, [currentDate, getNavAmount, viewMode]);
 
-    const goToNext = () => {
+    const goToNext = useCallback(() => {
         setAnimationClass(styles.slideLeft);
         setIsAnimating(true);
         setTimeout(() => {
@@ -491,14 +606,14 @@ export default function Calendar({
                 setAnimationClass('');
             }, 200);
         }, 150);
-    };
+    }, [currentDate, getNavAmount, viewMode]);
 
     // External view mode control
     useEffect(() => {
         if (externalViewMode && externalViewMode !== viewMode) {
             changeViewMode(externalViewMode);
         }
-    }, [externalViewMode]);
+    }, [externalViewMode, viewMode, changeViewMode]);
 
     // External go to today trigger
     useEffect(() => {
@@ -507,6 +622,20 @@ export default function Calendar({
             goToToday();
         }
     }, [externalGoToToday]);
+
+    useEffect(() => {
+        if (externalGoToPrev !== undefined && externalGoToPrev !== prevGoToPrevRef.current) {
+            prevGoToPrevRef.current = externalGoToPrev;
+            goToPrev();
+        }
+    }, [externalGoToPrev, goToPrev]);
+
+    useEffect(() => {
+        if (externalGoToNext !== undefined && externalGoToNext !== prevGoToNextRef.current) {
+            prevGoToNextRef.current = externalGoToNext;
+            goToNext();
+        }
+    }, [externalGoToNext, goToNext]);
 
     // External create modal trigger
     useEffect(() => {
@@ -542,10 +671,17 @@ export default function Calendar({
         );
     };
 
+    const isEventPast = (event: CalendarEventType) => {
+        return new Date(event.end) <= currentTime;
+    };
+
+    const isClassEvent = (event: CalendarEventType) => event.calendarId === 'classes' || event.sourceType === 'class';
+
     // Handle time slot click - FIX: Create new Date properly
     const handleSlotClick = (date: Date, hour: number) => {
         const clickedDate = new Date(date);
         clickedDate.setHours(hour, 0, 0, 0);
+        setSelectedDate(clickedDate);
         setCreateAllDayDefault(false);
         setSelectedSlot({ date: clickedDate, hour });
         setEditingEvent(null);
@@ -555,6 +691,7 @@ export default function Calendar({
     const handleAllDaySlotClick = (date: Date) => {
         const clickedDate = new Date(date);
         clickedDate.setHours(9, 0, 0, 0);
+        setSelectedDate(clickedDate);
         setCreateAllDayDefault(true);
         setSelectedSlot({ date: clickedDate, hour: 9 });
         setEditingEvent(null);
@@ -563,6 +700,7 @@ export default function Calendar({
 
     // Handle event click for editing
     const handleEventClick = (event: CalendarEventType) => {
+        if (isClassEvent(event)) return;
         setCreateAllDayDefault(false);
         setEditingEvent(event);
         setSelectedSlot(null);
@@ -585,17 +723,19 @@ export default function Calendar({
     const currentTimePosition = useMemo(() => {
         const hours = currentTime.getHours();
         const minutes = currentTime.getMinutes();
-        return ((hours * 60 + minutes) / (24 * 60)) * 100;
-    }, [currentTime]);
+        const seconds = showTimelineSeconds ? currentTime.getSeconds() : 0;
+        return (((hours * 60 + minutes) * 60 + seconds) / (24 * 60 * 60)) * 100;
+    }, [currentTime, showTimelineSeconds]);
 
     // Format current time
     const currentTimeLabel = useMemo(() => {
         return currentTime.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
+            second: showTimelineSeconds ? '2-digit' : undefined,
             hour12: true
         });
-    }, [currentTime]);
+    }, [currentTime, showTimelineSeconds]);
 
     // Check if viewing current time period
     const isCurrentPeriod = useMemo(() => {
@@ -637,7 +777,7 @@ export default function Calendar({
         };
 
         // Get initial styles for day columns (before CSS transition is applied)
-        const getDayStyle = (day: Date, index: number): React.CSSProperties => {
+        const getDayStyle = (day: Date, index: number): CSSProperties => {
             const isCurrentDay = day.toDateString() === currentDate.toDateString();
 
             if (transitionType === 'dayToWeek' && !transitionApplied) {
@@ -647,7 +787,7 @@ export default function Calendar({
                         flex: 7,
                         opacity: 1,
                         overflow: 'hidden',
-                        transition: 'flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                        transition: 'flex var(--anim-duration-slow) var(--anim-pageTransitions-easing), opacity var(--anim-duration-normal) var(--anim-pageTransitions-easing)',
                         minWidth: 0,
                     };
                 } else {
@@ -655,7 +795,7 @@ export default function Calendar({
                         flex: 0,
                         opacity: 0,
                         overflow: 'hidden',
-                        transition: 'flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                        transition: 'flex var(--anim-duration-slow) var(--anim-pageTransitions-easing), opacity var(--anim-duration-normal) var(--anim-pageTransitions-easing)',
                         minWidth: 0,
                         width: 0,
                         padding: 0,
@@ -667,7 +807,7 @@ export default function Calendar({
                     flex: 1,
                     opacity: 1,
                     overflow: 'hidden',
-                    transition: 'flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                    transition: 'flex var(--anim-duration-slow) var(--anim-pageTransitions-easing), opacity var(--anim-duration-normal) var(--anim-pageTransitions-easing)',
                     minWidth: 0,
                 };
             }
@@ -745,11 +885,14 @@ export default function Calendar({
                             >
                                 {HOURS.map(hour => (
                                     <ContextMenu key={hour}>
-                                        <ContextMenuTrigger asChild>
-                                            <div
-                                                className={styles.hourCell}
-                                                onClick={() => handleSlotClick(day, hour)}
-                                            >
+                                        <ContextMenuTrigger
+                                            render={
+                                                <div
+                                                    className={styles.hourCell}
+                                                    onClick={() => handleSlotClick(day, hour)}
+                                                />
+                                            }
+                                        >
                                                 {getTimedEventsForDayHour(day, hour)
                                                     .map(({ event, start, end }) => {
                                                         const isCurrentlyHappening = currentTime >= start && currentTime < end;
@@ -760,6 +903,7 @@ export default function Calendar({
                                                                 onClick={() => handleEventClick(event)}
                                                                 onDelete={() => onDeleteEvent?.(event)}
                                                                 onDuplicate={() => {
+                                                                    if (isClassEvent(event)) return;
                                                                     setCreateAllDayDefault(false);
                                                                     setEditingEvent(null);
                                                                     setDuplicatingEvent(event);
@@ -770,10 +914,12 @@ export default function Calendar({
                                                                     setShowAddModal(true);
                                                                 }}
                                                                 isCurrentlyHappening={isCurrentlyHappening}
+                                                                isPast={end <= currentTime}
+                                                                readOnly={isClassEvent(event)}
+                                                                isFadingOut={isEventFadingOut(event)}
                                                             />
                                                         );
                                                     })}
-                                            </div>
                                         </ContextMenuTrigger>
                                         <ContextMenuContent>
                                             <ContextMenuItem onClick={() => handleSlotClick(day, hour)}>
@@ -813,69 +959,79 @@ export default function Calendar({
                         <div key={rowIndex} className={styles.monthWeekRow}>
                             {weekDaysForRow.map(({ date, isCurrentMonth }, dayIndex) => {
                                 const dayEvents = getEventsForDay(date);
-                                const isSelectedDate = date.toDateString() === currentDate.toDateString();
+                                const isSelectedDate = isCurrentMonth && toDayKey(date) === toDayKey(selectedDate);
                                 const monthDayClasses = `${styles.monthDay} ${!isCurrentMonth ? styles.otherMonth : ''} ${isToday(date) ? styles.today : ''} ${isSelectedDate ? styles.selected : ''}`;
 
                                 return (
                                     <ContextMenu key={dayIndex}>
-                                        <ContextMenuTrigger asChild>
-                                            <div
-                                                className={monthDayClasses}
-                                                onClick={() => {
-                                                    setCurrentDate(date);
-                                                    changeViewMode(monthDayClickView);
-                                                }}
-                                            >
+                                        <ContextMenuTrigger
+                                            render={
+                                                <div
+                                                    className={monthDayClasses}
+                                                    onClick={() => {
+                                                        setSelectedDate(date);
+                                                        setCurrentDate(date);
+                                                        requestViewMode(monthDayClickView);
+                                                    }}
+                                                />
+                                            }
+                                        >
                                                 <span className={styles.monthDayNumber}>{date.getDate()}</span>
                                                 <div className={styles.monthDayEvents}>
                                                     {dayEvents.slice(0, 3).map(event => (
                                                         <ContextMenu key={event.id}>
-                                                            <ContextMenuTrigger asChild>
-                                                                <div
-                                                                    className={styles.monthEvent}
-                                                                    style={{ backgroundColor: event.color || '#3b82f6' }}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleEventClick(event);
-                                                                    }}
+                                                            <EventDescriptionTooltip event={event}>
+                                                                <ContextMenuTrigger
+                                                                    render={
+                                                                        <div
+                                                                            className={`${styles.monthEvent} ${isEventPast(event) ? styles.pastEvent : ''} ${isEventFadingOut(event) ? styles.calendarEventFadingOut : ''}`}
+                                                                            style={colorBackground(event.color)}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleEventClick(event);
+                                                                            }}
+                                                                        />
+                                                                    }
                                                                 >
                                                                     {event.title}
-                                                                </div>
-                                                            </ContextMenuTrigger>
-                                                            <ContextMenuContent>
-                                                                <ContextMenuItem onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleEventClick(event);
-                                                                }}>
-                                                                    <IconEdit size={14} />
-                                                                    Edit Event
-                                                                </ContextMenuItem>
-                                                                <ContextMenuItem onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    setCreateAllDayDefault(event.allDay || false);
-                                                                    setEditingEvent(null);
-                                                                    setDuplicatingEvent(event);
-                                                                    setSelectedSlot({
-                                                                        date: new Date(event.start),
-                                                                        hour: new Date(event.start).getHours()
-                                                                    });
-                                                                    setShowAddModal(true);
-                                                                }}>
-                                                                    <IconCopy size={14} />
-                                                                    Duplicate
-                                                                </ContextMenuItem>
-                                                                <ContextMenuSeparator />
-                                                                <ContextMenuItem variant="destructive" onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    onDeleteEvent?.(event);
-                                                                }}>
-                                                                    <IconTrash size={14} />
-                                                                    Delete Event
-                                                                </ContextMenuItem>
-                                                            </ContextMenuContent>
+                                                                </ContextMenuTrigger>
+                                                            </EventDescriptionTooltip>
+                                                            {!isClassEvent(event) && (
+                                                                <ContextMenuContent>
+                                                                    <ContextMenuItem onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        handleEventClick(event);
+                                                                    }}>
+                                                                        <IconEdit size={14} />
+                                                                        Edit Event
+                                                                    </ContextMenuItem>
+                                                                    <ContextMenuItem onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setCreateAllDayDefault(event.allDay || false);
+                                                                        setEditingEvent(null);
+                                                                        setDuplicatingEvent(event);
+                                                                        setSelectedSlot({
+                                                                            date: new Date(event.start),
+                                                                            hour: new Date(event.start).getHours()
+                                                                        });
+                                                                        setShowAddModal(true);
+                                                                    }}>
+                                                                        <IconCopy size={14} />
+                                                                        Duplicate
+                                                                    </ContextMenuItem>
+                                                                    <ContextMenuSeparator />
+                                                                    <ContextMenuItem variant="destructive" onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        onDeleteEvent?.(event);
+                                                                    }}>
+                                                                        <IconTrash size={14} />
+                                                                        Delete Event
+                                                                    </ContextMenuItem>
+                                                                </ContextMenuContent>
+                                                            )}
                                                         </ContextMenu>
                                                     ))}
                                                     {dayEvents.length > 3 && (
@@ -884,7 +1040,6 @@ export default function Calendar({
                                                         </div>
                                                     )}
                                                 </div>
-                                            </div>
                                         </ContextMenuTrigger>
                                         <ContextMenuContent>
                                             <ContextMenuItem onClick={() => handleSlotClick(date, 9)}>
@@ -911,6 +1066,7 @@ export default function Calendar({
                     setIsAnimating(true);
                     setTimeout(() => {
                         setCurrentDate(date);
+                        setSelectedDate(date);
                         setIsAnimating(false);
                         setAnimationClass('');
                     }, 200);
@@ -925,6 +1081,7 @@ export default function Calendar({
                 onRemoveCalendar={onRemoveCalendar}
                 onRenameCalendar={onRenameCalendar}
                 onChangeCalendarColor={onChangeCalendarColor}
+                onChangeCalendarIcon={onChangeCalendarIcon}
                 duplicateCount={duplicateCount}
                 onSmartClean={onSmartClean}
                 smartCleanBusy={smartCleanBusy}
@@ -958,14 +1115,14 @@ export default function Calendar({
                                 background: 'var(--content-bg, #fff)',
                                 borderRadius: 'calc(var(--radius-sm) - 2px)',
                                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                transition: 'left 200ms cubic-bezier(0.4, 0, 0.2, 1), width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+                                transition: 'left var(--anim-duration-normal) var(--anim-pageTransitions-easing), width var(--anim-duration-normal) var(--anim-pageTransitions-easing)',
                                 pointerEvents: 'none',
                                 zIndex: 0,
                             }} />
                             <button
                                 ref={dayBtnRef}
                                 className={`${styles.viewBtn} ${viewMode === 'day' ? styles.active : ''}`}
-                                onClick={() => changeViewMode('day')}
+                                onClick={() => requestViewMode('day')}
                                 style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
                             >
                                 Day
@@ -973,7 +1130,7 @@ export default function Calendar({
                             <button
                                 ref={weekBtnRef}
                                 className={`${styles.viewBtn} ${viewMode === 'week' ? styles.active : ''}`}
-                                onClick={() => changeViewMode('week')}
+                                onClick={() => requestViewMode('week')}
                                 style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
                             >
                                 Week
@@ -981,7 +1138,7 @@ export default function Calendar({
                             <button
                                 ref={monthBtnRef}
                                 className={`${styles.viewBtn} ${viewMode === 'month' ? styles.active : ''}`}
-                                onClick={() => changeViewMode('month')}
+                                onClick={() => requestViewMode('month')}
                                 style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
                             >
                                 Month
@@ -1003,9 +1160,10 @@ export default function Calendar({
                 </div>
 
                 {/* Calendar Content with animations */}
-                <div className={`${styles.calendarContent} ${animationClass} ${(isWeekMonthTransition || isDayMonthTransition) ? styles.crossfadeTransition : ''
-                    }`}>
-                    {/* Simple view rendering with crossfade for week↔month and day↔month */}
+                <div
+                    className={`${styles.calendarContent} ${animationClass} ${(isWeekMonthTransition || isDayMonthTransition) ? styles.monthZoomTransition : ''} ${(transitionType === 'weekToMonth' || transitionType === 'dayToMonth') ? styles.zoomToMonth : ''} ${(transitionType === 'monthToWeek' || transitionType === 'monthToDay') ? styles.zoomFromMonth : ''}`}
+                    style={zoomOriginStyle}
+                >
                     {viewMode === 'month' ? (
                         renderMonthView()
                     ) : (
@@ -1017,7 +1175,7 @@ export default function Calendar({
                                     const isCurrentDay = day.toDateString() === currentDate.toDateString();
 
                                     // Build header classes
-                                    let headerClasses = `${styles.dayHeader} ${isToday(day) ? styles.today : ''}`;
+                                    let headerClasses = `${styles.dayHeader} ${isToday(day) ? styles.today : ''} ${isCurrentDay ? styles.selected : ''}`;
                                     if (isDayWeekTransition) {
                                         if (transitionType === 'dayToWeek') {
                                             if (!transitionApplied) {
@@ -1044,7 +1202,7 @@ export default function Calendar({
                                             className={headerClasses}
                                             onClick={() => {
                                                 setCurrentDate(day);
-                                                changeViewMode('day');
+                                                requestViewMode('day');
                                             }}
                                         >
                                             <span className={styles.dayName}>
@@ -1089,56 +1247,60 @@ export default function Calendar({
 
                                     return (
                                         <ContextMenu key={i}>
-                                            <ContextMenuTrigger asChild>
-                                                <div className={cellClasses}>
+                                            <ContextMenuTrigger render={<div className={cellClasses} />}>
                                                     {dayEvents.map(event => (
                                                         <ContextMenu key={event.id}>
-                                                            <ContextMenuTrigger asChild>
-                                                                <div
-                                                                    className={styles.allDayEvent}
-                                                                    style={{ backgroundColor: event.color || '#3b82f6' }}
-                                                                    onClick={() => handleEventClick(event)}
+                                                            <EventDescriptionTooltip event={event}>
+                                                                <ContextMenuTrigger
+                                                                    render={
+                                                                        <div
+                                                                            className={`${styles.allDayEvent} ${isEventPast(event) ? styles.pastEvent : ''} ${isEventFadingOut(event) ? styles.calendarEventFadingOut : ''}`}
+                                                                            style={colorBackground(event.color)}
+                                                                            onClick={() => handleEventClick(event)}
+                                                                        />
+                                                                    }
                                                                 >
                                                                     {event.title}
-                                                                </div>
-                                                            </ContextMenuTrigger>
-                                                            <ContextMenuContent>
-                                                                <ContextMenuItem onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleEventClick(event);
-                                                                }}>
-                                                                    <IconEdit size={14} />
-                                                                    Edit Event
-                                                                </ContextMenuItem>
-                                                                <ContextMenuItem onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    setCreateAllDayDefault(event.allDay || false);
-                                                                    setEditingEvent(null);
-                                                                    setDuplicatingEvent(event);
-                                                                    setSelectedSlot({
-                                                                        date: new Date(event.start),
-                                                                        hour: new Date(event.start).getHours()
-                                                                    });
-                                                                    setShowAddModal(true);
-                                                                }}>
-                                                                    <IconCopy size={14} />
-                                                                    Duplicate
-                                                                </ContextMenuItem>
-                                                                <ContextMenuSeparator />
-                                                                <ContextMenuItem variant="destructive" onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    onDeleteEvent?.(event);
-                                                                }}>
-                                                                    <IconTrash size={14} />
-                                                                    Delete Event
-                                                                </ContextMenuItem>
-                                                            </ContextMenuContent>
+                                                                </ContextMenuTrigger>
+                                                            </EventDescriptionTooltip>
+                                                            {!isClassEvent(event) && (
+                                                                <ContextMenuContent>
+                                                                    <ContextMenuItem onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        handleEventClick(event);
+                                                                    }}>
+                                                                        <IconEdit size={14} />
+                                                                        Edit Event
+                                                                    </ContextMenuItem>
+                                                                    <ContextMenuItem onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setCreateAllDayDefault(event.allDay || false);
+                                                                        setEditingEvent(null);
+                                                                        setDuplicatingEvent(event);
+                                                                        setSelectedSlot({
+                                                                            date: new Date(event.start),
+                                                                            hour: new Date(event.start).getHours()
+                                                                        });
+                                                                        setShowAddModal(true);
+                                                                    }}>
+                                                                        <IconCopy size={14} />
+                                                                        Duplicate
+                                                                    </ContextMenuItem>
+                                                                    <ContextMenuSeparator />
+                                                                    <ContextMenuItem variant="destructive" onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        onDeleteEvent?.(event);
+                                                                    }}>
+                                                                        <IconTrash size={14} />
+                                                                        Delete Event
+                                                                    </ContextMenuItem>
+                                                                </ContextMenuContent>
+                                                            )}
                                                         </ContextMenu>
                                                     ))}
-                                                </div>
                                             </ContextMenuTrigger>
                                             <ContextMenuContent>
                                                 <ContextMenuItem onClick={() => handleAllDaySlotClick(day)}>
@@ -1176,6 +1338,7 @@ export default function Calendar({
                         setDuplicatingEvent(null);
                     }}
                     onSave={(event) => {
+                        if (event.calendarId === 'classes' || (editingEvent && isClassEvent(editingEvent))) return;
                         if (editingEvent) {
                             onUpdateEvent?.({ ...editingEvent, ...event } as CalendarEventType);
                         } else {

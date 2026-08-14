@@ -103,6 +103,37 @@ function isValidHex(hex: string): boolean {
     return /^#?([a-f\d]{3}|[a-f\d]{6})$/i.test(hex)
 }
 
+function normalizeHex(hex: string): string {
+    const trimmed = hex.trim()
+    if (!trimmed) return '#3b82f6'
+    const withHash = trimmed.startsWith('#') ? trimmed : `#${trimmed}`
+    if (/^#[a-f\d]{3}$/i.test(withHash)) {
+        return `#${withHash[1]}${withHash[1]}${withHash[2]}${withHash[2]}${withHash[3]}${withHash[3]}`.toLowerCase()
+    }
+    if (/^#[a-f\d]{6}$/i.test(withHash)) return withHash.toLowerCase()
+    return '#3b82f6'
+}
+
+function parseCssColorToHex(color: string): string | null {
+    if (typeof window === 'undefined') return null
+    const value = color.trim()
+    if (!value) return null
+    if (isValidHex(value)) return normalizeHex(value)
+
+    const ctx = document.createElement('canvas').getContext('2d')
+    if (!ctx) return null
+    ctx.fillStyle = '#000000'
+    ctx.fillStyle = value
+    const resolved = ctx.fillStyle
+
+    if (!resolved) return null
+    if (resolved.startsWith('#')) return normalizeHex(resolved)
+
+    const match = resolved.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i)
+    if (!match) return null
+    return rgbToHex(Number(match[1]), Number(match[2]), Number(match[3])).toLowerCase()
+}
+
 // HSV (Hue-Saturation-Value) for proper color picker math
 interface HSV {
     h: number // 0-360
@@ -210,20 +241,15 @@ function ColorPicker({
 }: ColorPickerProps) {
     const [open, setOpen] = React.useState(false)
     const [internalValue, setInternalValue] = React.useState(defaultValue)
-    const isInternalChange = React.useRef(false)
-
-    const currentValue = value ?? internalValue
+    const rawValue = value ?? internalValue
+    const currentValue = React.useMemo(() => parseCssColorToHex(rawValue) ?? normalizeHex(rawValue), [rawValue])
     const [hsv, setHsvState] = React.useState<HSV>(() => {
         const parsed = hexToHsv(currentValue)
         return parsed ?? { h: 220, s: 90, v: 60 }
     })
 
-    // Sync HSV when value changes externally (not from internal picker changes)
+    // Sync HSV when value changes
     React.useEffect(() => {
-        if (isInternalChange.current) {
-            isInternalChange.current = false
-            return
-        }
         const parsed = hexToHsv(currentValue)
         if (parsed) {
             setHsvState(parsed)
@@ -231,9 +257,9 @@ function ColorPicker({
     }, [currentValue])
 
     const handleChange = React.useCallback((color: string) => {
-        isInternalChange.current = true
-        setInternalValue(color)
-        onChange?.(color)
+        const normalized = normalizeHex(color)
+        setInternalValue(normalized)
+        onChange?.(normalized)
     }, [onChange])
 
     const setHsv = React.useCallback((newHsv: HSV) => {
@@ -272,20 +298,22 @@ function ColorPickerTrigger({
     const { value } = useColorPicker()
 
     return (
-        <PopoverTrigger asChild>
-            <button
-                data-slot="color-picker-trigger"
-                className={cn(
-                    "inline-flex items-center justify-center rounded-full",
-                    "w-8 h-8 border-2 border-white/30 transition-all duration-150",
-                    "hover:scale-110 hover:border-white/50 focus:outline-none focus:ring-0 focus:ring-offset-0",
-                    className
-                )}
-                style={{ backgroundColor: value }}
-                {...props}
-            >
+        <PopoverTrigger
+            render={
+                <button
+                    data-slot="color-picker-trigger"
+                    className={cn(
+                        "inline-flex items-center justify-center rounded-full",
+                        "w-8 h-8 border-2 border-white/30 transition-all duration-150",
+                        "hover:scale-110 hover:border-white/50 focus:outline-none focus:ring-0 focus:ring-offset-0",
+                        className
+                    )}
+                    style={{ background: value }}
+                    {...props}
+                />
+            }
+        >
                 {children ? children : (showIcon && <IconPaint size={16} className="text-white drop-shadow-sm" />)}
-            </button>
         </PopoverTrigger>
     )
 }
@@ -308,17 +336,29 @@ function ColorPickerContent({
     showDoneButton = true,
     className,
 }: ColorPickerContentProps) {
-    const { value, hsv, setHsv, onChange, setOpen } = useColorPicker()
+    const { value, hsv, setHsv, onChange, open, setOpen } = useColorPicker()
     const [hexInput, setHexInput] = React.useState(value)
+    const [isHexFocused, setIsHexFocused] = React.useState(false)
     const satBrightRef = React.useRef<HTMLDivElement>(null)
     const hueRef = React.useRef<HTMLDivElement>(null)
     const [isDraggingSB, setIsDraggingSB] = React.useState(false)
     const [isDraggingHue, setIsDraggingHue] = React.useState(false)
+    const openValueRef = React.useRef(value)
+    const wasOpenRef = React.useRef(false)
 
     // Sync hex input when value changes
     React.useEffect(() => {
-        setHexInput(value)
-    }, [value])
+        if (!isHexFocused) {
+            setHexInput(value)
+        }
+    }, [isHexFocused, value])
+
+    React.useEffect(() => {
+        if (open && !wasOpenRef.current) {
+            openValueRef.current = value
+        }
+        wasOpenRef.current = open
+    }, [open, value])
 
     // Handle saturation/value picker - proper HSV math
     const handleSatBrightChange = React.useCallback((e: React.MouseEvent | MouseEvent) => {
@@ -364,15 +404,15 @@ function ColorPickerContent({
 
     // Handle hex input
     const handleHexInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let val = e.target.value
-        if (!val.startsWith("#")) val = "#" + val
-        setHexInput(val)
+        const raw = e.target.value
+        const cleaned = raw.replace(/[^#a-fA-F0-9]/g, '')
+        const withoutHash = cleaned.replace(/#/g, '')
+        const sliced = withoutHash.slice(0, 6)
+        const next = sliced ? `#${sliced}` : ''
+        setHexInput(next)
 
-        if (isValidHex(val)) {
-            onChange(val.length === 4
-                ? `#${val[1]}${val[1]}${val[2]}${val[2]}${val[3]}${val[3]}`
-                : val
-            )
+        if (isValidHex(next)) {
+            onChange(normalizeHex(next))
         }
     }
 
@@ -438,9 +478,9 @@ function ColorPickerContent({
                                 left: `${pickerX}%`,
                                 top: `${pickerY}%`,
                                 transform: 'translate(-50%, -50%)',
-                                backgroundColor: value,
-                                border: '1.5px solid rgba(255,255,255,0.8)',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                                background: value,
+                                border: '1.5px solid #F7F8F8',
+                                boxShadow: '0 1px 3px rgb(var(--shadow-color) / calc(0.9 * var(--shadow-strength)))',
                                 borderRadius: '50%',
                                 pointerEvents: 'none'
                             }}
@@ -472,8 +512,8 @@ function ColorPickerContent({
                                 left: `${(hsv.h / 360) * 100}%`,
                                 transform: 'translate(-50%, -50%)',
                                 backgroundColor: `hsl(${hsv.h}, 100%, 50%)`,
-                                border: '1.5px solid rgba(255,255,255,0.8)',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                                border: '1.5px solid #F7F8F8',
+                                boxShadow: '0 1px 3px rgb(var(--shadow-color) / calc(0.9 * var(--shadow-strength)))',
                                 borderRadius: '50%',
                                 pointerEvents: 'none'
                             }}
@@ -489,7 +529,7 @@ function ColorPickerContent({
                                     height: '32px',
                                     borderRadius: '6px',
                                     flexShrink: 0,
-                                    backgroundColor: value,
+                                    background: value,
                                     border: '1px solid var(--border-color)'
                                 }}
                             />
@@ -497,6 +537,11 @@ function ColorPickerContent({
                                 type="text"
                                 value={hexInput}
                                 onChange={handleHexInputChange}
+                                onFocus={() => setIsHexFocused(true)}
+                                onBlur={() => {
+                                    setIsHexFocused(false)
+                                    setHexInput(isValidHex(hexInput) ? normalizeHex(hexInput) : value)
+                                }}
                                 style={{
                                     flex: 1,
                                     minWidth: 0,
@@ -528,7 +573,7 @@ function ColorPickerContent({
                                     height: '20px',
                                     borderRadius: '50%',
                                     backgroundColor: color,
-                                    border: value === color ? '1.5px solid rgba(255,255,255,0.6)' : '1.5px solid transparent',
+                                    border: value === color ? '1.5px solid #A1A5A9' : '1.5px solid var(--border-subtle)',
                                     cursor: 'pointer',
                                     transition: 'transform 0.1s',
                                 }}
@@ -554,8 +599,8 @@ function ColorPickerContent({
                                             width: '20px',
                                             height: '20px',
                                             borderRadius: '50%',
-                                            backgroundColor: color,
-                                            border: value === color ? '1.5px solid rgba(255,255,255,0.6)' : '1.5px solid transparent',
+                                            background: color,
+                                            border: value === color ? '1.5px solid #A1A5A9' : '1.5px solid var(--border-subtle)',
                                             cursor: 'pointer',
                                             transition: 'transform 0.1s',
                                         }}
@@ -570,6 +615,26 @@ function ColorPickerContent({
 
                     {showDoneButton && (
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onChange(openValueRef.current)
+                                    setOpen(false)
+                                }}
+                                style={{
+                                    padding: '6px 10px',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--border-color)',
+                                    background: 'var(--bg-surface)',
+                                    color: 'var(--text-secondary)',
+                                    fontSize: '12px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    marginRight: '8px',
+                                }}
+                            >
+                                Cancel
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => setOpen(false)}

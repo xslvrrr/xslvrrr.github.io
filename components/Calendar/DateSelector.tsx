@@ -7,6 +7,8 @@ interface DateSelectorProps {
     value: string; // YYYY-MM-DD
     onChange: (value: string) => void;
     firstDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    /** Applied to the trigger so a sibling <label htmlFor> resolves to a real control. */
+    id?: string;
 }
 
 const toDateInput = (date: Date) => {
@@ -16,7 +18,7 @@ const toDateInput = (date: Date) => {
     return `${year}-${month}-${day}`;
 };
 
-export default function DateSelector({ value, onChange, firstDayOfWeek = 1 }: DateSelectorProps) {
+export default function DateSelector({ value, onChange, firstDayOfWeek = 1, id }: DateSelectorProps) {
     const selectedDate = useMemo(() => {
         const parsed = new Date(value);
         if (Number.isNaN(parsed.getTime())) return new Date();
@@ -58,11 +60,9 @@ export default function DateSelector({ value, onChange, firstDayOfWeek = 1 }: Da
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button type="button" className={styles.comboTrigger}>
-                    <span>{selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                    <IconCalendar size={14} />
-                </button>
+            <PopoverTrigger render={<button type="button" id={id} className={styles.comboTrigger} />}>
+                <span>{selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <IconCalendar size={14} />
             </PopoverTrigger>
             <PopoverContent className={styles.dateSelectorContent}>
                 <div className={styles.dateSelectorHeader}>

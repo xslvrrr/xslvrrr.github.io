@@ -1,7 +1,7 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import styles from '../styles/Dashboard.module.css';
 
-interface LoadingSkeletonProps {
+export interface LoadingSkeletonProps {
   type?: 'card' | 'list' | 'text';
   count?: number;
 }

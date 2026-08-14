@@ -1,7 +1,7 @@
 // Theme utility - Loads and applies saved theme
 // This can be imported and called on app initialization
 
-interface ThemeColors {
+export interface ThemeColors {
     bgBase: string
     bgElevated: string
     bgSurface: string
@@ -26,23 +26,40 @@ interface SavedTheme {
     isDark: boolean
 }
 
+export const DEFAULT_ACCENT = '#4338CA'
+export const DARK_BG = '#09090B'
+export const LIGHT_BG = '#F5F5F7'
+
+/**
+ * Black-on-white border alphas for light themes.
+ *
+ * A hairline needs materially more alpha on a white surface than white-on-black needs on a dark one
+ * before the eye reads it as an edge, so the light ramp is not a mirror of the dark ramp. The
+ * previous 0.06/0.10/0.15 set left card, input, and table edges effectively invisible in light mode.
+ */
+export const LIGHT_BORDER_ALPHA = {
+    subtle: 0.12,
+    default: 0.18,
+    strong: 0.28,
+} as const
+
 const defaultDarkColors: ThemeColors = {
-    bgBase: '#08090A',
+    bgBase: DARK_BG,
     bgElevated: '#0F1011',
-    bgSurface: 'rgba(255, 255, 255, 0.03)',
-    bgSurfaceHover: 'rgba(255, 255, 255, 0.06)',
+    bgSurface: solidOverlay('#0F1011', '#FFFFFF', 0.03),
+    bgSurfaceHover: solidOverlay('#0F1011', '#FFFFFF', 0.06),
     textPrimary: '#F7F8F8',
     textSecondary: '#A1A5A9',
     textTertiary: '#6A6A75',
     textMuted: '#4A4A52',
-    accent: '#6468F0',
-    accentHover: '#7377F2',
-    accentLight: 'rgba(100, 104, 240, 0.15)',
-    borderSubtle: 'rgba(255, 255, 255, 0.08)',
-    borderDefault: 'rgba(255, 255, 255, 0.12)',
-    borderStrong: 'rgba(255, 255, 255, 0.20)',
-    hoverBg: 'rgba(255, 255, 255, 0.04)',
-    activeBg: 'rgba(255, 255, 255, 0.08)',
+    accent: DEFAULT_ACCENT,
+    accentHover: '#5247D9',
+    accentLight: solidOverlay('#0F1011', DEFAULT_ACCENT, 0.15),
+    borderSubtle: solidOverlay('#0F1011', '#FFFFFF', 0.08),
+    borderDefault: solidOverlay('#0F1011', '#FFFFFF', 0.12),
+    borderStrong: solidOverlay('#0F1011', '#FFFFFF', 0.20),
+    hoverBg: solidOverlay('#0F1011', '#FFFFFF', 0.04),
+    activeBg: solidOverlay('#0F1011', '#FFFFFF', 0.08),
 }
 
 // Prebuilt themes reference
@@ -53,20 +70,20 @@ const prebuiltThemes: Record<string, { colors: ThemeColors, isDark: boolean }> =
         colors: {
             bgBase: '#0A0D14',
             bgElevated: '#111827',
-            bgSurface: 'rgba(59, 130, 246, 0.05)',
-            bgSurfaceHover: 'rgba(59, 130, 246, 0.08)',
+            bgSurface: solidOverlay('#111827', '#3B82F6', 0.05),
+            bgSurfaceHover: solidOverlay('#111827', '#3B82F6', 0.08),
             textPrimary: '#F8FAFC',
             textSecondary: '#94A3B8',
             textTertiary: '#64748B',
             textMuted: '#475569',
             accent: '#3B82F6',
             accentHover: '#60A5FA',
-            accentLight: 'rgba(59, 130, 246, 0.15)',
-            borderSubtle: 'rgba(59, 130, 246, 0.1)',
-            borderDefault: 'rgba(59, 130, 246, 0.15)',
-            borderStrong: 'rgba(59, 130, 246, 0.25)',
-            hoverBg: 'rgba(59, 130, 246, 0.06)',
-            activeBg: 'rgba(59, 130, 246, 0.12)',
+            accentLight: solidOverlay('#111827', '#3B82F6', 0.15),
+            borderSubtle: solidOverlay('#111827', '#3B82F6', 0.10),
+            borderDefault: solidOverlay('#111827', '#3B82F6', 0.15),
+            borderStrong: solidOverlay('#111827', '#3B82F6', 0.25),
+            hoverBg: solidOverlay('#111827', '#3B82F6', 0.06),
+            activeBg: solidOverlay('#111827', '#3B82F6', 0.12),
         }
     },
     'dark-purple': {
@@ -74,20 +91,20 @@ const prebuiltThemes: Record<string, { colors: ThemeColors, isDark: boolean }> =
         colors: {
             bgBase: '#0D0A14',
             bgElevated: '#1A1625',
-            bgSurface: 'rgba(139, 92, 246, 0.05)',
-            bgSurfaceHover: 'rgba(139, 92, 246, 0.08)',
+            bgSurface: solidOverlay('#1A1625', '#8B5CF6', 0.05),
+            bgSurfaceHover: solidOverlay('#1A1625', '#8B5CF6', 0.08),
             textPrimary: '#FAF5FF',
             textSecondary: '#C4B5FD',
             textTertiary: '#A78BFA',
             textMuted: '#7C3AED',
             accent: '#8B5CF6',
             accentHover: '#A78BFA',
-            accentLight: 'rgba(139, 92, 246, 0.15)',
-            borderSubtle: 'rgba(139, 92, 246, 0.1)',
-            borderDefault: 'rgba(139, 92, 246, 0.15)',
-            borderStrong: 'rgba(139, 92, 246, 0.25)',
-            hoverBg: 'rgba(139, 92, 246, 0.06)',
-            activeBg: 'rgba(139, 92, 246, 0.12)',
+            accentLight: solidOverlay('#1A1625', '#8B5CF6', 0.15),
+            borderSubtle: solidOverlay('#1A1625', '#8B5CF6', 0.10),
+            borderDefault: solidOverlay('#1A1625', '#8B5CF6', 0.15),
+            borderStrong: solidOverlay('#1A1625', '#8B5CF6', 0.25),
+            hoverBg: solidOverlay('#1A1625', '#8B5CF6', 0.06),
+            activeBg: solidOverlay('#1A1625', '#8B5CF6', 0.12),
         }
     },
     'dark-green': {
@@ -95,20 +112,20 @@ const prebuiltThemes: Record<string, { colors: ThemeColors, isDark: boolean }> =
         colors: {
             bgBase: '#0A0F0D',
             bgElevated: '#0F1A14',
-            bgSurface: 'rgba(34, 197, 94, 0.05)',
-            bgSurfaceHover: 'rgba(34, 197, 94, 0.08)',
+            bgSurface: solidOverlay('#0F1A14', '#22C55E', 0.05),
+            bgSurfaceHover: solidOverlay('#0F1A14', '#22C55E', 0.08),
             textPrimary: '#F0FDF4',
             textSecondary: '#86EFAC',
             textTertiary: '#4ADE80',
             textMuted: '#22C55E',
             accent: '#22C55E',
             accentHover: '#4ADE80',
-            accentLight: 'rgba(34, 197, 94, 0.15)',
-            borderSubtle: 'rgba(34, 197, 94, 0.1)',
-            borderDefault: 'rgba(34, 197, 94, 0.15)',
-            borderStrong: 'rgba(34, 197, 94, 0.25)',
-            hoverBg: 'rgba(34, 197, 94, 0.06)',
-            activeBg: 'rgba(34, 197, 94, 0.12)',
+            accentLight: solidOverlay('#0F1A14', '#22C55E', 0.15),
+            borderSubtle: solidOverlay('#0F1A14', '#22C55E', 0.10),
+            borderDefault: solidOverlay('#0F1A14', '#22C55E', 0.15),
+            borderStrong: solidOverlay('#0F1A14', '#22C55E', 0.25),
+            hoverBg: solidOverlay('#0F1A14', '#22C55E', 0.06),
+            activeBg: solidOverlay('#0F1A14', '#22C55E', 0.12),
         }
     },
     'light-default': {
@@ -116,20 +133,20 @@ const prebuiltThemes: Record<string, { colors: ThemeColors, isDark: boolean }> =
         colors: {
             bgBase: '#F4F5F8',
             bgElevated: '#FFFFFF',
-            bgSurface: 'rgba(0, 0, 0, 0.03)',
-            bgSurfaceHover: 'rgba(0, 0, 0, 0.06)',
+            bgSurface: solidOverlay('#FFFFFF', '#000000', 0.03),
+            bgSurfaceHover: solidOverlay('#FFFFFF', '#000000', 0.06),
             textPrimary: '#08090A',
             textSecondary: '#3F4046',
             textTertiary: '#6A6A75',
             textMuted: '#9A9AA0',
-            accent: '#6468F0',
-            accentHover: '#5458E0',
-            accentLight: 'rgba(100, 104, 240, 0.12)',
-            borderSubtle: 'rgba(0, 0, 0, 0.15)',
-            borderDefault: 'rgba(0, 0, 0, 0.18)',
-            borderStrong: 'rgba(0, 0, 0, 0.25)',
-            hoverBg: 'rgba(0, 0, 0, 0.05)',
-            activeBg: 'rgba(0, 0, 0, 0.08)',
+            accent: DEFAULT_ACCENT,
+            accentHover: '#4F46E5',
+            accentLight: solidOverlay('#FFFFFF', DEFAULT_ACCENT, 0.12),
+            borderSubtle: solidOverlay('#FFFFFF', '#000000', LIGHT_BORDER_ALPHA.subtle),
+            borderDefault: solidOverlay('#FFFFFF', '#000000', LIGHT_BORDER_ALPHA.default),
+            borderStrong: solidOverlay('#FFFFFF', '#000000', LIGHT_BORDER_ALPHA.strong),
+            hoverBg: solidOverlay('#FFFFFF', '#000000', 0.05),
+            activeBg: solidOverlay('#FFFFFF', '#000000', 0.08),
         }
     },
     'light-warm': {
@@ -137,20 +154,20 @@ const prebuiltThemes: Record<string, { colors: ThemeColors, isDark: boolean }> =
         colors: {
             bgBase: '#FFFBF5',
             bgElevated: '#FFFFFF',
-            bgSurface: 'rgba(251, 146, 60, 0.04)',
-            bgSurfaceHover: 'rgba(251, 146, 60, 0.08)',
+            bgSurface: solidOverlay('#FFFFFF', '#FB923C', 0.04),
+            bgSurfaceHover: solidOverlay('#FFFFFF', '#FB923C', 0.08),
             textPrimary: '#1C1917',
             textSecondary: '#44403C',
             textTertiary: '#78716C',
             textMuted: '#A8A29E',
             accent: '#F97316',
             accentHover: '#EA580C',
-            accentLight: 'rgba(251, 146, 60, 0.12)',
-            borderSubtle: 'rgba(0, 0, 0, 0.08)',
-            borderDefault: 'rgba(0, 0, 0, 0.12)',
-            borderStrong: 'rgba(0, 0, 0, 0.2)',
-            hoverBg: 'rgba(0, 0, 0, 0.05)',
-            activeBg: 'rgba(0, 0, 0, 0.08)',
+            accentLight: solidOverlay('#FFFFFF', '#FB923C', 0.12),
+            borderSubtle: solidOverlay('#FFFFFF', '#000000', LIGHT_BORDER_ALPHA.subtle),
+            borderDefault: solidOverlay('#FFFFFF', '#000000', LIGHT_BORDER_ALPHA.default),
+            borderStrong: solidOverlay('#FFFFFF', '#000000', LIGHT_BORDER_ALPHA.strong),
+            hoverBg: solidOverlay('#FFFFFF', '#000000', 0.05),
+            activeBg: solidOverlay('#FFFFFF', '#000000', 0.08),
         }
     },
 }
@@ -204,6 +221,10 @@ function isGradientValue(value: string | undefined): boolean {
     return typeof value === 'string' && value.includes('gradient')
 }
 
+function getAccentLight(accent: string, isDark: boolean, backdrop?: string): string {
+    return solidOverlay(backdrop ?? (isDark ? DARK_BG : '#FFFFFF'), accent, isDark ? 0.15 : 0.12)
+}
+
 function extractFirstColorFromGradient(value: string, fallback: string): string {
     if (!isGradientValue(value)) return value
     const hexMatch = value.match(/#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}/g)
@@ -226,13 +247,48 @@ function extractFirstColorFromGradient(value: string, fallback: string): string 
     return fallback
 }
 
+function softenAccentGradient(value: string, fallback: string, backdrop: string, alpha: number): string {
+    const soften = (color: string) => hexToRgb(backdrop)
+        ? solidOverlay(backdrop, color, alpha)
+        : `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
+
+    if (!isGradientValue(value)) {
+        const solid = soften(value)
+        return `linear-gradient(${solid}, ${solid})`
+    }
+
+    let replaced = false
+    const softened = value
+        .replace(/#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}/g, (color) => {
+            replaced = true
+            return soften(color)
+        })
+        .replace(/rgba?\(\s*([\d.]+)\s*[, ]\s*([\d.]+)\s*[, ]\s*([\d.]+)(?:\s*[,/]\s*[\d.]+%?)?\s*\)/gi, (_match, r, g, b) => {
+            replaced = true
+            return soften(rgbToHex(Number(r), Number(g), Number(b)))
+        })
+
+    if (replaced) return softened
+    const solid = soften(fallback)
+    return `linear-gradient(${solid}, ${solid})`
+}
+
 export function applyThemeColors(colors: ThemeColors, isDark: boolean) {
     const root = document.documentElement
-    const isAccentGradient = isGradientValue(colors.accent)
-    const accentSolid = isAccentGradient ? extractFirstColorFromGradient(colors.accent, '#6468F0') : colors.accent
-    const accentHoverSolid = isGradientValue(colors.accentHover)
-        ? extractFirstColorFromGradient(colors.accentHover, accentSolid)
-        : colors.accentHover
+    const themeColors = solidifyThemeColors(colors, isDark)
+    const isAccentGradient = isGradientValue(themeColors.accent)
+    const accentSolid = isAccentGradient ? extractFirstColorFromGradient(themeColors.accent, DEFAULT_ACCENT) : themeColors.accent
+    const accentHoverSolid = isGradientValue(themeColors.accentHover)
+        ? extractFirstColorFromGradient(themeColors.accentHover, accentSolid)
+        : themeColors.accentHover
+    const accentLight = isGradientValue(themeColors.accentLight)
+        ? getAccentLight(accentSolid, isDark, themeColors.bgElevated)
+        : themeColors.accentLight
+    const accentGradient = isAccentGradient ? themeColors.accent : `linear-gradient(${accentSolid}, ${accentSolid})`
+    const accentGradientHover = isGradientValue(themeColors.accentHover)
+        ? themeColors.accentHover
+        : `linear-gradient(${accentHoverSolid}, ${accentHoverSolid})`
+    const accentGradientSoft = softenAccentGradient(themeColors.accent, accentSolid, themeColors.bgElevated, isDark ? 0.18 : 0.12)
 
     // Set dark/light mode attribute
     if (isDark) {
@@ -243,129 +299,117 @@ export function applyThemeColors(colors: ThemeColors, isDark: boolean) {
         root.setAttribute('data-theme', 'light')
     }
 
-    // Apply all colors
-    root.style.setProperty('--color-bg-base', colors.bgBase)
-    root.style.setProperty('--color-bg-elevated', colors.bgElevated)
-    root.style.setProperty('--color-bg-surface', colors.bgSurface)
-    root.style.setProperty('--color-bg-surface-hover', colors.bgSurfaceHover)
-    root.style.setProperty('--color-text-primary', colors.textPrimary)
-    root.style.setProperty('--color-text-secondary', colors.textSecondary)
-    root.style.setProperty('--color-text-tertiary', colors.textTertiary)
-    root.style.setProperty('--color-text-muted', colors.textMuted)
-    root.style.setProperty('--color-accent', accentSolid)
-    root.style.setProperty('--color-accent-hover', accentHoverSolid)
-    root.style.setProperty('--color-accent-light', colors.accentLight)
-    root.style.setProperty('--color-border-subtle', colors.borderSubtle)
-    root.style.setProperty('--color-border-default', colors.borderDefault)
-    root.style.setProperty('--color-border-strong', colors.borderStrong)
-    root.style.setProperty('--color-hover-bg', colors.hoverBg)
-    root.style.setProperty('--color-active-bg', colors.activeBg)
+    // Apply app-specific tokens without colliding with shadcn's Tailwind tokens.
+    root.style.setProperty('--app-bg-base', themeColors.bgBase)
+    root.style.setProperty('--app-bg-elevated', themeColors.bgElevated)
+    root.style.setProperty('--app-bg-surface', themeColors.bgSurface)
+    root.style.setProperty('--app-bg-surface-hover', themeColors.bgSurfaceHover)
+    root.style.setProperty('--app-text-primary', themeColors.textPrimary)
+    root.style.setProperty('--app-text-secondary', themeColors.textSecondary)
+    root.style.setProperty('--app-text-tertiary', themeColors.textTertiary)
+    root.style.setProperty('--app-text-muted', themeColors.textMuted)
+    root.style.setProperty('--app-accent', accentSolid)
+    root.style.setProperty('--app-accent-hover', accentHoverSolid)
+    root.style.setProperty('--app-accent-light', accentLight)
+    root.style.setProperty('--app-accent-gradient', accentGradient)
+    root.style.setProperty('--app-accent-gradient-hover', accentGradientHover)
+    root.style.setProperty('--app-accent-gradient-soft', accentGradientSoft)
+    root.style.setProperty('--app-border-subtle', themeColors.borderSubtle)
+    root.style.setProperty('--app-border-default', themeColors.borderDefault)
+    root.style.setProperty('--app-border-strong', themeColors.borderStrong)
+    root.style.setProperty('--app-hover-bg', themeColors.hoverBg)
+    root.style.setProperty('--app-active-bg', themeColors.activeBg)
 
     // Legacy variable mappings
-    root.style.setProperty('--bg-base', colors.bgBase)
-    root.style.setProperty('--bg-elevated', colors.bgElevated)
-    root.style.setProperty('--bg-surface', colors.bgSurface)
-    root.style.setProperty('--bg-surface-hover', colors.bgSurfaceHover)
-    root.style.setProperty('--main-bg', colors.bgBase)
-    root.style.setProperty('--sidebar-bg', colors.bgBase)
-    root.style.setProperty('--content-bg', colors.bgElevated)
-    root.style.setProperty('--card-bg', colors.bgSurface)
-    root.style.setProperty('--text-primary', colors.textPrimary)
-    root.style.setProperty('--text-secondary', colors.textSecondary)
-    root.style.setProperty('--text-tertiary', colors.textTertiary)
-    root.style.setProperty('--text-muted', colors.textMuted)
+    root.style.setProperty('--bg-base', themeColors.bgBase)
+    root.style.setProperty('--bg-elevated', themeColors.bgElevated)
+    root.style.setProperty('--bg-surface', themeColors.bgSurface)
+    root.style.setProperty('--bg-surface-hover', themeColors.bgSurfaceHover)
+    root.style.setProperty('--main-bg', themeColors.bgBase)
+    root.style.setProperty('--sidebar-bg', themeColors.bgBase)
+    root.style.setProperty('--content-bg', themeColors.bgElevated)
+    root.style.setProperty('--card-bg', themeColors.bgSurface)
+    root.style.setProperty('--text-primary', themeColors.textPrimary)
+    root.style.setProperty('--text-secondary', themeColors.textSecondary)
+    root.style.setProperty('--text-tertiary', themeColors.textTertiary)
+    root.style.setProperty('--text-muted', themeColors.textMuted)
     root.style.setProperty('--accent-color', accentSolid)
     root.style.setProperty('--accent-color-hover', accentHoverSolid)
-    root.style.setProperty('--accent-color-light', colors.accentLight)
+    root.style.setProperty('--accent-color-light', accentLight)
     root.style.setProperty('--primary-color', accentSolid)
-    root.style.setProperty('--primary-color-light', colors.accentLight)
-    root.style.setProperty('--border-subtle', colors.borderSubtle)
-    root.style.setProperty('--border-default', colors.borderDefault)
-    root.style.setProperty('--border-strong', colors.borderStrong)
-    root.style.setProperty('--border-color', colors.borderDefault)
-    root.style.setProperty('--hover-bg', colors.hoverBg)
-    root.style.setProperty('--active-bg', colors.activeBg)
-    root.style.setProperty('--hover-card-bg', colors.bgSurfaceHover)
-    root.style.setProperty('--input-bg', colors.bgSurface)
-    root.style.setProperty('--accent-gradient', isAccentGradient ? colors.accent : accentSolid)
-    root.style.setProperty('--accent-gradient-hover', isAccentGradient ? colors.accentHover : accentHoverSolid)
+    root.style.setProperty('--primary-color-light', accentLight)
+    root.style.setProperty('--border-subtle', themeColors.borderSubtle)
+    root.style.setProperty('--border-default', themeColors.borderDefault)
+    root.style.setProperty('--border-strong', themeColors.borderStrong)
+    root.style.setProperty('--border-color', themeColors.borderDefault)
+    root.style.setProperty('--hover-bg', themeColors.hoverBg)
+    root.style.setProperty('--active-bg', themeColors.activeBg)
+    root.style.setProperty('--hover-card-bg', themeColors.bgSurfaceHover)
+    root.style.setProperty('--input-bg', themeColors.bgSurface)
+    root.style.setProperty('--accent-gradient', accentGradient)
+    root.style.setProperty('--accent-gradient-hover', accentGradientHover)
+    root.style.setProperty('--accent-gradient-soft', accentGradientSoft)
 
     // Icon color - white for dark mode, dark for light mode
     root.style.setProperty('--icon-color', isDark ? '#FFFFFF' : '#3F4046')
-    root.style.setProperty('--icon-color-secondary', isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.5)')
-    root.style.setProperty('--icon-color-muted', isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.5)')
+    root.style.setProperty('--icon-color-secondary', themeColors.textSecondary)
+    root.style.setProperty('--icon-color-muted', themeColors.textMuted)
 
-    // Sidebar HSL variables for shadcn
-    const bgBaseHsl = hexToHsl(colors.bgBase)
-    const bgElevatedHsl = hexToHsl(colors.bgElevated)
-    const textPrimaryHsl = hexToHsl(colors.textPrimary)
-    const textSecondaryHsl = hexToHsl(colors.textSecondary)
-    const textMutedHsl = hexToHsl(colors.textMuted)
+    // Complete CSS colors for shadcn's OKLCH/HSL-compatible variables.
     const accentHsl = hexToHsl(accentSolid)
-
-    // Helper to parse rgba and create HSL - since some theme colors use rgba
-    const parseHoverBgHsl = () => {
-        // For light mode, we need darker hover. For dark mode, lighter hover.
-        if (isDark) {
-            // Light overlay for dark mode
-            return hexToHsl(colors.bgElevated) || '0 0% 15%'
-        } else {
-            // Darker overlay for light mode - use darker gray
-            return '0 0% 88%'
-        }
-    }
-
-    const hoverBgHsl = parseHoverBgHsl()
+    const hslColor = (value: string | null, fallback: string) => value ? `hsl(${value})` : fallback
 
     // Sidebar variables
-    if (bgBaseHsl) root.style.setProperty('--sidebar-background', bgBaseHsl)
-    if (textPrimaryHsl) root.style.setProperty('--sidebar-foreground', textPrimaryHsl)
-    if (accentHsl) root.style.setProperty('--sidebar-primary', accentHsl)
-    if (textPrimaryHsl) root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%')
-    root.style.setProperty('--sidebar-accent', hoverBgHsl)
-    // Add transparent version for proper UI tint behavior in light mode
-    root.style.setProperty('--sidebar-accent-transparent', colors.hoverBg)
-    root.style.setProperty('--sidebar-active-transparent', colors.activeBg)
-    if (textPrimaryHsl) root.style.setProperty('--sidebar-accent-foreground', textPrimaryHsl)
-    if (textMutedHsl) root.style.setProperty('--sidebar-border', isDark ? '0 0% 20%' : '0 0% 85%')
-    root.style.setProperty('--sidebar-ring', accentHsl || '220 90% 60%')
+    root.style.setProperty('--sidebar', themeColors.bgBase)
+    root.style.setProperty('--sidebar-background', themeColors.bgBase)
+    root.style.setProperty('--sidebar-foreground', themeColors.textPrimary)
+    root.style.setProperty('--sidebar-primary', hslColor(accentHsl, 'oklch(0.511 0.262 276.966)'))
+    root.style.setProperty('--sidebar-primary-foreground', 'oklch(1 0 0)')
+    root.style.setProperty('--sidebar-accent', themeColors.hoverBg)
+    root.style.setProperty('--sidebar-accent-solid', themeColors.hoverBg)
+    root.style.setProperty('--sidebar-active-solid', themeColors.activeBg)
+    root.style.setProperty('--sidebar-accent-foreground', themeColors.textPrimary)
+    root.style.setProperty('--sidebar-border', themeColors.borderDefault)
+    root.style.setProperty('--sidebar-ring', hslColor(accentHsl, 'hsl(220 90% 60%)'))
 
-    // Core shadcn HSL variables
-    if (bgBaseHsl) root.style.setProperty('--background', bgBaseHsl)
-    if (textPrimaryHsl) root.style.setProperty('--foreground', textPrimaryHsl)
+    // Core shadcn variables
+    root.style.setProperty('--background', themeColors.bgElevated)
+    root.style.setProperty('--foreground', themeColors.textPrimary)
 
     // Card
-    if (bgElevatedHsl) root.style.setProperty('--card', bgElevatedHsl)
-    if (textPrimaryHsl) root.style.setProperty('--card-foreground', textPrimaryHsl)
+    root.style.setProperty('--card', themeColors.bgSurface)
+    root.style.setProperty('--card-foreground', themeColors.textPrimary)
 
     // Popover
-    if (bgElevatedHsl) root.style.setProperty('--popover', bgElevatedHsl)
-    if (textPrimaryHsl) root.style.setProperty('--popover-foreground', textPrimaryHsl)
+    root.style.setProperty('--popover', themeColors.bgElevated)
+    root.style.setProperty('--popover-foreground', themeColors.textPrimary)
+    root.style.setProperty('--tooltip-bg', themeColors.bgElevated)
+    root.style.setProperty('--tooltip-foreground', themeColors.textPrimary)
 
     // Primary
-    if (accentHsl) root.style.setProperty('--primary', accentHsl)
-    root.style.setProperty('--primary-foreground', '0 0% 100%')
+    root.style.setProperty('--primary', hslColor(accentHsl, 'oklch(0.398 0.195 277.366)'))
+    root.style.setProperty('--primary-foreground', 'oklch(1 0 0)')
 
     // Secondary
-    root.style.setProperty('--secondary', isDark ? '0 0% 15%' : '0 0% 93%')
-    if (textPrimaryHsl) root.style.setProperty('--secondary-foreground', textPrimaryHsl)
+    root.style.setProperty('--secondary', themeColors.bgSurface)
+    root.style.setProperty('--secondary-foreground', themeColors.textPrimary)
 
     // Muted
-    root.style.setProperty('--muted', isDark ? '0 0% 12%' : '0 0% 95%')
-    if (textMutedHsl) root.style.setProperty('--muted-foreground', textMutedHsl)
+    root.style.setProperty('--muted', themeColors.bgSurface)
+    root.style.setProperty('--muted-foreground', themeColors.textMuted)
 
     // Accent (hover backgrounds)
-    root.style.setProperty('--accent', hoverBgHsl)
-    if (textPrimaryHsl) root.style.setProperty('--accent-foreground', textPrimaryHsl)
+    root.style.setProperty('--accent', themeColors.hoverBg)
+    root.style.setProperty('--accent-foreground', themeColors.textPrimary)
 
     // Destructive
-    root.style.setProperty('--destructive', '0 72% 51%')
-    root.style.setProperty('--destructive-foreground', '0 0% 100%')
+    root.style.setProperty('--destructive', 'hsl(0 72% 51%)')
+    root.style.setProperty('--destructive-foreground', 'oklch(1 0 0)')
 
     // Border and input - stronger borders for light mode visibility
-    root.style.setProperty('--border', isDark ? '0 0% 18%' : '0 0% 80%')
-    root.style.setProperty('--input', isDark ? '0 0% 18%' : '0 0% 80%')
-    root.style.setProperty('--ring', accentHsl || '220 90% 60%')
+    root.style.setProperty('--border', themeColors.borderDefault)
+    root.style.setProperty('--input', themeColors.borderDefault)
+    root.style.setProperty('--ring', hslColor(accentHsl, 'hsl(220 90% 60%)'))
 }
 
 // Color derivation helpers (matching ThemeBuilder.tsx)
@@ -385,6 +429,67 @@ function rgbToHex(r: number, g: number, b: number): string {
     }).join("")
 }
 
+function solidOverlay(backdrop: string, overlay: string, alpha: number): string {
+    const backdropRgb = hexToRgb(backdrop)
+    const overlayRgb = hexToRgb(overlay)
+    if (!backdropRgb || !overlayRgb) return overlay
+
+    const amount = Math.max(0, Math.min(1, alpha))
+    return rgbToHex(
+        backdropRgb.r * (1 - amount) + overlayRgb.r * amount,
+        backdropRgb.g * (1 - amount) + overlayRgb.g * amount,
+        backdropRgb.b * (1 - amount) + overlayRgb.b * amount
+    )
+}
+
+function solidifyColor(value: string | undefined, fallback: string, backdrop: string): string {
+    if (!value) return fallback
+    if (isGradientValue(value)) return value
+    if (value === 'transparent') return backdrop
+    if (value.startsWith('#')) return value
+
+    const rgbaMatch = value.match(/rgba?\(([^)]+)\)/i)
+    if (!rgbaMatch) return value
+
+    const parts = rgbaMatch[1].split(',').map(p => p.trim())
+    const r = parseFloat(parts[0])
+    const g = parseFloat(parts[1])
+    const b = parseFloat(parts[2])
+    const alpha = parts[3] === undefined ? 1 : parseFloat(parts[3])
+    if ([r, g, b, alpha].some(Number.isNaN)) return fallback
+
+    const foreground = rgbToHex(r, g, b)
+    return alpha >= 1 ? foreground : solidOverlay(backdrop, foreground, alpha)
+}
+
+function solidifyThemeColors(colors: ThemeColors, isDark: boolean): ThemeColors {
+    const bgBase = solidifyColor(colors.bgBase, isDark ? DARK_BG : LIGHT_BG, isDark ? DARK_BG : '#FFFFFF')
+    const bgElevated = solidifyColor(colors.bgElevated, isDark ? '#0F1011' : '#FFFFFF', bgBase)
+    const accent = solidifyColor(colors.accent, DEFAULT_ACCENT, bgElevated)
+    const accentHover = isGradientValue(colors.accentHover)
+        ? colors.accentHover
+        : solidifyColor(colors.accentHover, accent, bgElevated)
+
+    return {
+        bgBase,
+        bgElevated,
+        bgSurface: solidifyColor(colors.bgSurface, adjustAlpha(isDark ? 0.03 : 0.02, isDark, bgElevated), bgElevated),
+        bgSurfaceHover: solidifyColor(colors.bgSurfaceHover, adjustAlpha(isDark ? 0.06 : 0.04, isDark, bgElevated), bgElevated),
+        textPrimary: solidifyColor(colors.textPrimary, isDark ? '#F7F8F8' : '#08090A', bgElevated),
+        textSecondary: solidifyColor(colors.textSecondary, isDark ? '#A1A5A9' : '#3F4046', bgElevated),
+        textTertiary: solidifyColor(colors.textTertiary, '#6A6A75', bgElevated),
+        textMuted: solidifyColor(colors.textMuted, isDark ? '#4A4A52' : '#9A9AA0', bgElevated),
+        accent,
+        accentHover,
+        accentLight: solidifyColor(colors.accentLight, getAccentLight(accent, isDark, bgElevated), bgElevated),
+        borderSubtle: solidifyColor(colors.borderSubtle, adjustAlpha(isDark ? 0.08 : LIGHT_BORDER_ALPHA.subtle, isDark, bgElevated), bgElevated),
+        borderDefault: solidifyColor(colors.borderDefault, adjustAlpha(isDark ? 0.12 : LIGHT_BORDER_ALPHA.default, isDark, bgElevated), bgElevated),
+        borderStrong: solidifyColor(colors.borderStrong, adjustAlpha(isDark ? 0.20 : LIGHT_BORDER_ALPHA.strong, isDark, bgElevated), bgElevated),
+        hoverBg: solidifyColor(colors.hoverBg, adjustAlpha(isDark ? 0.04 : 0.03, isDark, bgElevated), bgElevated),
+        activeBg: solidifyColor(colors.activeBg, adjustAlpha(isDark ? 0.08 : 0.06, isDark, bgElevated), bgElevated),
+    }
+}
+
 function adjustBrightness(hex: string, amount: number): string {
     const rgb = hexToRgb(hex)
     if (!rgb) return hex
@@ -395,20 +500,19 @@ function adjustBrightness(hex: string, amount: number): string {
     )
 }
 
-function adjustAlpha(baseFactor: number, isDark: boolean): string {
-    const base = isDark ? 255 : 0
-    return `rgba(${base}, ${base}, ${base}, ${baseFactor})`
+function adjustAlpha(baseFactor: number, isDark: boolean, backdrop?: string): string {
+    return solidOverlay(backdrop ?? (isDark ? DARK_BG : '#FFFFFF'), isDark ? '#FFFFFF' : '#000000', baseFactor)
 }
 
 // Generate derived colors from simple inputs (matching ThemeBuilder.tsx)
-function deriveFullColors(
+export function deriveFullColors(
     bgBase: string,
     accent: string,
     isDark: boolean,
     contrastLevel: number = 30,
     tintLevel: number = 0
 ): ThemeColors {
-    const accentForCalc = isGradientValue(accent) ? extractFirstColorFromGradient(accent, '#6468F0') : accent
+    const accentForCalc = isGradientValue(accent) ? extractFirstColorFromGradient(accent, DEFAULT_ACCENT) : accent
 
     const mixColors = (color1: string, color2: string, amount: number): string => {
         const rgb1 = hexToRgb(color1)
@@ -453,24 +557,19 @@ function deriveFullColors(
     }
 
     const accentHover = isGradientValue(accent) ? accent : adjustBrightness(accentForCalc, isDark ? 15 : -15)
-    const accentRgb = hexToRgb(accentForCalc)
-    const accentLight = isGradientValue(accent)
-        ? accent
-        : accentRgb
-            ? `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${isDark ? 0.15 : 0.12})`
-            : adjustAlpha(0.15, isDark)
+    const accentLight = getAccentLight(accentForCalc, isDark, bgElevated)
 
-    const borderSubtle = adjustAlpha(isDark ? 0.08 * contrastFactor : 0.06 * contrastFactor, isDark)
-    const borderDefault = adjustAlpha(isDark ? 0.12 * contrastFactor : 0.1 * contrastFactor, isDark)
-    const borderStrong = adjustAlpha(isDark ? 0.20 * contrastFactor : 0.15 * contrastFactor, isDark)
-    const hoverBg = adjustAlpha(isDark ? 0.04 * contrastFactor : 0.03 * contrastFactor, isDark)
-    const activeBg = adjustAlpha(isDark ? 0.08 * contrastFactor : 0.06 * contrastFactor, isDark)
+    const borderSubtle = adjustAlpha((isDark ? 0.08 : LIGHT_BORDER_ALPHA.subtle) * contrastFactor, isDark, bgElevated)
+    const borderDefault = adjustAlpha((isDark ? 0.12 : LIGHT_BORDER_ALPHA.default) * contrastFactor, isDark, bgElevated)
+    const borderStrong = adjustAlpha((isDark ? 0.20 : LIGHT_BORDER_ALPHA.strong) * contrastFactor, isDark, bgElevated)
+    const hoverBg = adjustAlpha(isDark ? 0.04 * contrastFactor : 0.03 * contrastFactor, isDark, bgElevated)
+    const activeBg = adjustAlpha(isDark ? 0.08 * contrastFactor : 0.06 * contrastFactor, isDark, bgElevated)
 
     return {
         bgBase: applyTint(bgBase, tintLevel),
         bgElevated,
-        bgSurface: adjustAlpha((isDark ? 0.03 : 0.02) * contrastFactor, isDark),
-        bgSurfaceHover: adjustAlpha((isDark ? 0.06 : 0.04) * contrastFactor, isDark),
+        bgSurface: adjustAlpha((isDark ? 0.03 : 0.02) * contrastFactor, isDark, bgElevated),
+        bgSurfaceHover: adjustAlpha((isDark ? 0.06 : 0.04) * contrastFactor, isDark, bgElevated),
         textPrimary,
         textSecondary,
         textTertiary,
@@ -487,28 +586,39 @@ function deriveFullColors(
 }
 
 // Accent colors palette (matching ThemeBuilder.tsx)
-const ACCENT_COLORS: Record<string, string> = {
-    red: '#ef4444',
-    orange: '#f97316',
-    amber: '#f59e0b',
-    yellow: '#eab308',
-    lime: '#84cc16',
-    green: '#22c55e',
-    emerald: '#10b981',
-    teal: '#14b8a6',
-    cyan: '#06b6d4',
-    sky: '#0ea5e9',
-    blue: '#3b82f6',
-    indigo: '#6366f1',
-    violet: '#8b5cf6',
-    purple: '#a855f7',
-    fuchsia: '#d946ef',
-    pink: '#ec4899',
-    rose: '#f43f5e',
+export const ACCENT_COLORS: Record<string, string> = {
+    neutral: '#404040',
+    stone: '#44403C',
+    zinc: '#3F3F46',
+    slate: '#334155',
+    gray: '#374151',
+    mauve: '#524959',
+    olive: '#435147',
+    mist: '#3D5155',
+    taupe: '#554B3E',
+    red: '#B91C1C',
+    orange: '#C2410C',
+    amber: '#B45309',
+    yellow: '#A16207',
+    lime: '#4D7C0F',
+    green: '#15803D',
+    emerald: '#047857',
+    teal: '#0F766E',
+    cyan: '#0E7490',
+    sky: '#0369A1',
+    blue: '#1D4ED8',
+    indigo: DEFAULT_ACCENT,
+    violet: '#6D28D9',
+    purple: '#7E22CE',
+    fuchsia: '#A21CAF',
+    pink: '#BE185D',
+    rose: '#BE123C',
 }
 
-const DARK_BG = '#08090A'
-const LIGHT_BG = '#F5F5F7'
+function getPresetAccent(accentName?: string) {
+    if (!accentName || accentName === 'default') return DEFAULT_ACCENT
+    return ACCENT_COLORS[accentName] || DEFAULT_ACCENT
+}
 
 export function loadAndApplySavedTheme(): boolean {
     if (typeof window === 'undefined') return false
@@ -525,12 +635,13 @@ export function loadAndApplySavedTheme(): boolean {
             const contrast = parsed.contrast ?? 30
             const uiTint = parsed.uiTint ?? 0
             const selectedAccent = parsed.selectedAccent || 'default'
-            const accentHex = selectedAccent === 'default' ? '#6468F0' : (ACCENT_COLORS[selectedAccent] || '#6468F0')
-            const bgBase = isDark ? DARK_BG : LIGHT_BG
+            const accentHex = getPresetAccent(selectedAccent)
+            const bgBase = parsed.baseBg || parsed.customColors?.bgBase || (isDark ? DARK_BG : LIGHT_BG)
 
             const derivedColors = deriveFullColors(bgBase, accentHex, isDark, contrast, uiTint)
-            // Merge any custom overrides
-            const finalColors = { ...derivedColors, ...parsed.customColors }
+            const themeId = parsed.themeId || ''
+            const isPresetTheme = themeId !== 'custom' && !themeId.startsWith('custom-')
+            const finalColors = isPresetTheme ? derivedColors : { ...derivedColors, ...parsed.customColors }
             applyThemeColors(finalColors, isDark)
             return true
         }

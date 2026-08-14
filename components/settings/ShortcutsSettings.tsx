@@ -4,10 +4,10 @@ import * as React from "react"
 import { useState, useCallback, useEffect, useRef } from "react"
 import {
     DEFAULT_SHORTCUTS,
-    ShortcutDefinition,
-    ShortcutBinding,
     formatShortcutDisplay,
+    resolvePhysicalKey,
 } from "../../hooks/useShortcuts"
+import type { ShortcutDefinition, ShortcutBinding } from "../../hooks/useShortcuts"
 import { Button } from "../ui/button"
 import {
     AlertDialog,
@@ -25,10 +25,9 @@ import {
     IconCheck,
     IconX,
     IconAlertCircle,
-    IconFolder,
 } from "@tabler/icons-react"
-import * as TablerIcons from "@tabler/icons-react"
 import { Switch } from "../ui/switch"
+import { IconExplorerIcon } from "../ui/icon-explorer"
 
 // ============================================
 // TYPES
@@ -59,29 +58,31 @@ interface RecordingState {
 const categoryLabels: Record<string, string> = {
     navigation: 'Navigation',
     actions: 'Actions',
+    tabs: 'Tabs',
     calendar: 'Calendar & Timetable',
     notifications: 'Notifications',
     settings: 'Settings',
 }
 
-const categoryOrder = ['navigation', 'actions', 'calendar', 'notifications', 'settings']
+const categoryOrder = ['navigation', 'tabs', 'actions', 'calendar', 'notifications', 'settings']
 
 function normalizeRecordedKey(key: string, e: KeyboardEvent): string {
-    // Handle special keys
-    if (e.metaKey && key !== 'Meta') return key.toLowerCase()
-    if (key === 'Meta' || key === 'Control') return '⌘'
+    if (key === 'Meta' || key === 'Control') return 'mod'
     if (key === 'Shift') return 'shift'
-    if (key === 'Alt') return '⌥'
-    return key.toLowerCase()
+    if (key === 'Alt') return 'alt'
+    // Recorded through the same resolver the matcher uses, so a combo captured with Option
+    // stores the physical key rather than the character macOS composes from it.
+    return resolvePhysicalKey(e).toLowerCase()
 }
 
 // ============================================
 // COMPONENTS
 // ============================================
 
-function SettingSection({ title, children }: { title: string; children: React.ReactNode }) {
+/** `anchor` is the settings-search target; see lib/settings-focus.ts. */
+function SettingSection({ title, anchor, children }: { title: string; anchor?: string; children: React.ReactNode }) {
     return (
-        <div style={{ marginBottom: '24px' }}>
+        <div data-settings-anchor={anchor} style={{ marginBottom: '24px' }}>
             <h3 style={{
                 fontSize: '15px',
                 fontWeight: 600,
@@ -123,14 +124,8 @@ function ShortcutRow({
     const isCustom = binding && JSON.stringify(binding.keys) !== JSON.stringify(shortcut.defaultKeys)
 
     return (
-        <div className="last:border-b-0" style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            borderBottom: '1px solid var(--border-subtle)',
-        }}>
-            <div style={{ flex: 1 }}>
+        <div className="flex flex-col items-stretch gap-3 border-b border-[var(--border-subtle)] px-4 py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 flex-1">
                 <div style={{
                     fontSize: '14px',
                     fontWeight: 500,
@@ -146,7 +141,7 @@ function ShortcutRow({
                     {shortcut.description}
                 </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '16px' }}>
+            <div className="flex flex-wrap items-center gap-2 sm:ml-4 sm:flex-nowrap">
                 {isRecording ? (
                     <>
                         <div style={{
@@ -161,7 +156,7 @@ function ShortcutRow({
                         }}>
                             {recordingKeys.length > 0 ? (
                                 <span style={{ fontSize: '13px', fontWeight: 500, color: 'white' }}>
-                                    {recordingKeys.map(k => k.toUpperCase()).join(' + ')}
+                                    {formatShortcutDisplay(recordingKeys)}
                                 </span>
                             ) : (
                                 <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>
@@ -175,8 +170,8 @@ function ShortcutRow({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                width: '28px',
-                                height: '28px',
+                                width: '36px',
+                                height: '36px',
                                 background: 'var(--success-color, #22c55e)',
                                 border: 'none',
                                 borderRadius: '6px',
@@ -193,8 +188,8 @@ function ShortcutRow({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                width: '28px',
-                                height: '28px',
+                                width: '36px',
+                                height: '36px',
                                 background: 'var(--hover-bg)',
                                 border: '1px solid var(--border-color)',
                                 borderRadius: '6px',
@@ -215,8 +210,10 @@ function ShortcutRow({
                                 alignItems: 'center',
                                 gap: '6px',
                                 padding: '6px 12px',
-                                background: isCustom ? 'var(--accent-subtle, rgba(59, 130, 246, 0.1))' : 'var(--hover-bg)',
-                                border: `1px solid ${isCustom ? 'var(--accent-color)' : 'var(--border-color)'}`,
+                                background: isCustom
+                                    ? 'var(--accent-gradient-soft) padding-box, var(--accent-gradient) border-box'
+                                    : 'var(--hover-bg)',
+                                border: `1px solid ${isCustom ? 'transparent' : 'var(--border-color)'}`,
                                 borderRadius: '6px',
                                 cursor: 'pointer',
                                 minWidth: '120px',
@@ -226,7 +223,11 @@ function ShortcutRow({
                             <span style={{
                                 fontSize: '13px',
                                 fontWeight: 500,
-                                color: isCustom ? 'var(--accent-color)' : 'var(--text-primary)',
+                                color: isCustom ? 'transparent' : 'var(--text-primary)',
+                                background: isCustom ? 'var(--accent-gradient)' : undefined,
+                                backgroundClip: isCustom ? 'text' : undefined,
+                                WebkitBackgroundClip: isCustom ? 'text' : undefined,
+                                WebkitTextFillColor: isCustom ? 'transparent' : undefined,
                             }}>
                                 {formatShortcutDisplay(currentKeys, shortcut.isSequence)}
                             </span>
@@ -238,8 +239,8 @@ function ShortcutRow({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    width: '28px',
-                                    height: '28px',
+                                    width: '36px',
+                                    height: '36px',
                                     background: 'transparent',
                                     border: 'none',
                                     borderRadius: '6px',
@@ -330,17 +331,17 @@ export function ShortcutsSettings({
             const key = normalizeRecordedKey(e.key, e)
             
             // Skip pure modifier key presses for non-modifier shortcuts
-            if (!shortcut.isModifier && (key === '⌘' || key === 'shift' || key === '⌥')) {
+            if (!shortcut.isModifier && (key === 'mod' || key === 'shift' || key === 'alt')) {
                 return
             }
 
             if (shortcut.isModifier) {
                 // For modifier shortcuts, collect all pressed keys
                 const keys: string[] = []
-                if (e.metaKey || e.ctrlKey) keys.push('⌘')
+                if (e.metaKey || e.ctrlKey) keys.push('mod')
                 if (e.shiftKey) keys.push('shift')
-                if (e.altKey) keys.push('⌥')
-                if (key !== '⌘' && key !== 'shift' && key !== '⌥') {
+                if (e.altKey) keys.push('alt')
+                if (key !== 'mod' && key !== 'shift' && key !== 'alt') {
                     keys.push(key)
                 }
                 setRecording(prev => ({ ...prev, keys }))
@@ -408,12 +409,7 @@ export function ShortcutsSettings({
     return (
         <div>
             {/* Header */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '24px',
-            }}>
+            <div className="mb-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
                         width: '40px',
@@ -439,36 +435,22 @@ export function ShortcutsSettings({
                             fontSize: '13px',
                             color: 'var(--text-tertiary)',
                         }}>
-                            Customize keyboard shortcuts for quick actions
+                            Customise keyboard shortcuts for quick actions
                         </p>
                     </div>
                 </div>
-                <button
+                <Button
+                    variant="destructive"
                     onClick={handleResetAllClick}
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 14px',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        color: 'white',
-                        backgroundColor: '#ef4444',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+                    className="self-start gap-1.5 sm:self-auto"
                 >
                     <IconRefresh size={14} />
                     Reset All
-                </button>
+                </Button>
             </div>
 
             {/* Context-aware toggles per category */}
-            <div style={{
+            <div data-settings-anchor="shortcuts-context-aware" style={{
                 padding: '16px',
                 background: 'var(--bg-surface)',
                 border: '1px solid var(--border-default)',
@@ -537,7 +519,7 @@ export function ShortcutsSettings({
             </div>
 
             {/* Notification Folders */}
-            <SettingSection title="Notification Folders">
+            <SettingSection title="Notification Folders" anchor="shortcuts-notification-folders">
                 {folders.length === 0 ? (
                     <div style={{
                         padding: '16px',
@@ -552,7 +534,6 @@ export function ShortcutsSettings({
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {folders.map(folder => {
-                            const FolderIcon = (TablerIcons as Record<string, React.ComponentType<{ size?: number }>>)[folder.icon] || IconFolder
                             return (
                                 <div key={folder.id} style={{
                                     display: 'flex',
@@ -573,7 +554,7 @@ export function ShortcutsSettings({
                                         justifyContent: 'center',
                                         color: 'var(--text-secondary)',
                                     }}>
-                                        <FolderIcon size={16} />
+                                    <IconExplorerIcon name={folder.icon} size={16} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
@@ -602,7 +583,7 @@ export function ShortcutsSettings({
                 if (!shortcuts || shortcuts.length === 0) return null
 
                 return (
-                    <SettingSection key={category} title={categoryLabels[category]}>
+                    <SettingSection key={category} title={categoryLabels[category]} anchor={`shortcuts-${category}`}>
                         {shortcuts.map(shortcut => (
                             <ShortcutRow
                                 key={shortcut.id}
@@ -623,19 +604,17 @@ export function ShortcutsSettings({
             <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
                 <AlertDialogContent style={{
                     maxWidth: '450px',
-                    padding: '24px',
                     backgroundColor: 'var(--bg-elevated)',
                     border: '1px solid var(--border-default)',
                     borderRadius: '12px',
                     outline: 'none',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                    boxShadow: '0 25px 50px -12px rgb(var(--shadow-color) / calc(0.5 * var(--shadow-strength)))',
                 }}>
-                    <AlertDialogHeader style={{ marginBottom: '16px' }}>
+                    <AlertDialogHeader>
                         <AlertDialogTitle style={{
                             fontSize: '18px',
                             fontWeight: 600,
                             color: 'var(--text-primary)',
-                            marginBottom: '8px',
                         }}>
                             Reset All Shortcuts?
                         </AlertDialogTitle>
@@ -644,7 +623,7 @@ export function ShortcutsSettings({
                             color: 'var(--text-secondary)',
                             lineHeight: 1.5,
                         }}>
-                            This will reset all keyboard shortcuts to their default values. Any customizations you've made will be lost. This action cannot be undone.
+                            This will reset all keyboard shortcuts to their default values. Any customisations you've made will be lost. This action cannot be undone.
                             Hold Shift while clicking destructive actions to skip confirmation.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

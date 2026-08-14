@@ -11,6 +11,7 @@ out/
 # Production build
 build/
 dist/
+src-tauri/target/
 
 # Environment variables
 .env
@@ -18,6 +19,10 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Tauri updater private keys
+*.key
+*.key.pub
 
 # Vercel deployment files
 .vercel
@@ -40,6 +45,14 @@ Thumbs.db
 
 # Logs
 *.log
+*.bak
+public/downloads/desktop/*
+!public/downloads/desktop/manifest.json
+!public/downloads/desktop/*.dmg
+
+# Desktop live shell published by `bun run build:desktop:shell` at build time
+public/desktop-shell/
+old-extension-*.zip
 
 # Runtime data
 pids
@@ -99,3 +112,15 @@ coverage/
 
 # TernJS port file
 .tern-port
+
+# Locally held paper library: ~3.5 GB of PDFs plus the scraper's own workspace. Pointed at by
+# PAST_PAPERS_CORPUS_DIR and ingested with scripts/ingest-past-paper-corpus.ts.
+Past Papers/
+
+# Agent scratch directories and their throwaway screenshots
+.claude/
+.codex/
+.codex-*.png
+.agents/
+
+.tanstack/
