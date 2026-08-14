@@ -13,7 +13,7 @@ import { spawn } from "node:child_process"
  * server graph rather than to keep raising it: the two largest contributors were removed by making
  * the icon catalogues load on demand and by tracing server-only packages instead of bundling them.
  */
-const MAX_OLD_SPACE_MB = 7168
+const MAX_OLD_SPACE_MB = 4096
 
 const existing = process.env.NODE_OPTIONS ?? ""
 const nodeOptions = existing.includes("--max-old-space-size")
