@@ -1,5 +1,5 @@
 {
-  "framework": "vite",
+  "framework": "tanstack-start",
   "crons": [
     {
       "path": "/api/cron/retention",
