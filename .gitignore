@@ -46,9 +46,15 @@ Thumbs.db
 # Logs
 *.log
 *.bak
+# Published installers. These are build output: 225 MB of binaries were committed with the 2.0
+# release, which is 225 MB that every clone and every deployment pays for a desktop app that is
+# not currently shipped.
+#
+# manifest.json stays tracked and is not optional: `src/routes/api/desktop/release.ts` imports it
+# statically, so it is part of the build graph and the production build fails to resolve without
+# it. Its `available` flags are what decide whether the install page offers a download.
 public/downloads/desktop/*
 !public/downloads/desktop/manifest.json
-!public/downloads/desktop/*.dmg
 
 # Desktop live shell published by `bun run build:desktop:shell` at build time
 public/desktop-shell/
@@ -124,3 +130,11 @@ Past Papers/
 .agents/
 
 .tanstack/
+
+# Local-only editor and agent configuration. Checked-in copies were removed after the 2.0
+# release; keep them out so a wholesale `git add` cannot pull them back in.
+.mcp.json
+CLAUDE.md
+AGENTS.md
+.cursor/
+.windsurf/
