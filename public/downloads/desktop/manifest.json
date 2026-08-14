@@ -12,7 +12,7 @@
       "filename": "millennium-desktop-v1.0.9-macos-universal.dmg",
       "sha256": "f61ce50fe121b93c7d8183d4b44a37928c8e4dfbe1a1bb687dcfef8b2128694f",
       "byteSize": 15282254,
-      "available": true,
+      "available": false,
       "signed": false,
       "notarized": false,
       "minimumOs": "macOS 12"
@@ -27,7 +27,7 @@
       "filename": "millennium-desktop-v1.0.9-macos-arm64.dmg",
       "sha256": "5667ebba8119854da2c810b7a32f14eac48244ddd7162c212590dc63d35c6b89",
       "byteSize": 7443070,
-      "available": true,
+      "available": false,
       "signed": false,
       "notarized": false,
       "minimumOs": "macOS 12"
@@ -42,7 +42,7 @@
       "filename": "millennium-desktop-v1.0.9-macos-x64.dmg",
       "sha256": "a91a0cdac4fe65b27a88c03a966b0afd7e936b563a5da0028252fb5161adc48e",
       "byteSize": 7984403,
-      "available": true,
+      "available": false,
       "signed": false,
       "notarized": false,
       "minimumOs": "macOS 12"
