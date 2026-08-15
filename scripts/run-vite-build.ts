@@ -32,6 +32,11 @@ import { existsSync, readdirSync } from "node:fs"
  * 6144 MB is above the peak by enough that V8 collects normally; the build then completes in about
  * a minute. It does not make the build use more memory — a ceiling is a limit, not a reservation,
  * and peak RSS is unchanged — so it stays well inside the container's 8 GB.
+ *
+ * The build container is not more frugal than a laptop, so 4096 MB would not have been enough there
+ * even had it been applied. Measured on Vercel at this ceiling: 1.68 GB after the client pass,
+ * 2.67 GB after the SSR pass, 4.53 GB at the peak of the Nitro pass — 400 MB past the old ceiling,
+ * on a build that finished in three minutes.
  */
 export const MAX_OLD_SPACE_MB = 6144
 
