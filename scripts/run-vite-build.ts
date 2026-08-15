@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process"
 import { createRequire } from "node:module"
 import { delimiter, dirname, join } from "node:path"
-import { existsSync } from "node:fs"
+import { existsSync, readdirSync } from "node:fs"
 
 /**
  * Runs a Vite build with a heap ceiling that does not depend on the machine it lands on.
@@ -47,12 +47,15 @@ export const MINIMUM_HEAP_CEILING_MB = 5120
 /**
  * Bun's stand-in for `node`, which it puts on `PATH` when a script is run with `--bun`.
  *
- * Vercel starts the build that way, so on the deployment `node` is Bun, every `#!/usr/bin/env node`
- * shebang in `node_modules/.bin` is Bun, and Vite runs on JavaScriptCore rather than V8. Bun accepts
- * `NODE_OPTIONS=--max-old-space-size` and ignores it — it is a V8 flag — so the ceiling below was
- * being set on every build and applied on none of them, and the deployment was the one build that
- * silently ran without it. Locally the same command runs on Node and honours it, which is most of
- * why the deployment and a local build disagreed about a build that hangs.
+ * Running `vite` by name reaches Bun rather than Node in two different ways, and this is the first:
+ * with `--bun`, `node` on `PATH` is Bun, so is every `#!/usr/bin/env node` shebang in
+ * `node_modules/.bin`, and Vite runs on JavaScriptCore. The second is Bun executing such a shebang
+ * itself when there is no Node to hand it to, which is what the deployment does.
+ *
+ * Either way `NODE_OPTIONS=--max-old-space-size` is accepted and ignored — it is a V8 flag — so the
+ * ceiling below was being set on every build and applied on none of them, and the deployment was the
+ * one build silently running without it. Locally the same command finds Node and honours it, which
+ * is most of why the deployment and a local build disagreed about a build that hangs.
  *
  * The directory is created per run (`/tmp/bun-node-5eb2145b3`), so it is matched by shape.
  */
@@ -99,9 +102,8 @@ function pathWithoutBunNodeShim(): string {
 /**
  * Where Node lives when `PATH` does not say.
  *
- * On Vercel it does not: `bun run` there puts its own `node` on `PATH` and nothing else provides
- * one, so a `PATH` with the shim removed has no Node in it at all — even though the container is a
- * Node image and Vercel's own CLI is running on Node a directory away. These are the standard
+ * On Vercel it does not. Its `PATH` is `…:/usr/bin:/bun1:/node1/bin` and none of those directories
+ * holds a `node`, which is why Bun ended up interpreting the Vite CLI itself. These are the standard
  * install locations, checked in the order a shell would have found them.
  */
 const NODE_FALLBACK_PATHS = ["/usr/local/bin/node", "/usr/bin/node", "/bin/node", "/opt/bin/node"]
@@ -120,7 +122,7 @@ function resolveNodeExecutable(path: string): string {
   }
 
   const filename = process.platform === "win32" ? "node.exe" : "node"
-  const directories = path.split(delimiter).filter(Boolean)
+  const directories = [...new Set(path.split(delimiter).filter(Boolean))]
 
   for (const directory of directories) {
     const candidate = join(directory, filename)
@@ -136,9 +138,32 @@ function resolveNodeExecutable(path: string): string {
     + "This build runs Vite on Node so it can be given a heap ceiling; see MAX_OLD_SPACE_MB in "
     + "scripts/run-vite-build.ts for why it needs one. Bun's `node` shim is not one and was "
     + "excluded from the search.\n"
-    + `Searched, in order: ${[...directories, ...NODE_FALLBACK_PATHS].join(", ")}\n`
+    + `Searched: ${[...directories, ...NODE_FALLBACK_PATHS].join(", ")}\n`
+    + `Node-like entries in those directories: ${describeNodeLikeEntries(directories)}\n`
     + "Set NODE_BINARY to a Node executable to resolve this directly."
   )
+}
+
+/**
+ * What the searched directories actually hold, for the failure message.
+ *
+ * A list of places that did not have `node` says nothing about why. On Vercel the PATH contains a
+ * `/node1/bin` that a build is entitled to assume holds Node, and finding out what is in it instead
+ * is otherwise a deployment per guess.
+ */
+function describeNodeLikeEntries(directories: string[]): string {
+  const found = directories.flatMap((directory) => {
+    if (!existsSync(directory)) return [`${directory} (missing)`]
+
+    try {
+      const matches = readdirSync(directory).filter((entry) => entry.toLowerCase().includes("node"))
+      return matches.length > 0 ? [`${directory}: ${matches.join(" ")}`] : []
+    } catch (error) {
+      return [`${directory} (unreadable: ${(error as Error).message})`]
+    }
+  })
+
+  return found.length > 0 ? found.join("; ") : "none"
 }
 
 export function run(command: string, args: string[], env?: NodeJS.ProcessEnv): Promise<void> {
