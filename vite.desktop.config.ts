@@ -81,6 +81,16 @@ export default defineConfig({
     emptyOutDir: true,
     assetsDir: '_app-assets',
     chunkSizeWarningLimit: 1000,
+    // This shell is the same application, so it pays the same memory costs the web build does, on
+    // the same 8 GB build container, immediately before it. See vite.config.ts for why both are off.
+    reportCompressedSize: false,
+    rollupOptions: {
+      onLog(level, log, defaultHandler) {
+        const isDependency = typeof log.id === 'string' && log.id.includes('node_modules/')
+        if (level === 'warn' && log.code === 'INVALID_ANNOTATION' && isDependency) return
+        defaultHandler(level, log)
+      },
+    },
   },
   resolve: {
     alias: {

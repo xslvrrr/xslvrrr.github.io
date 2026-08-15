@@ -18,7 +18,7 @@
     "dev:desktop": "bun run scripts/desktop-dev.ts",
     "build": "bun run build:web",
     "build:web": "bun run build:desktop:shell && bun run scripts/build-web.ts",
-    "build:desktop:ui": "vite build --config vite.desktop.config.ts",
+    "build:desktop:ui": "bun run scripts/build-desktop-ui.ts",
     "build:desktop:shell": "bun run build:desktop:ui && bun run scripts/publish-desktop-shell.ts",
     "preview": "vite preview --host localhost --port 3000 --strictPort",
     "desktop:dev": "bunx tauri dev --config src-tauri/tauri.dev.conf.json",
