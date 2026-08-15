@@ -107,6 +107,13 @@ function requireTracedServerDependencies(): Plugin {
  * this needs; the check is here because this is what a bare `vite build`, an editor integration, or
  * a future script that forgets the wrapper actually loads.
  *
+ * A ceiling can only be set on Node, so a runtime that is not Node is refused rather than measured.
+ * Vercel starts the build with `bun run --bun`, which makes every `node` on `PATH` Bun: Bun accepts
+ * `--max-old-space-size` and ignores it, and its `node:v8` shim answers with a number that describes
+ * nothing — 1708 MB on the container, 228 MB on a laptop with 64 GB. Believing it produced a build
+ * that failed the check it should have passed, which is the reverse of the mistake but the same
+ * cause: the deployment was running a different runtime than every local build.
+ *
  * The per-pass figures are printed for the same reason. If this build ever runs out of room again,
  * the log says which pass was holding what rather than leaving it to be measured from scratch.
  */
@@ -121,6 +128,18 @@ function requireHeapForProductionBuild(): Plugin {
     name: "millennium-require-heap-for-production-build",
     apply: "build",
     configResolved() {
+      if (process.versions.bun) {
+        throw new Error(
+          `This build is running on Bun ${process.versions.bun} and has to run on Node.\n`
+          + "It needs a heap ceiling of at least "
+          + `${MINIMUM_HEAP_CEILING_MB} MB — see MAX_OLD_SPACE_MB in scripts/run-vite-build.ts — `
+          + "and `--max-old-space-size` is a V8 flag that Bun accepts and does not act on.\n"
+          + "`bun run build:web` runs the Vite CLI on Node for this reason. Reaching this means "
+          + "something started Vite directly under Bun, such as `bun run --bun vite build`, which "
+          + "is how Vercel invokes package scripts."
+        )
+      }
+
       const ceilingMb = mb(getHeapStatistics().heap_size_limit)
       if (ceilingMb < MINIMUM_HEAP_CEILING_MB) {
         throw new Error(

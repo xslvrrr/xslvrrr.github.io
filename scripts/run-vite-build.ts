@@ -1,4 +1,7 @@
 import { spawn } from "node:child_process"
+import { createRequire } from "node:module"
+import { delimiter, dirname, join } from "node:path"
+import { existsSync } from "node:fs"
 
 /**
  * Runs a Vite build with a heap ceiling that does not depend on the machine it lands on.
@@ -41,13 +44,72 @@ export const MAX_OLD_SPACE_MB = 6144
  */
 export const MINIMUM_HEAP_CEILING_MB = 5120
 
-export function runViteBuild(args: string[]): Promise<void> {
-  const existing = process.env.NODE_OPTIONS ?? ""
-  const nodeOptions = existing.includes("--max-old-space-size")
-    ? existing
-    : `${existing} --max-old-space-size=${MAX_OLD_SPACE_MB}`.trim()
+/**
+ * Bun's stand-in for `node`, which it puts on `PATH` when a script is run with `--bun`.
+ *
+ * Vercel starts the build that way, so on the deployment `node` is Bun, every `#!/usr/bin/env node`
+ * shebang in `node_modules/.bin` is Bun, and Vite runs on JavaScriptCore rather than V8. Bun accepts
+ * `NODE_OPTIONS=--max-old-space-size` and ignores it — it is a V8 flag — so the ceiling below was
+ * being set on every build and applied on none of them, and the deployment was the one build that
+ * silently ran without it. Locally the same command runs on Node and honours it, which is most of
+ * why the deployment and a local build disagreed about a build that hangs.
+ *
+ * The directory is created per run (`/tmp/bun-node-5eb2145b3`), so it is matched by shape.
+ */
+const BUN_NODE_SHIM_DIRECTORY = /(^|[/\\])bun-node-[^/\\]*$/
 
-  return run("vite", ["build", ...args], { NODE_OPTIONS: nodeOptions })
+/**
+ * Runs the Vite CLI on Node, with the heap ceiling applied, whatever runtime called this.
+ *
+ * The ceiling is passed on the command line rather than through `NODE_OPTIONS` so it cannot be
+ * dropped by a runtime that parses that variable and discards what it does not implement, and the
+ * child gets a `PATH` with Bun's shim directory removed so anything Vite itself spawns is also Node.
+ */
+export function runViteBuild(args: string[]): Promise<void> {
+  const path = pathWithoutBunNodeShim()
+  const node = resolveNodeExecutable(path)
+  const viteCli = resolveViteCli()
+
+  return run(
+    node,
+    [`--max-old-space-size=${MAX_OLD_SPACE_MB}`, viteCli, "build", ...args],
+    { PATH: path }
+  )
+}
+
+/**
+ * The Vite CLI's real path.
+ *
+ * Resolved from the package rather than run as the `vite` command, because `node_modules/.bin/vite`
+ * is a `#!/usr/bin/env node` shebang and that is exactly the indirection Bun's shim takes over. The
+ * CLI is reached through `package.json` because Vite's export map does not publish `./bin/vite.js`.
+ */
+function resolveViteCli(): string {
+  const manifest = createRequire(import.meta.url).resolve("vite/package.json")
+  return join(dirname(manifest), "bin", "vite.js")
+}
+
+function pathWithoutBunNodeShim(): string {
+  return (process.env.PATH ?? "")
+    .split(delimiter)
+    .filter((entry) => entry && !BUN_NODE_SHIM_DIRECTORY.test(entry))
+    .join(delimiter)
+}
+
+function resolveNodeExecutable(path: string): string {
+  const filename = process.platform === "win32" ? "node.exe" : "node"
+
+  for (const directory of path.split(delimiter)) {
+    const candidate = join(directory, filename)
+    if (existsSync(candidate)) return candidate
+  }
+
+  throw new Error(
+    "No `node` on PATH.\n"
+    + "This build runs Vite on Node so it can be given a heap ceiling; see MAX_OLD_SPACE_MB in "
+    + "scripts/run-vite-build.ts for why it needs one. Bun's `node` shim does not count and has "
+    + "been excluded."
+  )
 }
 
 export function run(command: string, args: string[], env?: NodeJS.ProcessEnv): Promise<void> {
