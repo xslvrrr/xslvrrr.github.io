@@ -174,6 +174,12 @@ const resetCatalogCaches = () => {
  * and hydration stays quiet.
  */
 export const ensureIconCatalogs = (): Promise<void> => {
+    // Checked against the bundler's flag rather than `typeof window`, because this decides whether
+    // the catalogues are *built* for the server at all. `import.meta.env.SSR` is replaced with a
+    // constant per environment, so on the server the import below is unreachable and the 12 MB
+    // chunk is never emitted; a runtime-only check would still leave it in the graph for Nitro to
+    // bundle. Nothing renders a searchable icon grid during SSR.
+    if (import.meta.env.SSR) return Promise.resolve()
     if (catalogsLoaded) return Promise.resolve()
     if (catalogLoad) return catalogLoad
 
