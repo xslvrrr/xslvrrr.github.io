@@ -1,10 +1,6 @@
 "use client"
 
 import * as React from "react"
-import * as TablerCatalog from "@tabler/icons-react"
-import * as LucideCatalog from "lucide-react"
-import * as PhosphorCatalog from "@phosphor-icons/react"
-import * as RemixCatalog from "@remixicon/react"
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 import {
     IconAbacus, IconActivity, IconAdjustments, IconAlertCircle, IconAlertTriangle, IconArchive,
@@ -24,6 +20,17 @@ import {
     IconTrash, IconUser, IconX,
 } from "@tabler/icons-react"
 import { HugeiconsIcon } from "@hugeicons/react"
+import {
+    PROVIDERS,
+    componentEntries,
+    makeProviderIcon,
+    sortIcons,
+    toLabel,
+    type CatalogIcon,
+    type IconComponent,
+    type IconProviderId,
+    type ProviderIcon,
+} from "./iconCatalogShared"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover"
 import { Button } from "./button"
 import { ComboboxSearchField } from "./combobox-search-field"
@@ -31,17 +38,6 @@ import { Toggle } from "./toggle"
 import { ToggleGroup, ToggleGroupItem } from "./toggle-group"
 import { cn } from "@/lib/utils"
 
-export type IconProviderId = "tabler" | "lucide" | "hugeicons" | "phosphor" | "remix"
-type IconComponent = React.ElementType<any>
-
-type ProviderIcon = {
-    key: string
-    label: string
-    Component: IconComponent
-    searchText: string
-}
-
-type CatalogIcon = ProviderIcon & { provider: IconProviderId }
 
 const RECENTS_KEY = "millennium-icon-recents"
 export const DEFAULT_ICON_EXPLORER_VALUE = "IconFolder"
@@ -52,25 +48,7 @@ const GRID_BASE_OVERSCAN_ROWS = 2
 const GRID_SCROLL_LOOKAHEAD_MS = 180
 const GRID_HEIGHT = 236
 
-const PROVIDERS: { id: IconProviderId; label: string; shortLabel: string }[] = [
-    { id: "tabler", label: "Tabler", shortLabel: "Tabler" },
-    { id: "lucide", label: "Lucide", shortLabel: "Lucide" },
-    { id: "hugeicons", label: "HugeIcons", shortLabel: "Huge" },
-    { id: "phosphor", label: "Phosphor", shortLabel: "Phosphor" },
-    { id: "remix", label: "Remix Icon", shortLabel: "Remix" },
-]
-
 const providerLabels = new Map(PROVIDERS.map(provider => [provider.id, provider.label]))
-
-const toLabel = (value: string) => (
-    value
-        .replace(/^Icon/, "")
-        .replace(/^Ri/, "")
-        .replace(/(FreeIcons|Icon|Line|Fill|Regular|Bold|Duotone|Light|Thin)$/, "")
-        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-        .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
-        .trim() || value
-)
 
 const canonicalIconValue = (provider: IconProviderId, key: string) => (
     provider === "tabler" ? key : `${provider}:${key}`
@@ -90,18 +68,6 @@ export const getIconExplorerLabel = (value: string): string => {
 
     const { provider, key } = parseIconValue(value)
     return getCachedProviderIcon(provider, key)?.label || toLabel(key)
-}
-
-const makeSearchText = (key: string, label: string) => `${label} ${key}`.toLowerCase()
-
-const makeProviderIcon = (key: string, Component: IconComponent): ProviderIcon => {
-    const label = toLabel(key)
-    return {
-        key,
-        label,
-        Component,
-        searchText: makeSearchText(key, label),
-    }
 }
 
 type HugeIconLoader = () => Promise<{ default: unknown }>
@@ -145,19 +111,6 @@ const makeHugeIcon = (loader: HugeIconLoader): IconComponent => (
     }
 )
 
-const componentEntries = (catalog: Record<string, unknown>, include: (key: string) => boolean) => (
-    Object.entries(catalog)
-        .filter(([key, value]) => include(key) && (
-            typeof value === "function"
-            || (typeof value === "object" && value !== null && "$$typeof" in value)
-        ))
-        .map(([key, Component]) => makeProviderIcon(key, Component as IconComponent))
-)
-
-const sortIcons = <T extends ProviderIcon>(icons: T[]): T[] => (
-    icons.sort((a, b) => a.label.localeCompare(b.label) || a.key.localeCompare(b.key))
-)
-
 const TABLER_COMPONENTS: Record<string, IconComponent> = {
     IconAbacus, IconActivity, IconAdjustments, IconAlertCircle, IconAlertTriangle, IconArchive,
     IconArrowDown, IconArrowLeft, IconArrowRight, IconArrowUp, IconBallBasketball,
@@ -176,39 +129,85 @@ const TABLER_COMPONENTS: Record<string, IconComponent> = {
     IconTrash, IconUser, IconX,
 }
 
-const TABLER_ICONS: ProviderIcon[] = sortIcons(componentEntries(
-    TablerCatalog,
-    key => /^Icon[A-Z]/.test(key) && key !== "IconContext" && !key.endsWith("Filled"),
-))
-
-const LUCIDE_ICONS: ProviderIcon[] = sortIcons(componentEntries(
-    LucideCatalog,
-    key => /^[A-Z][A-Za-z0-9]*Icon$/.test(key) && !key.startsWith("Lucide"),
-))
-
-const PHOSPHOR_ICONS: ProviderIcon[] = sortIcons(componentEntries(
-    PhosphorCatalog,
-    key => key.endsWith("Icon"),
-))
-
-const REMIX_ICONS: ProviderIcon[] = sortIcons(componentEntries(
-    RemixCatalog,
-    key => /^Ri[A-Z0-9]/.test(key),
-))
+const CURATED_TABLER_ICONS: ProviderIcon[] = sortIcons(
+    Object.entries(TABLER_COMPONENTS).map(([key, Component]) => makeProviderIcon(key, Component))
+)
 
 const HUGE_ICONS: ProviderIcon[] = sortIcons(
     Object.entries(HUGEICON_LOADERS).map(([key, loader]) => makeProviderIcon(key, makeHugeIcon(loader)))
 )
 
+/**
+ * What can be resolved without loading the full libraries.
+ *
+ * Seeded with a curated Tabler set and the HugeIcons loaders, which is what the application itself
+ * uses and therefore what almost every stored icon value is. `ensureIconCatalogs` swaps in the
+ * complete set the first time the picker opens, or the first time a stored value is not found here.
+ */
 const providerIconCache: Record<IconProviderId, ProviderIcon[]> = {
-    tabler: TABLER_ICONS,
-    lucide: LUCIDE_ICONS,
+    tabler: CURATED_TABLER_ICONS,
+    lucide: [],
     hugeicons: HUGE_ICONS,
-    phosphor: PHOSPHOR_ICONS,
-    remix: REMIX_ICONS,
+    phosphor: [],
+    remix: [],
 }
 
 let allProviderIconsCache: CatalogIcon[] | null = null
+const providerIconMapCache = new Map<IconProviderId, Map<string, ProviderIcon>>()
+
+type CatalogListener = () => void
+
+let catalogsLoaded = false
+let catalogLoad: Promise<void> | null = null
+const catalogListeners = new Set<CatalogListener>()
+
+const resetCatalogCaches = () => {
+    providerIconMapCache.clear()
+    allProviderIconsCache = null
+}
+
+/**
+ * Loads the full catalogues once, then tells every mounted icon to re-resolve.
+ *
+ * Never called during server rendering: the server has no picker to open, and an icon it cannot
+ * resolve renders the same fallback the client renders before the load resolves, so the two agree
+ * and hydration stays quiet.
+ */
+export const ensureIconCatalogs = (): Promise<void> => {
+    // Checked against the bundler's flag rather than `typeof window`, because this decides whether
+    // the catalogues are *built* for the server at all. `import.meta.env.SSR` is replaced with a
+    // constant per environment, so on the server the import below is unreachable and the 12 MB
+    // chunk is never emitted; a runtime-only check would still leave it in the graph for Nitro to
+    // bundle. Nothing renders a searchable icon grid during SSR.
+    if (import.meta.env.SSR) return Promise.resolve()
+    if (catalogsLoaded) return Promise.resolve()
+    if (catalogLoad) return catalogLoad
+
+    catalogLoad = import("./iconCatalogs")
+        .then(({ loadIconCatalogs }) => {
+            const catalogs = loadIconCatalogs()
+            providerIconCache.tabler = catalogs.tabler.length ? catalogs.tabler : CURATED_TABLER_ICONS
+            providerIconCache.lucide = catalogs.lucide
+            providerIconCache.phosphor = catalogs.phosphor
+            providerIconCache.remix = catalogs.remix
+            catalogsLoaded = true
+            resetCatalogCaches()
+            catalogListeners.forEach(listener => listener())
+        })
+        .catch(() => {
+            // The curated set stays in place; the picker simply offers less than usual.
+            catalogLoad = null
+        })
+
+    return catalogLoad
+}
+
+const subscribeToCatalogs = (listener: CatalogListener) => {
+    catalogListeners.add(listener)
+    return () => {
+        catalogListeners.delete(listener)
+    }
+}
 
 const getAllProviderIcons = (): CatalogIcon[] => {
     if (allProviderIconsCache) return allProviderIconsCache
@@ -217,8 +216,6 @@ const getAllProviderIcons = (): CatalogIcon[] => {
     )))
     return allProviderIconsCache
 }
-
-const providerIconMapCache = new Map<IconProviderId, Map<string, ProviderIcon>>()
 
 const getCachedProviderIcon = (provider: IconProviderId, key: string) => {
     let iconMap = providerIconMapCache.get(provider)
@@ -281,7 +278,24 @@ interface UniversalIconProps {
 }
 
 export const IconExplorerIcon = React.memo(function IconExplorerIcon({ name, size = 16, className }: UniversalIconProps) {
-    const Component = useMemo(() => resolveIconExplorerComponent(name), [name])
+    // Bumped when the full catalogues finish loading, so an icon that fell back to the placeholder
+    // re-resolves to the real thing.
+    const [catalogVersion, setCatalogVersion] = useState(0)
+    const resolution = useMemo(() => resolveIconExplorerValue(name), [name, catalogVersion])
+
+    // A value the curated set cannot resolve is the signal that this account uses an icon from one
+    // of the full libraries. Loading is skipped on the server, where there is nothing to re-render.
+    useEffect(() => {
+        if (resolution.supported || typeof window === "undefined") return
+        const unsubscribe = subscribeToCatalogs(() => setCatalogVersion(version => version + 1))
+        void ensureIconCatalogs()
+        return unsubscribe
+    }, [resolution.supported])
+
+    const Component = useMemo(
+        () => getCachedProviderIcon(resolution.provider, resolution.key)?.Component || IconFolder,
+        [resolution.provider, resolution.key, catalogVersion]
+    )
 
     return <Component size={size} className={className} />
 })
@@ -369,7 +383,21 @@ export function IconExplorer({ value, onSelect, trigger, className }: IconExplor
     const scrollFrameRef = useRef<number | null>(null)
     const lastScrollRef = useRef({ top: 0, time: 0 })
     const migratedValueRef = useRef<string | null>(null)
-    const providerIcons = providerIconCache[activeProvider]
+    const [catalogVersion, setCatalogVersion] = useState(0)
+
+    // The grid is the one place that genuinely needs every icon, so opening it is what pays for
+    // loading them.
+    useEffect(() => {
+        if (!open) return
+        const unsubscribe = subscribeToCatalogs(() => setCatalogVersion(version => version + 1))
+        void ensureIconCatalogs()
+        return unsubscribe
+    }, [open])
+
+    const providerIcons = useMemo(
+        () => providerIconCache[activeProvider],
+        [activeProvider, catalogVersion]
+    )
 
     useEffect(() => {
         if (typeof window === "undefined") return
@@ -419,7 +447,7 @@ export function IconExplorer({ value, onSelect, trigger, className }: IconExplor
         searchAllLibraries
             ? getAllProviderIcons()
             : providerIcons.map(icon => ({ ...icon, provider: activeProvider }))
-    ), [activeProvider, providerIcons, searchAllLibraries])
+    ), [activeProvider, catalogVersion, providerIcons, searchAllLibraries])
 
     const filteredIcons = useMemo(() => {
         const query = deferredSearchQuery.toLowerCase().trim()

@@ -3,9 +3,100 @@ import { extname, join, normalize, resolve, sep } from "node:path"
 import { defineConfig, type Plugin } from "vite"
 import { fileURLToPath, URL } from "node:url"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
+import { nitro } from "nitro/vite"
+import { runtimeDependencies as nitroRuntimeDependencies } from "nitro/runtime/meta"
+import { createRequire } from "node:module"
 import viteReact from "@vitejs/plugin-react"
 import viteTsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
+
+/**
+ * Packages the server bundle must contain rather than import from disk at runtime.
+ *
+ * Turning `nitro.noExternals` off lets the server pass leave `node_modules` alone, which is what
+ * makes the build finish, but it externalizes packages Nitro's own dependency tracer then declines
+ * to copy — the tracer is told to inline its runtime, so it never traces it. A deployed function
+ * has no `node_modules` above it to fall back to, so anything in this position resolves to nothing.
+ *
+ * These are bundled instead of traced: Nitro's runtime, and the renderer, which is the one
+ * dependency the SSR chunks import by name rather than carry.
+ */
+/**
+ * How the deployable server is produced.
+ *
+ * `noExternals` is the setting that decides whether the production build fits on a build machine.
+ * Nitro's Vite plugin pins `resolve.noExternal` to `true` for the `nitro` environment unless this
+ * is exactly `false`, which means the server pass re-bundles every package the SSR graph touches —
+ * React, the router, Base UI, dnd-kit, motion, the icon libraries, all of it — on top of the SSR
+ * chunks that pass has already produced. That is what exhausted the build: the pass climbed past a
+ * 4 GB heap and spent the rest of a 45-minute window in mark-compact, and Vercel ended it with
+ * `BUILD_EXCEEDED_MAXIMUM_TIME`.
+ *
+ * With it off, Nitro traces `node_modules` with `nf3` and copies what the server actually imports
+ * into the output instead. The packages still ship; they are no longer parsed, bound and re-emitted
+ * by rollup. The pass goes from thousands of modules to ~130.
+ *
+ * `sourceMap` defaults to `true` and costs a second full serialization of every server chunk, for
+ * stack traces nobody reads off a serverless function. `minify` buys nothing on a server bundle
+ * that is never sent over the wire.
+ *
+ * This is handed to the plugin *and* set as the top level `nitro` key because the plugin resolves
+ * them as `defu(pluginConfig.config, userConfig.nitro)` — the plugin argument wins, and unlike the
+ * top level key it does not depend on Vite's `UserConfig` module augmentation being picked up.
+ */
+const nitroVersion: string = createRequire(import.meta.url)("nitro/package.json").version
+
+const NITRO_SERVER_PASS = {
+  noExternals: false,
+  sourceMap: false,
+  minify: false,
+} as const
+
+/**
+ * Refuses to start a server pass that is going to re-bundle every dependency.
+ *
+ * The whole build hinges on one boolean that lives inside a dependency's plugin, and when it fails
+ * to apply nothing says so: the pass sits on `transforming...` and the build is killed 45 minutes
+ * later for exceeding its time limit, with a log that looks exactly like a slow machine. That has
+ * now cost several build windows.
+ *
+ * `resolve.noExternal === true` on the `nitro` environment is that failure, and it is knowable
+ * before a single module is transformed, so fail there instead — in seconds, naming the cause. The
+ * Nitro version is reported with it because this config depends on a branch in `nitro/vite` that
+ * reads `noExternals === false`, and a build resolving a different Nitro would drop these settings
+ * silently.
+ */
+function requireTracedServerDependencies(): Plugin {
+  return {
+    name: "millennium-require-traced-server-dependencies",
+    apply: "build",
+    configResolved(config) {
+      const noExternal = config.environments?.nitro?.resolve?.noExternal
+      const summary = Array.isArray(noExternal) ? `${noExternal.length} entries` : String(noExternal)
+      console.info(
+        `[build] nitro ${nitroVersion}, server pass resolve.noExternal: ${summary}`
+      )
+
+      if (noExternal === true) {
+        throw new Error(
+          "The Nitro server pass is configured to bundle every dependency "
+          + `(resolve.noExternal === true) under nitro ${nitroVersion}.\n`
+          + "This build would re-bundle the entire SSR dependency graph, take longer than the "
+          + "45 minute limit on a Vercel build container, and be killed with no explanation.\n"
+          + "`nitro.noExternals: false` is not reaching the plugin — check that the installed "
+          + "nitro is the version this config targets."
+        )
+      }
+    },
+  }
+}
+
+const SERVER_BUNDLED_DEPENDENCIES = [...nitroRuntimeDependencies, "react", "react-dom"]
+const serverBundledDependencyPattern = new RegExp(
+  `^(${SERVER_BUNDLED_DEPENDENCIES
+    .map((name) => name.replaceAll(/[.*+?^${}()|[\]\\/]/g, String.raw`\$&`))
+    .join("|")})(/|$)`
+)
 
 const SHELL_MIME_TYPES: Record<string, string> = {
   ".css": "text/css",
@@ -82,6 +173,42 @@ export default defineConfig({
   },
   ssr: {
     noExternal: ["@lobehub/icons"],
+    /**
+     * Server-only packages the deployment traces rather than bundles.
+     *
+     * Nitro inlines node_modules into the server bundle by default. For these that is pure cost:
+     * jsdom (with parse5 and friends), Puppeteer, Stripe and the Supabase client are large, are
+     * reached only from portal sync and the API routes, and are perfectly happy being required at
+     * runtime. Bundling them put an 11 MB chunk through rollup and is most of what made the
+     * production build run out of memory.
+     */
+    external: [
+      "jsdom",
+      "puppeteer-core",
+      "@puppeteer/browsers",
+      "stripe",
+      "@supabase/supabase-js",
+    ],
+  },
+  nitro: NITRO_SERVER_PASS,
+  /**
+   * Vite copies `publicDir` into every environment's output directory, and the server
+   * environments' output directory is the deployed function. That put a second copy of everything
+   * under `public/` — the 18 MB desktop shell on the deployment, 239 MB of installers on a working
+   * tree that still has them — inside `functions/__fallback.func`, which the function never reads:
+   * `config.json` puts a `filesystem` handler ahead of the fallback route, so static files are
+   * answered from `.vercel/output/static` by the edge and never reach the server at all.
+   *
+   * Nitro writes the static directory itself, from the same `public/`, so nothing is lost.
+   */
+  environments: {
+    ssr: {
+      build: { copyPublicDir: false },
+    },
+    nitro: {
+      build: { copyPublicDir: false },
+      resolve: { noExternal: serverBundledDependencyPattern },
+    },
   },
   build: {
     // Keep generated bundles distinct from the public /Assets brand directory.
@@ -89,14 +216,26 @@ export default defineConfig({
     // replaced one directory with the other and broke CSS/chunk requests.
     assetsDir: "_app-assets",
     chunkSizeWarningLimit: 1000,
+    /**
+     * Vite gzips every emitted chunk purely to print a number next to it. The icon catalogues are
+     * a 10.7 MB chunk, so that is a 10.7 MB buffer plus a full zlib pass held alongside the chunk
+     * rollup is already holding — during the phase where peak memory is decided. The build machine
+     * has 8 GB and was killed with SIGKILL for exceeding it.
+     */
+    reportCompressedSize: false,
     rollupOptions: {
       onLog(level, log, defaultHandler) {
-        if (
-          level === "warn" &&
-          log.code === "UNUSED_EXTERNAL_IMPORT" &&
-          typeof log.id === "string" &&
-          log.id.includes("node_modules/")
-        ) {
+        const isDependency = typeof log.id === "string" && log.id.includes("node_modules/")
+
+        if (level === "warn" && log.code === "UNUSED_EXTERNAL_IMPORT" && isDependency) {
+          return
+        }
+
+        // `@hugeicons/core-free-icons` ships one module per icon, each with a `/*#__PURE__*/`
+        // comment rollup will not read, so every icon in the graph produces a five-line warning.
+        // On the deployment that was thousands of lines of log written down a pipe on a build
+        // machine with two cores, describing a dependency this repository cannot fix.
+        if (level === "warn" && log.code === "INVALID_ANNOTATION" && isDependency) {
           return
         }
 
@@ -117,6 +256,8 @@ export default defineConfig({
     tailwindcss(),
 
     tanstackStart(),
+    nitro({ config: NITRO_SERVER_PASS }),
     viteReact(),
+    requireTracedServerDependencies(),
   ],
 })
