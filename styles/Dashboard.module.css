@@ -5368,8 +5368,13 @@ td.poor { color: #ef4444; }
     grid-template-columns: 1fr;
   }
 
+  /* The value drops onto its own line here, so it needs the tight leading of a subtitle rather
+     than the 12px column gap that separates it from the label on a wide row. Without the override
+     the label and its value read as two unrelated rows. */
   .accountRow {
     flex-wrap: wrap;
+    column-gap: 12px;
+    row-gap: 2px;
   }
 
   .accountRowBody {
@@ -5379,6 +5384,20 @@ td.poor { color: #ef4444; }
   .accountRowValue,
   .accountRowAction {
     margin-left: 42px;
+  }
+
+  /* 42px is the icon column. Rows without an icon have no column to clear. */
+  .accountRow:not(:has(.accountRowIcon)) .accountRowBody {
+    flex-basis: 100%;
+  }
+
+  .accountRow:not(:has(.accountRowIcon)) .accountRowValue,
+  .accountRow:not(:has(.accountRowIcon)) .accountRowAction {
+    margin-left: 0;
+  }
+
+  .accountRowAction {
+    margin-top: 6px;
   }
 
   .accountRowValue {

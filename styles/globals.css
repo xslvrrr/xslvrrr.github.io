@@ -1220,11 +1220,31 @@ html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-to
     @apply bg-background text-foreground;
     }
 
+    /*
+     * The shell is a fixed-height app frame that scrolls internally, so the document itself must
+     * never scroll. `overflow: hidden` alone does not achieve that on iOS: `min-height: 100vh`
+     * still sizes the body to the viewport with the browser toolbars collapsed, which is taller
+     * than what is actually on screen while they are expanded, and Safari also scrolls the
+     * document on its own to bring a focused input into view. Either one slides the whole app up
+     * until the header sits behind the status bar and the notch, and nothing scrolls it back.
+     *
+     * Pinning the body to the viewport removes the overflow that those scrolls act on. Its height
+     * comes from `inset`, not `100vh`, so it tracks the visible area rather than the largest that
+     * area could become.
+     */
     html:has([data-dashboard-shell="true"]),
     body:has([data-dashboard-shell="true"]) {
         height: 100%;
+        min-height: 0;
         overflow: hidden;
+        overscroll-behavior: none;
         background: var(--sidebar);
+    }
+
+    body:has([data-dashboard-shell="true"]) {
+        position: fixed;
+        inset: 0;
+        width: 100%;
     }
 
     /* Tooltip fallback styling (kept in base so utilities can override) */

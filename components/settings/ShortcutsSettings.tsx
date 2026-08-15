@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react"
 import { Switch } from "../ui/switch"
 import { IconExplorerIcon } from "../ui/icon-explorer"
+import { useIsMobile } from "../ui/use-mobile"
 
 // ============================================
 // TYPES
@@ -108,6 +109,7 @@ function ShortcutRow({
     binding,
     isRecording,
     recordingKeys,
+    readOnly = false,
     onStartRecording,
     onStopRecording,
     onReset,
@@ -116,6 +118,8 @@ function ShortcutRow({
     binding: ShortcutBinding | undefined
     isRecording: boolean
     recordingKeys: string[]
+    /** Rebinding needs a physical keyboard to record against, so touch layouts only display. */
+    readOnly?: boolean
     onStartRecording: () => void
     onStopRecording: (save: boolean) => void
     onReset: () => void
@@ -142,7 +146,23 @@ function ShortcutRow({
                 </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:ml-4 sm:flex-nowrap">
-                {isRecording ? (
+                {readOnly ? (
+                    <span style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '6px 12px',
+                        minWidth: '120px',
+                        background: 'var(--hover-bg)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: 'var(--text-secondary)',
+                    }}>
+                        {formatShortcutDisplay(currentKeys, shortcut.isSequence)}
+                    </span>
+                ) : isRecording ? (
                     <>
                         <div style={{
                             display: 'flex',
@@ -280,6 +300,9 @@ export function ShortcutsSettings({
         isSequence: false,
     })
     const [showResetDialog, setShowResetDialog] = useState(false)
+    // Recording a binding means capturing a real keydown, which a phone has no way to produce, and
+    // a half-recorded chord would stick. The list stays visible; only the editing affordances go.
+    const isTouchLayout = useIsMobile()
     const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const [storedFolders, setStoredFolders] = useState<{ id: string; title: string; subtitle?: string; icon: string }[]>([])
     const folders = notificationFolders ?? storedFolders
@@ -435,18 +458,22 @@ export function ShortcutsSettings({
                             fontSize: '13px',
                             color: 'var(--text-tertiary)',
                         }}>
-                            Customise keyboard shortcuts for quick actions
+                            {isTouchLayout
+                                ? 'Shortcuts apply when this account is used with a keyboard'
+                                : 'Customise keyboard shortcuts for quick actions'}
                         </p>
                     </div>
                 </div>
-                <Button
-                    variant="destructive"
-                    onClick={handleResetAllClick}
-                    className="self-start gap-1.5 sm:self-auto"
-                >
-                    <IconRefresh size={14} />
-                    Reset All
-                </Button>
+                {isTouchLayout ? null : (
+                    <Button
+                        variant="destructive"
+                        onClick={handleResetAllClick}
+                        className="self-start gap-1.5 sm:self-auto"
+                    >
+                        <IconRefresh size={14} />
+                        Reset All
+                    </Button>
+                )}
             </div>
 
             {/* Context-aware toggles per category */}
@@ -594,6 +621,7 @@ export function ShortcutsSettings({
                                 onStartRecording={() => startRecording(shortcut.id)}
                                 onStopRecording={stopRecording}
                                 onReset={() => onResetBinding(shortcut.id)}
+                                readOnly={isTouchLayout}
                             />
                         ))}
                     </SettingSection>

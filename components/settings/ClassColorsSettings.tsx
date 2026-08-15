@@ -32,9 +32,12 @@ export function ClassColorsSettings({ classes, onChange, onReset, onResetAll }: 
   const unenrolledClasses = classes.filter((item) => !item.enrolled)
 
   const renderClass = (item: ClassColorOption) => (
-    <div key={item.classCode} className="flex items-center gap-3 rounded-lg border p-3">
+    // `min-w-0` on the row itself, not just the label column: as a grid item the row defaults to
+    // `min-width: auto`, so a long course name would size the row past the card it sits in before
+    // the label ever got the chance to truncate.
+    <div key={item.classCode} className="flex min-w-0 items-center gap-3 rounded-lg border p-3">
       <ColorPicker value={item.color} onChange={(color) => onChange(item.classCode, color)}>
-        <ColorPickerTrigger aria-label={`Change colour for ${item.course}`}>
+        <ColorPickerTrigger className="shrink-0" aria-label={`Change colour for ${item.course}`}>
           <IconPalette aria-hidden="true" />
         </ColorPickerTrigger>
         <ColorPickerContent presetColors={PRESET_COLORS} />
@@ -43,8 +46,8 @@ export function ClassColorsSettings({ classes, onChange, onReset, onResetAll }: 
         <div className="truncate text-sm font-medium">{item.course}</div>
         <div className="truncate text-xs text-muted-foreground">{item.classCode}</div>
       </div>
-      <div className="size-5 rounded-full border" style={{ backgroundColor: item.color }} aria-hidden="true" />
-      <Button variant="ghost" size="sm" onClick={() => onReset(item.classCode)} disabled={!item.customized}>
+      <div className="size-5 shrink-0 rounded-full border" style={{ backgroundColor: item.color }} aria-hidden="true" />
+      <Button className="shrink-0" variant="ghost" size="sm" onClick={() => onReset(item.classCode)} disabled={!item.customized}>
         Reset
       </Button>
     </div>

@@ -464,7 +464,13 @@ export function ThemeCreationSidebar({ mode, initialTheme = null, onClose }: The
                                     <h3 className="truncate text-sm font-medium text-sidebar-foreground">
                                         {initialTheme ? "Edit Theme" : "Create Theme"}
                                     </h3>
-                                    <p className="mt-1 truncate text-xs text-sidebar-foreground/60">Live editing on Home</p>
+                                    <p className="mt-1 truncate text-xs text-sidebar-foreground/60">
+                                        {/* The editor only sits beside Home once there is room to dock it; below that it
+                                            covers the page, so promising a live preview would be describing a screen the
+                                            reader cannot see. */}
+                                        <span className="md:hidden">Changes apply as you edit</span>
+                                        <span className="hidden md:inline">Live editing on Home</span>
+                                    </p>
                                 </div>
                             </div>
                             <Button
