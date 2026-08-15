@@ -225,7 +225,7 @@ export function StudyReviewSession({
               </div>
             ) : null}
             <Button ref={revealButtonRef} size="lg" onClick={reveal}>
-              <IconEye /> {isTyped ? "Check answer" : "Reveal answer"} <Kbd>Space</Kbd>
+              <IconEye /> {isTyped ? "Check answer" : "Reveal answer"} <Kbd className="hidden sm:inline-flex">Space</Kbd>
             </Button>
           </div>
         ) : null}
@@ -235,25 +235,25 @@ export function StudyReviewSession({
             {isBeginner ? (
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="destructive" size="lg" disabled={isSaving} onClick={() => onRate("again")}>
-                  Forgot {intervalLabels?.again ? `· ${intervalLabels.again}` : ""} <Kbd>1</Kbd>
+                  Forgot {intervalLabels?.again ? `· ${intervalLabels.again}` : ""} <Kbd className="hidden sm:inline-flex">1</Kbd>
                 </Button>
                 <Button size="lg" disabled={isSaving} onClick={() => onRate("good")}>
-                  Remembered {intervalLabels?.good ? `· ${intervalLabels.good}` : ""} <Kbd>2</Kbd>
+                  Remembered {intervalLabels?.good ? `· ${intervalLabels.good}` : ""} <Kbd className="hidden sm:inline-flex">2</Kbd>
                 </Button>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Button variant="destructive" disabled={isSaving} onClick={() => onRate("again")}>
-                  Again {intervalLabels?.again ? `· ${intervalLabels.again}` : ""} <Kbd>1</Kbd>
+                  Again {intervalLabels?.again ? `· ${intervalLabels.again}` : ""} <Kbd className="hidden sm:inline-flex">1</Kbd>
                 </Button>
                 <Button variant="outline" disabled={isSaving} onClick={() => onRate("hard")}>
-                  Hard {intervalLabels?.hard ? `· ${intervalLabels.hard}` : ""} <Kbd>2</Kbd>
+                  Hard {intervalLabels?.hard ? `· ${intervalLabels.hard}` : ""} <Kbd className="hidden sm:inline-flex">2</Kbd>
                 </Button>
                 <Button variant="outline" disabled={isSaving} onClick={() => onRate("good")}>
-                  Good {intervalLabels?.good ? `· ${intervalLabels.good}` : ""} <Kbd>3</Kbd>
+                  Good {intervalLabels?.good ? `· ${intervalLabels.good}` : ""} <Kbd className="hidden sm:inline-flex">3</Kbd>
                 </Button>
                 <Button disabled={isSaving} onClick={() => onRate("easy")}>
-                  Easy {intervalLabels?.easy ? `· ${intervalLabels.easy}` : ""} <Kbd>4</Kbd>
+                  Easy {intervalLabels?.easy ? `· ${intervalLabels.easy}` : ""} <Kbd className="hidden sm:inline-flex">4</Kbd>
                 </Button>
               </div>
             )}

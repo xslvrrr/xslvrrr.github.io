@@ -99,6 +99,15 @@ function hslToHex(h: number, s: number, l: number): string {
     return rgbToHex(rgb.r, rgb.g, rgb.b)
 }
 
+/**
+ * Drag surfaces only need the pointer position, so React's synthetic pointer events and the native
+ * window ones are interchangeable here.
+ */
+type PointerLike = { clientX: number; clientY: number }
+
+/** Touch drags scroll the popover instead of moving the handle unless the surface opts out. */
+const DRAG_SURFACE_TOUCH_ACTION = 'none' as const
+
 function isValidHex(hex: string): boolean {
     return /^#?([a-f\d]{3}|[a-f\d]{6})$/i.test(hex)
 }
@@ -361,7 +370,7 @@ function ColorPickerContent({
     }, [open, value])
 
     // Handle saturation/value picker - proper HSV math
-    const handleSatBrightChange = React.useCallback((e: React.MouseEvent | MouseEvent) => {
+    const handleSatBrightChange = React.useCallback((e: PointerLike) => {
         if (!satBrightRef.current) return
         const rect = satBrightRef.current.getBoundingClientRect()
         // x = saturation (0 at left, 100 at right)
@@ -373,32 +382,36 @@ function ColorPickerContent({
     }, [hsv.h, setHsv])
 
     // Handle hue slider
-    const handleHueChange = React.useCallback((e: React.MouseEvent | MouseEvent) => {
+    const handleHueChange = React.useCallback((e: PointerLike) => {
         if (!hueRef.current) return
         const rect = hueRef.current.getBoundingClientRect()
         const h = Math.max(0, Math.min(360, ((e.clientX - rect.left) / rect.width) * 360))
         setHsv({ ...hsv, h })
     }, [hsv, setHsv])
 
-    // Mouse event handlers
+    // Pointer event handlers, so a finger drags the handles the same way a mouse does.
     React.useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
+        const handlePointerMove = (e: PointerEvent) => {
+            // Non-passive listener: without this the browser scrolls the popover under the finger.
+            e.preventDefault()
             if (isDraggingSB) handleSatBrightChange(e)
             if (isDraggingHue) handleHueChange(e)
         }
-        const handleMouseUp = () => {
+        const handlePointerUp = () => {
             setIsDraggingSB(false)
             setIsDraggingHue(false)
         }
 
         if (isDraggingSB || isDraggingHue) {
-            window.addEventListener("mousemove", handleMouseMove)
-            window.addEventListener("mouseup", handleMouseUp)
+            window.addEventListener("pointermove", handlePointerMove, { passive: false })
+            window.addEventListener("pointerup", handlePointerUp)
+            window.addEventListener("pointercancel", handlePointerUp)
         }
 
         return () => {
-            window.removeEventListener("mousemove", handleMouseMove)
-            window.removeEventListener("mouseup", handleMouseUp)
+            window.removeEventListener("pointermove", handlePointerMove)
+            window.removeEventListener("pointerup", handlePointerUp)
+            window.removeEventListener("pointercancel", handlePointerUp)
         }
     }, [isDraggingSB, isDraggingHue, handleSatBrightChange, handleHueChange])
 
@@ -462,9 +475,10 @@ function ColorPickerContent({
                             borderRadius: '6px',
                             cursor: 'crosshair',
                             overflow: 'hidden',
+                            touchAction: DRAG_SURFACE_TOUCH_ACTION,
                             background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hsv.h}, 100%, 50%))`
                         }}
-                        onMouseDown={(e) => {
+                        onPointerDown={(e) => {
                             setIsDraggingSB(true)
                             handleSatBrightChange(e)
                         }}
@@ -495,9 +509,10 @@ function ColorPickerContent({
                             height: '12px',
                             borderRadius: '6px',
                             cursor: 'pointer',
+                            touchAction: DRAG_SURFACE_TOUCH_ACTION,
                             background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)'
                         }}
-                        onMouseDown={(e) => {
+                        onPointerDown={(e) => {
                             setIsDraggingHue(true)
                             handleHueChange(e)
                         }}

@@ -2293,23 +2293,36 @@
     .timeGutter,
     .timeColumn,
     .currentTimeLabel {
-        width: 48px;
+        width: 56px;
     }
 
     .timeGutter,
-    .timeSlot,
-    .currentTimeLabel {
+    .timeSlot {
         padding-right: 6px;
     }
 
     .timeGutterVisible,
     .timeColumnVisible {
-        width: 48px !important;
+        width: 56px !important;
+    }
+
+    /* The gutter is too narrow to right-align the time pill inside: at this width the pill spilled
+       past the left edge of the grid, where `.timeGridWrapper`'s `overflow-x: hidden` cut it off.
+       Anchored left it grows over the day columns instead, which it already sits above. */
+    .currentTimeLabel {
+        justify-content: flex-start;
+        padding-right: 0;
+        padding-left: 2px;
+        overflow: visible;
     }
 
     .currentTimeLabel > * {
         padding-inline: 4px;
         font-size: 9px;
+    }
+
+    .timeSlot {
+        font-size: 10px;
     }
 
     .dayHeader {

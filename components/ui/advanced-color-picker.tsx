@@ -193,6 +193,16 @@ const GRADIENT_PRESETS: GradientValue[] = [
     { type: 'linear', angle: 90, stops: [{ id: '1', color: '#3b82f6', position: 0 }, { id: '2', color: '#8b5cf6', position: 50 }, { id: '3', color: '#ec4899', position: 100 }] },
 ]
 
+/**
+ * Drag surfaces read nothing but the pointer position, and the picker binds pointer events so a
+ * finger drives the same path a mouse does. Typing on the position alone keeps React's synthetic
+ * events and the native window listeners interchangeable.
+ */
+type PointerLike = { clientX: number; clientY: number }
+
+/** Touch drags scroll the panel instead of moving the handle unless the surface opts out. */
+const DRAG_SURFACE_TOUCH_ACTION = 'none' as const
+
 // ============================================
 // CONTEXT
 // ============================================
@@ -591,7 +601,7 @@ export function AdvancedColorPickerPanel({
         return padding + percentage * effectiveWidth
     }
 
-    const handleSatBrightChange = React.useCallback((e: React.MouseEvent | MouseEvent) => {
+    const handleSatBrightChange = React.useCallback((e: PointerLike) => {
         if (!satBrightRef.current) return
         const rect = satBrightRef.current.getBoundingClientRect()
         const s = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
@@ -613,7 +623,7 @@ export function AdvancedColorPickerPanel({
         }
     }, [localHsv, setHsv, isGradient, activeStopId, gradient, setGradient])
 
-    const handleHueChange = React.useCallback((e: React.MouseEvent | MouseEvent) => {
+    const handleHueChange = React.useCallback((e: PointerLike) => {
         const pos = getSliderPosition(hueRef, e.clientX)
         const h = pos * 360
         
@@ -633,12 +643,12 @@ export function AdvancedColorPickerPanel({
         }
     }, [localHsv, setHsv, isGradient, activeStopId, gradient, setGradient])
 
-    const handleAlphaChange = React.useCallback((e: React.MouseEvent | MouseEvent) => {
+    const handleAlphaChange = React.useCallback((e: PointerLike) => {
         const pos = getSliderPosition(alphaRef, e.clientX)
         setAlpha(pos)
     }, [setAlpha])
 
-    const handleStopDrag = React.useCallback((e: MouseEvent) => {
+    const handleStopDrag = React.useCallback((e: PointerLike) => {
         if (!gradientBarRef.current || !isDraggingStop) return
         const rect = gradientBarRef.current.getBoundingClientRect()
         const position = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
@@ -659,20 +669,23 @@ export function AdvancedColorPickerPanel({
         return Math.round(clamped * 360)
     }, [gradient.angle])
 
-    const handleAngleDrag = React.useCallback((e: MouseEvent) => {
+    const handleAngleDrag = React.useCallback((e: PointerLike) => {
         const angle = getAngleFromClientX(e.clientX)
         setGradient({ ...gradient, angle })
     }, [gradient, setGradient, getAngleFromClientX])
 
     React.useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
+        const handlePointerMove = (e: PointerEvent) => {
+            // A touch drag that leaves the surface must keep steering the handle, so the move is
+            // taken from the window rather than the element the gesture started on.
+            e.preventDefault()
             if (isDraggingSB) handleSatBrightChange(e)
             if (isDraggingHue) handleHueChange(e)
             if (isDraggingAlpha) handleAlphaChange(e)
             if (isDraggingStop) handleStopDrag(e)
             if (isDraggingAngle) handleAngleDrag(e)
         }
-        const handleMouseUp = () => {
+        const handlePointerUp = () => {
             setIsDraggingSB(false)
             setIsDraggingHue(false)
             setIsDraggingAlpha(false)
@@ -681,13 +694,16 @@ export function AdvancedColorPickerPanel({
         }
 
         if (isDraggingSB || isDraggingHue || isDraggingAlpha || isDraggingStop || isDraggingAngle) {
-            window.addEventListener("mousemove", handleMouseMove)
-            window.addEventListener("mouseup", handleMouseUp)
+            // Non-passive so `preventDefault` can hold off Safari's scroll and text-selection.
+            window.addEventListener("pointermove", handlePointerMove, { passive: false })
+            window.addEventListener("pointerup", handlePointerUp)
+            window.addEventListener("pointercancel", handlePointerUp)
         }
 
         return () => {
-            window.removeEventListener("mousemove", handleMouseMove)
-            window.removeEventListener("mouseup", handleMouseUp)
+            window.removeEventListener("pointermove", handlePointerMove)
+            window.removeEventListener("pointerup", handlePointerUp)
+            window.removeEventListener("pointercancel", handlePointerUp)
         }
     }, [isDraggingSB, isDraggingHue, isDraggingAlpha, isDraggingStop, isDraggingAngle, handleSatBrightChange, handleHueChange, handleAlphaChange, handleStopDrag, handleAngleDrag])
 
@@ -843,7 +859,7 @@ export function AdvancedColorPickerPanel({
             <div 
                 style={{
                     position: 'relative',
-                    width: '360px',
+                    width: 'min(360px, 100%)',
                     backgroundColor: 'var(--bg-elevated)',
                     borderLeft: 'none',
                     display: 'flex',
@@ -957,10 +973,11 @@ export function AdvancedColorPickerPanel({
                             borderRadius: '8px',
                             cursor: 'crosshair',
                             overflow: 'hidden',
+                            touchAction: DRAG_SURFACE_TOUCH_ACTION,
                             background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${localHsv.h}, 100%, 50%))`,
                             backgroundRepeat: 'no-repeat',
                         }}
-                        onMouseDown={(e) => {
+                        onPointerDown={(e) => {
                             setIsDraggingSB(true)
                             handleSatBrightChange(e)
                         }}
@@ -988,10 +1005,11 @@ export function AdvancedColorPickerPanel({
                             height: '16px',
                             borderRadius: '8px',
                             cursor: 'pointer',
+                            touchAction: DRAG_SURFACE_TOUCH_ACTION,
                             background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
                             backgroundRepeat: 'no-repeat',
                         }}
-                        onMouseDown={(e) => {
+                        onPointerDown={(e) => {
                             setIsDraggingHue(true)
                             handleHueChange(e)
                         }}
@@ -1020,10 +1038,11 @@ export function AdvancedColorPickerPanel({
                                 height: '16px',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
+                                touchAction: DRAG_SURFACE_TOUCH_ACTION,
                                 background: `linear-gradient(to right, transparent, ${displayHex}), repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px`,
                                 backgroundRepeat: 'no-repeat, repeat',
                             }}
-                            onMouseDown={(e) => {
+                            onPointerDown={(e) => {
                                 setIsDraggingAlpha(true)
                                 handleAlphaChange(e)
                             }}
@@ -1093,8 +1112,9 @@ export function AdvancedColorPickerPanel({
                                             transform: 'translate(-50%, -50%)',
                                             zIndex: activeStopId === stop.id ? 20 : 10,
                                             cursor: 'grab',
+                                            touchAction: DRAG_SURFACE_TOUCH_ACTION,
                                         }}
-                                        onMouseDown={(e) => {
+                                        onPointerDown={(e) => {
                                             e.preventDefault()
                                             e.stopPropagation()
                                             setActiveStopId(stop.id)
@@ -1159,12 +1179,13 @@ export function AdvancedColorPickerPanel({
                                         height: '12px',
                                         borderRadius: '6px',
                                         cursor: 'pointer',
+                                        touchAction: DRAG_SURFACE_TOUCH_ACTION,
                                         background: 'var(--bg-elevated)',
                                         border: '1px solid var(--border-subtle)',
                                     }}
-                                    onMouseDown={(e) => {
+                                    onPointerDown={(e) => {
                                         setIsDraggingAngle(true)
-                                        handleAngleDrag(e as unknown as MouseEvent)
+                                        handleAngleDrag(e)
                                     }}
                                 >
                                     <div style={{

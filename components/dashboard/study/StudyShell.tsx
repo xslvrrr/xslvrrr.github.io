@@ -339,7 +339,9 @@ export function StudyShell({ cacheKey, onDueCountChange }: StudyShellProps) {
               setPendingView(value as StudyView)
             }}
           >
-            <TabsList data-tour-id="flashcards-views">
+            {/* Six labels do not fit a phone. The list scrolls sideways rather than wrapping, so
+                the row keeps its height and the selected tab can always be scrolled to. */}
+            <TabsList data-tour-id="flashcards-views" className="max-w-full justify-start overflow-x-auto">
               <TabsTrigger value="library">Sets</TabsTrigger>
               <TabsTrigger value="sessions">Sessions</TabsTrigger>
               <TabsTrigger value="browser">Find cards</TabsTrigger>

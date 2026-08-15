@@ -39,19 +39,27 @@ function DashboardPageHeader({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-2.5",
+        // Actions stay pinned beside the title once there is room for them. On a phone a page with
+        // several actions is wider than the screen, and a `shrink-0` action group pushed the whole
+        // header — title included — off the right edge rather than giving way, so below `sm` the
+        // group drops onto its own line instead.
+        "flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border bg-background px-4 py-2.5 sm:flex-nowrap",
         sticky && "sticky top-0 z-10",
         className
       )}
     >
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <h2 className="m-0 truncate text-sm font-semibold text-foreground">{title}</h2>
         {description ? (
           <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
         ) : null}
         {children}
       </div>
-      {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:flex-nowrap">
+          {actions}
+        </div>
+      ) : null}
     </div>
   )
 }

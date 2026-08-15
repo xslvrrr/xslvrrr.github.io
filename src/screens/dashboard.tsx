@@ -3911,7 +3911,10 @@ export default function Dashboard() {
         setPageTransitioning(true);
         setSidebarTransitioning(true);
         setTimeout(() => {
-            navigateToSection('home');
+            // The editor docks beside Home on a wide screen so edits can be judged against a real
+            // page. A phone has no room to dock it: the editor covers the viewport outright, so the
+            // trip to Home only costs the reader their place in settings and shows them nothing.
+            if (!isPhone) navigateToSection('home');
             setThemeEditDraft(theme ?? null);
             setThemeCreateMode(mode);
             setTimeout(() => {
@@ -3919,7 +3922,7 @@ export default function Dashboard() {
                 setSidebarTransitioning(false);
             }, 50);
         }, delay);
-    }, [navigateToSection, navigationTransitionDelay]);
+    }, [isPhone, navigateToSection, navigationTransitionDelay]);
 
     const handleSettingsSectionChange = useCallback((section: SettingsSectionId) => {
         const delay = navigationTransitionDelay;

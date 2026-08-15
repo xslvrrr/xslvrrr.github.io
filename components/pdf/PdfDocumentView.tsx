@@ -160,6 +160,25 @@ export function PdfDocumentView({
     [baseSizes]
   )
 
+  /**
+   * `initialScale` is a reading preference sized for a desktop pane. On a phone it opens the
+   * document already wider than the screen, so the reader lands mid-page and has to pinch out
+   * before they can read anything. When the page cannot fit at the requested scale the viewer
+   * opens fitted to the width instead; when it does fit, the preference is honoured untouched.
+   *
+   * Runs once per document: a later resize, or the reader's own zoom, must not be overruled.
+   */
+  const autoFittedDocumentRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (widestPage <= 0) return
+    if (autoFittedDocumentRef.current === documentId) return
+    const viewport = viewportRef.current
+    if (!viewport) return
+
+    autoFittedDocumentRef.current = documentId
+    if (widestPage * initialScale > viewport.clientWidth) fitToWidth(widestPage)
+  }, [documentId, fitToWidth, initialScale, widestPage])
+
   const history = useAnnotationHistory(documentId, annotations, onAnnotationsChange)
   const { commit, undo, redo, canUndo, canRedo } = history
 
