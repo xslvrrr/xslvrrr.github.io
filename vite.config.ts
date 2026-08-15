@@ -2,6 +2,7 @@ import { createReadStream, existsSync, statSync } from "node:fs"
 import { extname, join, normalize, resolve, sep } from "node:path"
 import { defineConfig, type Plugin } from "vite"
 import { fileURLToPath, URL } from "node:url"
+import { getHeapStatistics } from "node:v8"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import { nitro } from "nitro/vite"
 import { runtimeDependencies as nitroRuntimeDependencies } from "nitro/runtime/meta"
@@ -9,6 +10,7 @@ import { createRequire } from "node:module"
 import viteReact from "@vitejs/plugin-react"
 import viteTsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
+import { MINIMUM_HEAP_CEILING_MB } from "./scripts/run-vite-build"
 
 /**
  * Packages the server bundle must contain rather than import from disk at runtime.
@@ -87,6 +89,75 @@ function requireTracedServerDependencies(): Plugin {
           + "nitro is the version this config targets."
         )
       }
+    },
+  }
+}
+
+/**
+ * Refuses to start a production build that has no room to finish, and reports what each pass costs.
+ *
+ * The three environments of this build run in one process and none of them releases its module
+ * graph when the next begins, so the live set is their sum: 1.65 GB after the client pass, 2.89 GB
+ * after the SSR pass, 3.77 GB at the peak of the Nitro pass. Under a ceiling close to that peak
+ * nothing fails — V8 keeps collecting, finds almost nothing, and the pass sits on `transforming...`
+ * until the build is killed for exceeding its time limit. That is a whole build window spent on a
+ * log that reads like a slow machine.
+ *
+ * So it is checked before the first module is read. `scripts/run-vite-build.ts` sets the ceiling
+ * this needs; the check is here because this is what a bare `vite build`, an editor integration, or
+ * a future script that forgets the wrapper actually loads.
+ *
+ * A ceiling can only be set on Node, so a runtime that is not Node is refused rather than measured.
+ * Vercel starts the build with `bun run --bun`, which makes every `node` on `PATH` Bun: Bun accepts
+ * `--max-old-space-size` and ignores it, and its `node:v8` shim answers with a number that describes
+ * nothing — 1708 MB on the container, 228 MB on a laptop with 64 GB. Believing it produced a build
+ * that failed the check it should have passed, which is the reverse of the mistake but the same
+ * cause: the deployment was running a different runtime than every local build.
+ *
+ * The per-pass figures are printed for the same reason. If this build ever runs out of room again,
+ * the log says which pass was holding what rather than leaving it to be measured from scratch.
+ */
+function requireHeapForProductionBuild(): Plugin {
+  const mb = (bytes: number) => Math.round(bytes / 1024 / 1024)
+  const report = (label: string) => {
+    const { used_heap_size: used, heap_size_limit: limit } = getHeapStatistics()
+    console.info(`[build] ${label}: heap ${mb(used)} MB of ${mb(limit)} MB`)
+  }
+
+  return {
+    name: "millennium-require-heap-for-production-build",
+    apply: "build",
+    configResolved() {
+      if (process.versions.bun) {
+        throw new Error(
+          `This build is running on Bun ${process.versions.bun} and has to run on Node.\n`
+          + "It needs a heap ceiling of at least "
+          + `${MINIMUM_HEAP_CEILING_MB} MB — see MAX_OLD_SPACE_MB in scripts/run-vite-build.ts — `
+          + "and `--max-old-space-size` is a V8 flag that Bun accepts and does not act on.\n"
+          + "`bun run build:web` runs the Vite CLI on Node for this reason. Reaching this means "
+          + "something started Vite directly under Bun, such as `bun run --bun vite build`, which "
+          + "is how Vercel invokes package scripts."
+        )
+      }
+
+      const ceilingMb = mb(getHeapStatistics().heap_size_limit)
+      if (ceilingMb < MINIMUM_HEAP_CEILING_MB) {
+        throw new Error(
+          `This build needs a heap ceiling of at least ${MINIMUM_HEAP_CEILING_MB} MB and has `
+          + `${ceilingMb} MB.\n`
+          + "Its peak live set is about 3.8 GB, and under a ceiling near that the Nitro pass does "
+          + "not fail — it stops making progress in mark-compact and the build is eventually "
+          + "killed for running too long.\n"
+          + "Run `bun run build:web`, which sets the ceiling, or pass "
+          + "`--max-old-space-size` in NODE_OPTIONS."
+        )
+      }
+    },
+    buildStart() {
+      report(`${this.environment.name} pass start`)
+    },
+    closeBundle() {
+      report(`${this.environment.name} pass end`)
     },
   }
 }
@@ -259,5 +330,6 @@ export default defineConfig({
     nitro({ config: NITRO_SERVER_PASS }),
     viteReact(),
     requireTracedServerDependencies(),
+    requireHeapForProductionBuild(),
   ],
 })
