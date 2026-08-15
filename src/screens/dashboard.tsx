@@ -173,23 +173,9 @@ import {
 } from '@/components/ui/select';
 import { CommandMenu } from '@/components/CommandMenu';
 import { SettingsSidebar } from '@/components/SettingsSidebar';
-import { GeneralSettings } from '@/components/settings/GeneralSettings';
 import { SettingsSectionReset } from '@/components/settings/SettingsSectionReset';
 import { defaultHomeSettingsForSection, isResettableSettingsSection } from '@/components/settings/settingsResets';
 import { defaultHomeSettings } from '@/types/home';
-import { AssistantProvidersSettings } from '@/components/settings/AssistantProvidersSettings';
-import { AssistantSettings } from '@/components/settings/AssistantSettings';
-import { FlashcardsSettings } from '@/components/settings/FlashcardsSettings';
-import { ThemeBuilder } from '@/components/settings/ThemeBuilder';
-import { ThemeCreationSidebar } from '@/components/settings/ThemeCreationSidebar';
-import { ShortcutsSettings } from '@/components/settings/ShortcutsSettings';
-import { AnimationsSettings } from '@/components/settings/AnimationsSettings';
-import { NotificationsSettings } from '@/components/settings/NotificationsSettings';
-import { AdminSettings } from '@/components/settings/AdminSettings';
-import { DataSettings } from '@/components/settings/DataSettings';
-import { ExportSettings } from '@/components/settings/ExportSettings';
-import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
-import { ClassColorsSettings } from '@/components/settings/ClassColorsSettings';
 import { getDataFetchIntervalMs, readDataSettings } from '@/lib/data-settings';
 import { loadAndApplySavedTheme } from '@/lib/theme';
 import { useAnimationSettings } from '@/hooks/useAnimationSettings';
@@ -245,14 +231,6 @@ import { ProfileImageDialog } from '@/components/dashboard/account/ProfileImageD
 import { PortalAccountForm } from '@/components/dashboard/account/PortalAccountForm';
 import { SidebarProfileCard } from '@/components/dashboard/SidebarProfileCard';
 import { DesktopUpdateButton } from '@/components/dashboard/DesktopUpdateButton';
-import { TimetablePage } from '@/components/dashboard/timetable/TimetablePage';
-import { ClassesPage } from '@/components/dashboard/classes/ClassesPage';
-import { AttendancePage } from '@/components/dashboard/attendance/AttendancePage';
-import { ReportsPage } from '@/components/dashboard/reports/ReportsPage';
-import { ClassroomPage } from '@/components/dashboard/classroom/ClassroomPage';
-import { StudyShell } from '@/components/dashboard/study/StudyShell';
-import { PastPapersPage } from '@/components/dashboard/past-papers/PastPapersPage';
-import { PastPapersSettings } from '@/components/settings/PastPapersSettings';
 import { countDueFlashcards, normalizeFlashcardSets } from '@/lib/study';
 import { fetchStudyBootstrap } from '@/lib/study/client';
 import {
@@ -289,6 +267,99 @@ import {
     pruneJunkClassKeys,
     sanitizeClassEntries,
 } from '@/lib/portal-classes';
+
+
+/** Shown for the moment a section's code is in flight. Matches the page padding so nothing jumps. */
+function DashboardSectionFallback() {
+    return (
+        <div className={styles.contentWrapper} role="status" aria-live="polite">
+            <div className={styles.contentWrapperInner}>
+                <Skeleton className="h-24 w-full rounded-xl" />
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <Skeleton className="h-48 w-full rounded-xl" />
+                    <Skeleton className="h-48 w-full rounded-xl" />
+                </div>
+                <span className="sr-only">Loading section</span>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Dashboard pages and settings panels, loaded when they are opened.
+ *
+ * One section is on screen at a time, so importing all twenty-two of them eagerly put every page's
+ * dependency graph into a single chunk — the study system, the PDF viewer, the theme builder — and
+ * that chunk had to be bundled into the server build before it could be deployed. Loading them on
+ * demand keeps the shell small; the sections themselves are behind authentication and have nothing
+ * worth server-rendering.
+ */
+const TimetablePage = dynamic(() => import('@/components/dashboard/timetable/TimetablePage').then((module) => ({ default: module.TimetablePage })), {
+    loading: DashboardSectionFallback,
+});
+const ClassesPage = dynamic(() => import('@/components/dashboard/classes/ClassesPage').then((module) => ({ default: module.ClassesPage })), {
+    loading: DashboardSectionFallback,
+});
+const AttendancePage = dynamic(() => import('@/components/dashboard/attendance/AttendancePage').then((module) => ({ default: module.AttendancePage })), {
+    loading: DashboardSectionFallback,
+});
+const ReportsPage = dynamic(() => import('@/components/dashboard/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })), {
+    loading: DashboardSectionFallback,
+});
+const ClassroomPage = dynamic(() => import('@/components/dashboard/classroom/ClassroomPage').then((module) => ({ default: module.ClassroomPage })), {
+    loading: DashboardSectionFallback,
+});
+const StudyShell = dynamic(() => import('@/components/dashboard/study/StudyShell').then((module) => ({ default: module.StudyShell })), {
+    loading: DashboardSectionFallback,
+});
+const PastPapersPage = dynamic(() => import('@/components/dashboard/past-papers/PastPapersPage').then((module) => ({ default: module.PastPapersPage })), {
+    loading: DashboardSectionFallback,
+});
+const GeneralSettings = dynamic(() => import('@/components/settings/GeneralSettings').then((module) => ({ default: module.GeneralSettings })), {
+    loading: DashboardSectionFallback,
+});
+const AssistantProvidersSettings = dynamic(() => import('@/components/settings/AssistantProvidersSettings').then((module) => ({ default: module.AssistantProvidersSettings })), {
+    loading: DashboardSectionFallback,
+});
+const AssistantSettings = dynamic(() => import('@/components/settings/AssistantSettings').then((module) => ({ default: module.AssistantSettings })), {
+    loading: DashboardSectionFallback,
+});
+const FlashcardsSettings = dynamic(() => import('@/components/settings/FlashcardsSettings').then((module) => ({ default: module.FlashcardsSettings })), {
+    loading: DashboardSectionFallback,
+});
+const ThemeBuilder = dynamic(() => import('@/components/settings/ThemeBuilder').then((module) => ({ default: module.ThemeBuilder })), {
+    loading: DashboardSectionFallback,
+});
+const ThemeCreationSidebar = dynamic(() => import('@/components/settings/ThemeCreationSidebar').then((module) => ({ default: module.ThemeCreationSidebar })), {
+    loading: DashboardSectionFallback,
+});
+const ShortcutsSettings = dynamic(() => import('@/components/settings/ShortcutsSettings').then((module) => ({ default: module.ShortcutsSettings })), {
+    loading: DashboardSectionFallback,
+});
+const AnimationsSettings = dynamic(() => import('@/components/settings/AnimationsSettings').then((module) => ({ default: module.AnimationsSettings })), {
+    loading: DashboardSectionFallback,
+});
+const NotificationsSettings = dynamic(() => import('@/components/settings/NotificationsSettings').then((module) => ({ default: module.NotificationsSettings })), {
+    loading: DashboardSectionFallback,
+});
+const AdminSettings = dynamic(() => import('@/components/settings/AdminSettings').then((module) => ({ default: module.AdminSettings })), {
+    loading: DashboardSectionFallback,
+});
+const DataSettings = dynamic(() => import('@/components/settings/DataSettings').then((module) => ({ default: module.DataSettings })), {
+    loading: DashboardSectionFallback,
+});
+const ExportSettings = dynamic(() => import('@/components/settings/ExportSettings').then((module) => ({ default: module.ExportSettings })), {
+    loading: DashboardSectionFallback,
+});
+const AccountDeletionSettings = dynamic(() => import('@/components/settings/AccountDeletionSettings').then((module) => ({ default: module.AccountDeletionSettings })), {
+    loading: DashboardSectionFallback,
+});
+const ClassColorsSettings = dynamic(() => import('@/components/settings/ClassColorsSettings').then((module) => ({ default: module.ClassColorsSettings })), {
+    loading: DashboardSectionFallback,
+});
+const PastPapersSettings = dynamic(() => import('@/components/settings/PastPapersSettings').then((module) => ({ default: module.PastPapersSettings })), {
+    loading: DashboardSectionFallback,
+});
 
 const AssistantChat = dynamic(
     () => import('@/components/dashboard/assistant/AssistantChat'),
@@ -487,8 +558,8 @@ function getPortalDataReviewSignature(data: Pick<PortalData, 'classes' | 'timeta
 }
 
 // Dynamically import heavy components for code splitting
-const LoadingSkeleton = dynamic<import('@/components/LoadingSkeleton').LoadingSkeletonProps>(() => import('@/components/LoadingSkeleton').then(mod => ({
-    default: mod.LoadingSkeleton as React.ComponentType<import('@/components/LoadingSkeleton').LoadingSkeletonProps>,
+const LoadingSkeleton = dynamic(() => import('@/components/LoadingSkeleton').then(mod => ({
+    default: mod.LoadingSkeleton,
 })), {
     ssr: false
 });
