@@ -5,6 +5,11 @@ export default [
   ...tanstackConfig,
   {
     ignores: [
+      // Build output. Both are gitignored, so on CI they are simply absent, but after a local
+      // `bun run build:web` they hold the emitted bundles — including a 10 MB icon chunk — and
+      // linting them exhausts ESLint's heap and aborts the run.
+      ".nitro/**",
+      ".output/**",
       ".tanstack/**",
       "dist/**",
       "hooks/use-mobile.tsx",

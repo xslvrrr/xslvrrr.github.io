@@ -15,11 +15,31 @@ import { spawn } from "node:child_process"
  *
  * The number is measured, not guessed. All three Vite environments of the web build run in one
  * process and none of them releases its module graph when the next begins, so the live set is the
- * sum rather than the maximum: the build fails outright at 2048 MB during the SSR pass and at
- * 3072 MB during the Nitro pass, and peaks at about 3.5 GB. Lowering it means reducing what those
- * passes retain, not editing this constant.
+ * sum rather than the maximum. Measured with a forced full collection at each pass boundary:
+ *
+ *   after the client pass   1.65 GB live
+ *   after the SSR pass      2.89 GB live
+ *   peak, in the Nitro pass 3.77 GB live   (peak RSS about 3.3 GB)
+ *
+ * 4096 MB left roughly 300 MB of headroom over that peak, which is not enough for V8 to work in:
+ * the Nitro pass never ran out of memory and never threw, it simply spent every millisecond in
+ * mark-compact, printed `transforming...` and stopped making progress, and Vercel ended the build
+ * 45 minutes later. A build that hangs where a build that fails would be diagnosable in seconds.
+ *
+ * 6144 MB is above the peak by enough that V8 collects normally; the build then completes in about
+ * a minute. It does not make the build use more memory — a ceiling is a limit, not a reservation,
+ * and peak RSS is unchanged — so it stays well inside the container's 8 GB.
  */
-export const MAX_OLD_SPACE_MB = 4096
+export const MAX_OLD_SPACE_MB = 6144
+
+/**
+ * The smallest heap the web build is known to complete in.
+ *
+ * `vite.config.ts` refuses to start a production build under a ceiling below this, so running the
+ * build without this wrapper — where Node infers a ceiling from the machine — fails immediately and
+ * says why, instead of reproducing the mark-compact hang described above.
+ */
+export const MINIMUM_HEAP_CEILING_MB = 5120
 
 export function runViteBuild(args: string[]): Promise<void> {
   const existing = process.env.NODE_OPTIONS ?? ""
