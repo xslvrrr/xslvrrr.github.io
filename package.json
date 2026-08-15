@@ -8,7 +8,8 @@
   },
   "packageManager": "bun@1.3.4",
   "engines": {
-    "bun": ">=1.3.4"
+    "bun": ">=1.3.4",
+    "node": "22.x"
   },
   "scripts": {
     "dev": "bun run dev:web --host",
