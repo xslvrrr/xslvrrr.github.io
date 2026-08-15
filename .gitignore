@@ -142,3 +142,4 @@ AGENTS.md
 # Nitro build output
 .nitro/
 .output/
+.env*

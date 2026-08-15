@@ -1,7 +1,27 @@
-# Files to ignore during Vercel deployment
+# Files to ignore during Vercel deployment.
+#
+# A `.vercelignore` replaces `.gitignore` for CLI uploads, so anything large and untracked has to be
+# listed here as well — without it, `vercel deploy` tries to upload the whole working directory.
 node_modules
 .next
 .env.local
 .env.*.local
 *.log
 .DS_Store
+
+# Unrelated sibling project kept in this working directory. Never part of a deployment.
+Past Papers
+
+# Build output, regenerated on the build container.
+.output
+.nitro
+.tanstack
+dist
+
+# Local tooling state.
+.git
+.vercel
+.claude
+.codex
+.agents
+src-tauri/target
