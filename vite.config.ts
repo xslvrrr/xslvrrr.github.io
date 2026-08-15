@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from "node:url"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import { nitro } from "nitro/vite"
 import { runtimeDependencies as nitroRuntimeDependencies } from "nitro/runtime/meta"
+import { createRequire } from "node:module"
 import viteReact from "@vitejs/plugin-react"
 import viteTsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
@@ -43,6 +44,8 @@ import tailwindcss from "@tailwindcss/vite"
  * them as `defu(pluginConfig.config, userConfig.nitro)` — the plugin argument wins, and unlike the
  * top level key it does not depend on Vite's `UserConfig` module augmentation being picked up.
  */
+const nitroVersion: string = createRequire(import.meta.url)("nitro/package.json").version
+
 const NITRO_SERVER_PASS = {
   noExternals: false,
   sourceMap: false,
@@ -50,25 +53,40 @@ const NITRO_SERVER_PASS = {
 } as const
 
 /**
- * Prints how the server pass actually resolved.
+ * Refuses to start a server pass that is going to re-bundle every dependency.
  *
- * The whole build hinges on one boolean that lives in a dependency's plugin, and a build where it
- * silently failed to apply looks exactly like a build where it applied and the machine was slow —
- * both sit on `transforming...` with nothing else to go on. This turns the next deployment into a
- * measurement instead of an inference.
+ * The whole build hinges on one boolean that lives inside a dependency's plugin, and when it fails
+ * to apply nothing says so: the pass sits on `transforming...` and the build is killed 45 minutes
+ * later for exceeding its time limit, with a log that looks exactly like a slow machine. That has
+ * now cost several build windows.
+ *
+ * `resolve.noExternal === true` on the `nitro` environment is that failure, and it is knowable
+ * before a single module is transformed, so fail there instead — in seconds, naming the cause. The
+ * Nitro version is reported with it because this config depends on a branch in `nitro/vite` that
+ * reads `noExternals === false`, and a build resolving a different Nitro would drop these settings
+ * silently.
  */
-function reportServerPassConfig(): Plugin {
+function requireTracedServerDependencies(): Plugin {
   return {
-    name: "millennium-report-server-pass",
+    name: "millennium-require-traced-server-dependencies",
     apply: "build",
     configResolved(config) {
       const noExternal = config.environments?.nitro?.resolve?.noExternal
-      const summary = noExternal === true
-        ? "true — EVERY dependency will be re-bundled into the server"
-        : Array.isArray(noExternal)
-          ? `${noExternal.length} entries`
-          : String(noExternal)
-      console.info(`[build] nitro environment resolve.noExternal: ${summary}`)
+      const summary = Array.isArray(noExternal) ? `${noExternal.length} entries` : String(noExternal)
+      console.info(
+        `[build] nitro ${nitroVersion}, server pass resolve.noExternal: ${summary}`
+      )
+
+      if (noExternal === true) {
+        throw new Error(
+          "The Nitro server pass is configured to bundle every dependency "
+          + `(resolve.noExternal === true) under nitro ${nitroVersion}.\n`
+          + "This build would re-bundle the entire SSR dependency graph, take longer than the "
+          + "45 minute limit on a Vercel build container, and be killed with no explanation.\n"
+          + "`nitro.noExternals: false` is not reaching the plugin — check that the installed "
+          + "nitro is the version this config targets."
+        )
+      }
     },
   }
 }
@@ -240,6 +258,6 @@ export default defineConfig({
     tanstackStart(),
     nitro({ config: NITRO_SERVER_PASS }),
     viteReact(),
-    reportServerPassConfig(),
+    requireTracedServerDependencies(),
   ],
 })
