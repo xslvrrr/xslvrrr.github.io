@@ -1,5 +1,6 @@
 import {
   IconBell,
+  IconBug,
   IconCalendar,
   IconCards,
   IconClipboardCheck,
@@ -291,6 +292,15 @@ export const SETTINGS_SECTIONS = [
     icon: IconDownload,
     group: "data",
     shortcutId: "settings-export",
+  },
+  {
+    id: "feedback",
+    label: "Reports",
+    commandLabel: "Report history",
+    description: "Your bug reports, suggestions, and replies",
+    keywords: ["bug", "suggestion", "feedback", "history", "appeal", "suspension"],
+    icon: IconBug,
+    group: "data",
   },
   {
     id: "admin",

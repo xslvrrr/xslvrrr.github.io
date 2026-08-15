@@ -1,3 +1,5 @@
 export { AnnouncementCard, announcementStyles } from "./AnnouncementCard"
+export { useAnnouncementSlot } from "./announcementQueue"
 export type { AnnouncementCardProps, AnnouncementTone } from "./AnnouncementCard"
+export { FeedbackAnnouncement } from "./FeedbackAnnouncement"
 export { UpcomingAnnouncement } from "./UpcomingAnnouncement"

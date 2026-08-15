@@ -23,5 +23,7 @@ Do not automatically promote the oldest account or accept administrator status f
 - Reset frontier trial eligibility without deleting recorded AI usage cost.
 - Clear pending assistant action approvals with an AI-limit reset.
 - Record privileged mutations in `public.admin_audit_log`.
+- Review the bug report and feature suggestion queue, and manage report suspensions — see
+  [feedback-reports.md](feedback-reports.md).
 
 Self-demotion is blocked. Removing the final administrator is blocked.

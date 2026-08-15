@@ -10,6 +10,7 @@ export type OneTimeNoticeId =
   | "flashcards-reminder"
   | "guided-tours"
   | "upcoming-changelog"
+  | "feedback-announcement"
 
 export interface OneTimeNoticeDefinition {
   readonly id: OneTimeNoticeId
@@ -25,6 +26,7 @@ export const SYNC_REVIEW_ACK_KEY = "millennium_acked_sync_review_v1"
 export const STUDY_REMINDER_KEY_PREFIX = "millennium-study-reminder:"
 export const TOUR_PREFERENCES_KEY_PREFIX = "millennium-tour-preferences"
 export const UPCOMING_CHANGELOG_NOTICE_KEY = "millennium-upcoming-changelog-notice"
+export const FEEDBACK_NOTICE_KEY = "millennium-feedback-announcement"
 
 export const ONE_TIME_NOTICES: readonly OneTimeNoticeDefinition[] = [
   {
@@ -51,6 +53,12 @@ export const ONE_TIME_NOTICES: readonly OneTimeNoticeDefinition[] = [
     label: "Upcoming release teaser",
     description: "Shows the 'Big things are coming to Millennium' popup again.",
     storageKeys: [`${UPCOMING_CHANGELOG_NOTICE_KEY}*`],
+  },
+  {
+    id: "feedback-announcement",
+    label: "Bugs and suggestions announcement",
+    description: "Shows the popup introducing the sidebar's Bugs/Suggestions button again.",
+    storageKeys: [`${FEEDBACK_NOTICE_KEY}*`],
   },
 ]
 

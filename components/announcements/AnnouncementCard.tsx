@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
+import { useAnnouncementSlot } from "./announcementQueue"
 import styles from "./Announcement.module.css"
 
 export type AnnouncementTone = "accent" | "muted"
@@ -34,6 +35,11 @@ export interface AnnouncementCardProps {
   orbitIcon: React.ReactNode
   /** Icon shown inside the completion seal. */
   sealIcon: React.ReactNode
+  /**
+   * Replaces the default dashboard-panels artwork. Supply one when the announcement is about
+   * something the panels do not depict; the orbit ring and seal stay in place either way.
+   */
+  scene?: React.ReactNode
 }
 
 /**
@@ -52,8 +58,11 @@ export function AnnouncementCard({
   tone = "accent",
   orbitIcon,
   sealIcon,
+  scene,
 }: AnnouncementCardProps): React.ReactPortal | null {
-  if (!isOpen || typeof document === "undefined") return null
+  // `titleId` is already unique per announcement, so it doubles as the queue's claim key.
+  const hasSlot = useAnnouncementSlot(titleId, isOpen)
+  if (!hasSlot || typeof document === "undefined") return null
 
   const isMuted = tone === "muted"
 
@@ -82,25 +91,29 @@ export function AnnouncementCard({
 
         <div className={styles.scene} aria-hidden="true">
           <div className={styles.orbit}>{orbitIcon}</div>
-          <div className={`${styles.panel} ${styles.panelBack}`}>
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className={`${styles.panel} ${styles.panelFront}`}>
-            <div className={styles.panelHeader}>
-              <span />
-              <span />
-              <span />
-            </div>
-            <div className={styles.panelBody}>
-              <span className={styles.sidebar} />
-              <span className={styles.tile} />
-              <span className={styles.tile} />
-              <span className={styles.tile} />
-              <span className={styles.tile} />
-            </div>
-          </div>
+          {scene ?? (
+            <>
+              <div className={`${styles.panel} ${styles.panelBack}`}>
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className={`${styles.panel} ${styles.panelFront}`}>
+                <div className={styles.panelHeader}>
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div className={styles.panelBody}>
+                  <span className={styles.sidebar} />
+                  <span className={styles.tile} />
+                  <span className={styles.tile} />
+                  <span className={styles.tile} />
+                  <span className={styles.tile} />
+                </div>
+              </div>
+            </>
+          )}
           <span className={styles.seal}>{sealIcon}</span>
         </div>
       </div>

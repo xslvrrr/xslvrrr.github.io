@@ -345,6 +345,9 @@ const NotificationsSettings = dynamic(() => import('@/components/settings/Notifi
 const AdminSettings = dynamic(() => import('@/components/settings/AdminSettings').then((module) => ({ default: module.AdminSettings })), {
     loading: DashboardSectionFallback,
 });
+const FeedbackHistorySettings = dynamic(() => import('@/components/settings/FeedbackHistorySettings').then((module) => ({ default: module.FeedbackHistorySettings })), {
+    loading: DashboardSectionFallback,
+});
 const DataSettings = dynamic(() => import('@/components/settings/DataSettings').then((module) => ({ default: module.DataSettings })), {
     loading: DashboardSectionFallback,
 });
@@ -368,6 +371,12 @@ const AssistantChat = dynamic(
 import { AssistantDock } from '@/components/dashboard/assistant/AssistantDock';
 import { DashboardTour } from '@/components/tour';
 import { UpcomingAnnouncement } from '@/components/announcements';
+import {
+    AdminFeedbackQueue,
+    FeedbackAnnouncementSlot,
+    FeedbackProvider,
+    FeedbackSidebarButton,
+} from '@/components/feedback';
 import { useTourDashboardAdapter } from '@/hooks/useTourDashboardAdapter';
 import { REPLAY_FULL_TOUR_EVENT, REPLAY_UPDATE_TOUR_EVENT } from '@/lib/tour/dashboardRegistry';
 import { SYNC_REVIEW_ACK_KEY as ACKED_SYNC_REVIEW_KEY } from '@/lib/one-time-notices';
@@ -6851,6 +6860,7 @@ export default function Dashboard() {
     }
 
     return (
+        <FeedbackProvider enabled={!isPreviewMode}>
         <DashboardTour
             userId={session.userId || session.portalUid || session.username || 'current-user'}
             accountCreatedAt={session.createdAt}
@@ -6865,6 +6875,12 @@ export default function Dashboard() {
                         /* Marketing preview frames must never read or write browser storage. */
                         enabled={!isPreviewMode}
                     />
+                    <FeedbackAnnouncementSlot
+                        userId={session.userId || session.portalUid || session.username || null}
+                        enabled={!isPreviewMode}
+                    />
+                    {/* Waiting reports are shown to every administrator, oldest first. */}
+                    <AdminFeedbackQueue enabled={!isPreviewMode && session.role === 'admin'} />
                     <PortalSyncStatusToasts />
                     {!isDesktopApp() ? <Toaster position="bottom-center" richColors closeButton /> : null}
                 </>
@@ -7156,6 +7172,7 @@ export default function Dashboard() {
                                                         </span>
                                                     </SidebarMenuButton>
                                                 </SidebarMenuItem>
+                                                <FeedbackSidebarButton />
                                             </SidebarMenu>
                                         ) : null}
                                         <SidebarMenu>
@@ -7290,6 +7307,9 @@ export default function Dashboard() {
                                                     )}
                                                     {settingsSection === 'admin' && session.role === 'admin' && session.userId && (
                                                         <AdminSettings currentUserId={session.userId} />
+                                                    )}
+                                                    {settingsSection === 'feedback' && (
+                                                        <FeedbackHistorySettings />
                                                     )}
                                                     {settingsSection === 'sync' && (
                                                         <DataSettings
@@ -8655,5 +8675,6 @@ export default function Dashboard() {
 
             </div >
         </DashboardTour>
+        </FeedbackProvider>
     );
 }
