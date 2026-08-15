@@ -96,19 +96,48 @@ function pathWithoutBunNodeShim(): string {
     .join(delimiter)
 }
 
-function resolveNodeExecutable(path: string): string {
-  const filename = process.platform === "win32" ? "node.exe" : "node"
+/**
+ * Where Node lives when `PATH` does not say.
+ *
+ * On Vercel it does not: `bun run` there puts its own `node` on `PATH` and nothing else provides
+ * one, so a `PATH` with the shim removed has no Node in it at all — even though the container is a
+ * Node image and Vercel's own CLI is running on Node a directory away. These are the standard
+ * install locations, checked in the order a shell would have found them.
+ */
+const NODE_FALLBACK_PATHS = ["/usr/local/bin/node", "/usr/bin/node", "/bin/node", "/opt/bin/node"]
 
-  for (const directory of path.split(delimiter)) {
+/**
+ * The Node binary to run Vite with, or an explanation of everywhere that was looked.
+ *
+ * `NODE_BINARY` is honoured first so a container that keeps Node somewhere unusual can say so
+ * without this list having to grow.
+ */
+function resolveNodeExecutable(path: string): string {
+  const override = process.env.NODE_BINARY
+  if (override) {
+    if (existsSync(override)) return override
+    throw new Error(`NODE_BINARY is set to \`${override}\`, which does not exist.`)
+  }
+
+  const filename = process.platform === "win32" ? "node.exe" : "node"
+  const directories = path.split(delimiter).filter(Boolean)
+
+  for (const directory of directories) {
     const candidate = join(directory, filename)
     if (existsSync(candidate)) return candidate
   }
 
+  for (const candidate of NODE_FALLBACK_PATHS) {
+    if (existsSync(candidate)) return candidate
+  }
+
   throw new Error(
-    "No `node` on PATH.\n"
+    "No `node` to run Vite with.\n"
     + "This build runs Vite on Node so it can be given a heap ceiling; see MAX_OLD_SPACE_MB in "
-    + "scripts/run-vite-build.ts for why it needs one. Bun's `node` shim does not count and has "
-    + "been excluded."
+    + "scripts/run-vite-build.ts for why it needs one. Bun's `node` shim is not one and was "
+    + "excluded from the search.\n"
+    + `Searched, in order: ${[...directories, ...NODE_FALLBACK_PATHS].join(", ")}\n`
+    + "Set NODE_BINARY to a Node executable to resolve this directly."
   )
 }
 
