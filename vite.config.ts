@@ -20,6 +20,59 @@ import tailwindcss from "@tailwindcss/vite"
  * These are bundled instead of traced: Nitro's runtime, and the renderer, which is the one
  * dependency the SSR chunks import by name rather than carry.
  */
+/**
+ * How the deployable server is produced.
+ *
+ * `noExternals` is the setting that decides whether the production build fits on a build machine.
+ * Nitro's Vite plugin pins `resolve.noExternal` to `true` for the `nitro` environment unless this
+ * is exactly `false`, which means the server pass re-bundles every package the SSR graph touches —
+ * React, the router, Base UI, dnd-kit, motion, the icon libraries, all of it — on top of the SSR
+ * chunks that pass has already produced. That is what exhausted the build: the pass climbed past a
+ * 4 GB heap and spent the rest of a 45-minute window in mark-compact, and Vercel ended it with
+ * `BUILD_EXCEEDED_MAXIMUM_TIME`.
+ *
+ * With it off, Nitro traces `node_modules` with `nf3` and copies what the server actually imports
+ * into the output instead. The packages still ship; they are no longer parsed, bound and re-emitted
+ * by rollup. The pass goes from thousands of modules to ~130.
+ *
+ * `sourceMap` defaults to `true` and costs a second full serialization of every server chunk, for
+ * stack traces nobody reads off a serverless function. `minify` buys nothing on a server bundle
+ * that is never sent over the wire.
+ *
+ * This is handed to the plugin *and* set as the top level `nitro` key because the plugin resolves
+ * them as `defu(pluginConfig.config, userConfig.nitro)` — the plugin argument wins, and unlike the
+ * top level key it does not depend on Vite's `UserConfig` module augmentation being picked up.
+ */
+const NITRO_SERVER_PASS = {
+  noExternals: false,
+  sourceMap: false,
+  minify: false,
+} as const
+
+/**
+ * Prints how the server pass actually resolved.
+ *
+ * The whole build hinges on one boolean that lives in a dependency's plugin, and a build where it
+ * silently failed to apply looks exactly like a build where it applied and the machine was slow —
+ * both sit on `transforming...` with nothing else to go on. This turns the next deployment into a
+ * measurement instead of an inference.
+ */
+function reportServerPassConfig(): Plugin {
+  return {
+    name: "millennium-report-server-pass",
+    apply: "build",
+    configResolved(config) {
+      const noExternal = config.environments?.nitro?.resolve?.noExternal
+      const summary = noExternal === true
+        ? "true — EVERY dependency will be re-bundled into the server"
+        : Array.isArray(noExternal)
+          ? `${noExternal.length} entries`
+          : String(noExternal)
+      console.info(`[build] nitro environment resolve.noExternal: ${summary}`)
+    },
+  }
+}
+
 const SERVER_BUNDLED_DEPENDENCIES = [...nitroRuntimeDependencies, "react", "react-dom"]
 const serverBundledDependencyPattern = new RegExp(
   `^(${SERVER_BUNDLED_DEPENDENCIES
@@ -119,30 +172,7 @@ export default defineConfig({
       "@supabase/supabase-js",
     ],
   },
-  /**
-   * How the deployable server is produced.
-   *
-   * `noExternals` is the setting that decides whether the production build fits on a build
-   * machine. Nitro's Vite plugin pins `resolve.noExternal` to `true` for the `nitro` environment
-   * unless this is set to exactly `false`, which means the server pass re-bundles every package
-   * the SSR graph touches — React, the router, Base UI, dnd-kit, motion, the icon libraries, all
-   * of it — on top of the SSR chunks that pass has already produced. That is what exhausted the
-   * build: the pass climbed past a 4 GB heap and spent the rest of a 45-minute build window in
-   * mark-compact, and Vercel ended it with `BUILD_EXCEEDED_MAXIMUM_TIME`.
-   *
-   * With it off, Nitro traces `node_modules` with `nf3` and copies what the server actually
-   * imports into the output instead. The packages still ship; they are no longer parsed, bound and
-   * re-emitted by rollup.
-   *
-   * `sourceMap` defaults to `true` and costs a second full serialization of every server chunk for
-   * stack traces nobody reads off a serverless function. `minify` buys nothing on a server bundle
-   * that is never sent over the wire.
-   */
-  nitro: {
-    noExternals: false,
-    sourceMap: false,
-    minify: false,
-  },
+  nitro: NITRO_SERVER_PASS,
   /**
    * Vite copies `publicDir` into every environment's output directory, and the server
    * environments' output directory is the deployed function. That put a second copy of everything
@@ -208,7 +238,8 @@ export default defineConfig({
     tailwindcss(),
 
     tanstackStart(),
-    nitro(),
+    nitro({ config: NITRO_SERVER_PASS }),
     viteReact(),
+    reportServerPassConfig(),
   ],
 })
