@@ -190,9 +190,17 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = [
   { id: "export-import", label: "Import your data", section: "export", anchor: "export-import", keywords: ["restore", "upload", "json"] },
   { id: "export-delete-account", label: "Delete account", section: "export", anchor: "export-delete-account", keywords: ["remove", "permanent", "close account"] },
 
+  // ---------------------------------------------------------------- Reports
+  { id: "feedback-history", kind: "heading", label: "Report history", section: "feedback", anchor: "feedback-history", keywords: ["bug", "suggestion", "feedback", "replies"] },
+  { id: "feedback-suspension", label: "Suspension", section: "feedback", heading: "Report history", anchor: "feedback-suspension", keywords: ["appeal", "suspended", "banned from reports"] },
+
   // ---------------------------------------------------------------- Administrator
   { id: "admin-overview", kind: "heading", label: "Administrator", section: "admin", anchor: "admin-overview", keywords: ["users", "spend", "metrics", "roles"] },
   { id: "admin-debug-events", label: "Debug events", section: "admin", heading: "Administrator", anchor: "admin-debug-events", keywords: ["one-time", "re-arm", "popups", "prompts"] },
+  { id: "admin-feedback-queue", label: "Reports queue", section: "admin", heading: "Administrator", anchor: "admin-feedback-queue", keywords: ["bugs", "suggestions", "pending", "appeals"] },
+  { id: "admin-feedback-appeals", label: "Suspension appeals", section: "admin", heading: "Administrator", anchor: "admin-feedback-appeals", keywords: ["appeal", "accept", "decline", "lift"] },
+  { id: "admin-feedback-suspensions", label: "Report suspensions", section: "admin", heading: "Administrator", anchor: "admin-feedback-suspensions", keywords: ["suspend", "revoke", "ban", "reporting"] },
+  { id: "admin-github-issues", label: "GitHub issues", section: "admin", heading: "Administrator", anchor: "admin-github-issues", keywords: ["github", "issues", "repository", "tracker"] },
   { id: "admin-user-management", label: "User management", section: "admin", heading: "Administrator", anchor: "admin-user-management", keywords: ["search users", "roles", "administrator access"] },
 ]
 

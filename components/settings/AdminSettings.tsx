@@ -44,6 +44,8 @@ import {
 } from "@/lib/one-time-notices"
 import { createEmptyTourPreferences } from "@/lib/tour/persistence"
 
+import { FeedbackAdminSettings } from "./FeedbackAdminSettings"
+
 type UserRole = "user" | "admin"
 type ResetAction = "reset-ai-limit" | "reset-trial" | "reset-ai-all"
 
@@ -272,6 +274,8 @@ export function AdminSettings({ currentUserId }: { currentUserId: string }) {
           ))}
         </CardContent>
       </Card>
+
+      <FeedbackAdminSettings />
 
       <Card data-settings-anchor="admin-user-management">
         <CardHeader>

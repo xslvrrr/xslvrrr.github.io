@@ -1,0 +1,148 @@
+/*
+ * Artwork for the bugs-and-suggestions announcement.
+ *
+ * It depicts the feature rather than the dashboard: a short form fills itself in, the finished
+ * report lifts away, and a reply lands. Timing is driven by the same `--announcement-cycle` the
+ * shared card sets, so this scene keeps step with the surface it sits in.
+ */
+
+.form {
+  position: absolute;
+  bottom: 4px;
+  left: 14px;
+  overflow: hidden;
+  width: 190px;
+  height: 118px;
+  border: 1px solid color-mix(in srgb, var(--border-strong) 86%, var(--primary) 14%);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--bg-elevated) 94%, var(--primary) 6%);
+  box-shadow: 0 18px 38px rgb(0 0 0 / 0.24);
+  animation: feedback-form var(--announcement-cycle) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.formHeader {
+  display: flex;
+  height: 26px;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 10px;
+}
+
+.formHeader span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.formBody {
+  display: grid;
+  gap: 9px;
+  padding: 11px 12px;
+}
+
+/* Each answer is a pill that fills from the left, in the order the dialog asks its questions. */
+.answer {
+  position: relative;
+  overflow: hidden;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--hover-bg);
+}
+
+.answer::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--primary) 52%, transparent);
+  content: "";
+  transform-origin: left center;
+  animation: feedback-answer var(--announcement-cycle) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.answer:nth-child(2) { width: 84%; }
+.answer:nth-child(3) { width: 68%; }
+
+.answer:nth-child(2)::after { animation-delay: calc(var(--announcement-cycle) * 0.05); }
+.answer:nth-child(3)::after { animation-delay: calc(var(--announcement-cycle) * 0.1); }
+
+/* The submitted report: it leaves the form and travels up towards the inbox. */
+.ticket {
+  position: absolute;
+  right: 62px;
+  bottom: 44px;
+  display: grid;
+  width: 44px;
+  height: 30px;
+  gap: 4px;
+  align-content: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 46%, var(--border-default));
+  border-radius: 7px;
+  padding: 0 7px;
+  background: color-mix(in srgb, var(--bg-elevated) 96%, var(--primary) 4%);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.26);
+  animation: feedback-ticket var(--announcement-cycle) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.ticket span {
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 44%, var(--border-default));
+}
+
+.ticket span:nth-child(2) { width: 62%; }
+
+.inbox {
+  position: absolute;
+  top: 16px;
+  right: 6px;
+  display: grid;
+  width: 78px;
+  height: 54px;
+  align-content: end;
+  gap: 5px;
+  border: 1px solid color-mix(in srgb, var(--border-strong) 80%, var(--primary) 20%);
+  border-radius: 11px;
+  padding: 9px;
+  background: color-mix(in srgb, var(--bg-surface) 92%, var(--primary) 8%);
+  animation: feedback-inbox var(--announcement-cycle) ease-in-out infinite;
+}
+
+.inbox span {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 28%, var(--border-default));
+}
+
+.inbox span:nth-child(2) { width: 70%; }
+
+@keyframes feedback-form {
+  0%, 8% { opacity: 0; transform: translate(-10px, 10px) scale(0.96); }
+  20%, 62% { opacity: 1; transform: translate(0, 0) scale(1); }
+  76%, 100% { opacity: 0.24; transform: translate(-4px, 4px) scale(0.98); }
+}
+
+@keyframes feedback-answer {
+  0%, 22% { transform: scaleX(0); }
+  44%, 88% { transform: scaleX(1); }
+  100% { transform: scaleX(1); opacity: 0.5; }
+}
+
+@keyframes feedback-ticket {
+  0%, 54% { opacity: 0; transform: translate(0, 14px) scale(0.9) rotate(-6deg); }
+  66% { opacity: 1; transform: translate(6px, 0) scale(1) rotate(-2deg); }
+  84%, 100% { opacity: 0; transform: translate(20px, -20px) scale(0.86) rotate(4deg); }
+}
+
+@keyframes feedback-inbox {
+  0%, 60% { opacity: 0.4; transform: scale(0.96); }
+  82%, 100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form,
+  .ticket,
+  .inbox { animation: none; }
+  .answer::after { animation: none; transform: scaleX(1); }
+}

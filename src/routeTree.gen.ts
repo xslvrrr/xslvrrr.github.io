@@ -66,6 +66,8 @@ import { Route as ApiPastPapersLibraryRouteImport } from './routes/api/past-pape
 import { Route as ApiPastPapersBrowseRouteImport } from './routes/api/past-papers/browse'
 import { Route as ApiPastPapersAttemptsRouteImport } from './routes/api/past-papers/attempts'
 import { Route as ApiPastPapersAnnotationsRouteImport } from './routes/api/past-papers/annotations'
+import { Route as ApiFeedbackSuspensionRouteImport } from './routes/api/feedback/suspension'
+import { Route as ApiFeedbackReportsRouteImport } from './routes/api/feedback/reports'
 import { Route as ApiDesktopReleaseRouteImport } from './routes/api/desktop/release'
 import { Route as ApiDesktopLoginTokenRouteImport } from './routes/api/desktop/login-token'
 import { Route as ApiDesktopBootstrapRouteImport } from './routes/api/desktop/bootstrap'
@@ -92,6 +94,8 @@ import { Route as ApiAssistantContextRouteImport } from './routes/api/assistant/
 import { Route as ApiAssistantChatRouteImport } from './routes/api/assistant/chat'
 import { Route as ApiAppSessionRouteImport } from './routes/api/app/session'
 import { Route as ApiAdminUsersRouteImport } from './routes/api/admin/users'
+import { Route as ApiAdminGithubIssuesRouteImport } from './routes/api/admin/github-issues'
+import { Route as ApiAdminFeedbackRouteImport } from './routes/api/admin/feedback'
 import { Route as ApiClassroomSyncSessionsSessionIdRouteImport } from './routes/api/classroom/sync-sessions/$sessionId'
 import { Route as ApiClassroomSyncSessionsSessionIdUploadRouteImport } from './routes/api/classroom/sync-sessions/$sessionId/upload'
 
@@ -382,6 +386,16 @@ const ApiPastPapersAnnotationsRoute =
     path: '/api/past-papers/annotations',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiFeedbackSuspensionRoute = ApiFeedbackSuspensionRouteImport.update({
+  id: '/api/feedback/suspension',
+  path: '/api/feedback/suspension',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFeedbackReportsRoute = ApiFeedbackReportsRouteImport.update({
+  id: '/api/feedback/reports',
+  path: '/api/feedback/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDesktopReleaseRoute = ApiDesktopReleaseRouteImport.update({
   id: '/api/desktop/release',
   path: '/api/desktop/release',
@@ -513,6 +527,16 @@ const ApiAdminUsersRoute = ApiAdminUsersRouteImport.update({
   path: '/api/admin/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminGithubIssuesRoute = ApiAdminGithubIssuesRouteImport.update({
+  id: '/api/admin/github-issues',
+  path: '/api/admin/github-issues',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminFeedbackRoute = ApiAdminFeedbackRouteImport.update({
+  id: '/api/admin/feedback',
+  path: '/api/admin/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiClassroomSyncSessionsSessionIdRoute =
   ApiClassroomSyncSessionsSessionIdRouteImport.update({
     id: '/$sessionId',
@@ -540,6 +564,8 @@ export interface FileRoutesByFullPath {
   '/api/readiness': typeof ApiReadinessRoute
   '/app/open': typeof AppOpenRoute
   '/app-open/': typeof AppOpenIndexRoute
+  '/api/admin/feedback': typeof ApiAdminFeedbackRoute
+  '/api/admin/github-issues': typeof ApiAdminGithubIssuesRoute
   '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/app/session': typeof ApiAppSessionRoute
   '/api/assistant/chat': typeof ApiAssistantChatRoute
@@ -566,6 +592,8 @@ export interface FileRoutesByFullPath {
   '/api/desktop/bootstrap': typeof ApiDesktopBootstrapRoute
   '/api/desktop/login-token': typeof ApiDesktopLoginTokenRoute
   '/api/desktop/release': typeof ApiDesktopReleaseRoute
+  '/api/feedback/reports': typeof ApiFeedbackReportsRoute
+  '/api/feedback/suspension': typeof ApiFeedbackSuspensionRoute
   '/api/past-papers/annotations': typeof ApiPastPapersAnnotationsRoute
   '/api/past-papers/attempts': typeof ApiPastPapersAttemptsRoute
   '/api/past-papers/browse': typeof ApiPastPapersBrowseRoute
@@ -627,6 +655,8 @@ export interface FileRoutesByTo {
   '/api/readiness': typeof ApiReadinessRoute
   '/app/open': typeof AppOpenRoute
   '/app-open': typeof AppOpenIndexRoute
+  '/api/admin/feedback': typeof ApiAdminFeedbackRoute
+  '/api/admin/github-issues': typeof ApiAdminGithubIssuesRoute
   '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/app/session': typeof ApiAppSessionRoute
   '/api/assistant/chat': typeof ApiAssistantChatRoute
@@ -653,6 +683,8 @@ export interface FileRoutesByTo {
   '/api/desktop/bootstrap': typeof ApiDesktopBootstrapRoute
   '/api/desktop/login-token': typeof ApiDesktopLoginTokenRoute
   '/api/desktop/release': typeof ApiDesktopReleaseRoute
+  '/api/feedback/reports': typeof ApiFeedbackReportsRoute
+  '/api/feedback/suspension': typeof ApiFeedbackSuspensionRoute
   '/api/past-papers/annotations': typeof ApiPastPapersAnnotationsRoute
   '/api/past-papers/attempts': typeof ApiPastPapersAttemptsRoute
   '/api/past-papers/browse': typeof ApiPastPapersBrowseRoute
@@ -715,6 +747,8 @@ export interface FileRoutesById {
   '/api/readiness': typeof ApiReadinessRoute
   '/app/open': typeof AppOpenRoute
   '/app-open/': typeof AppOpenIndexRoute
+  '/api/admin/feedback': typeof ApiAdminFeedbackRoute
+  '/api/admin/github-issues': typeof ApiAdminGithubIssuesRoute
   '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/app/session': typeof ApiAppSessionRoute
   '/api/assistant/chat': typeof ApiAssistantChatRoute
@@ -741,6 +775,8 @@ export interface FileRoutesById {
   '/api/desktop/bootstrap': typeof ApiDesktopBootstrapRoute
   '/api/desktop/login-token': typeof ApiDesktopLoginTokenRoute
   '/api/desktop/release': typeof ApiDesktopReleaseRoute
+  '/api/feedback/reports': typeof ApiFeedbackReportsRoute
+  '/api/feedback/suspension': typeof ApiFeedbackSuspensionRoute
   '/api/past-papers/annotations': typeof ApiPastPapersAnnotationsRoute
   '/api/past-papers/attempts': typeof ApiPastPapersAttemptsRoute
   '/api/past-papers/browse': typeof ApiPastPapersBrowseRoute
@@ -804,6 +840,8 @@ export interface FileRouteTypes {
     | '/api/readiness'
     | '/app/open'
     | '/app-open/'
+    | '/api/admin/feedback'
+    | '/api/admin/github-issues'
     | '/api/admin/users'
     | '/api/app/session'
     | '/api/assistant/chat'
@@ -830,6 +868,8 @@ export interface FileRouteTypes {
     | '/api/desktop/bootstrap'
     | '/api/desktop/login-token'
     | '/api/desktop/release'
+    | '/api/feedback/reports'
+    | '/api/feedback/suspension'
     | '/api/past-papers/annotations'
     | '/api/past-papers/attempts'
     | '/api/past-papers/browse'
@@ -891,6 +931,8 @@ export interface FileRouteTypes {
     | '/api/readiness'
     | '/app/open'
     | '/app-open'
+    | '/api/admin/feedback'
+    | '/api/admin/github-issues'
     | '/api/admin/users'
     | '/api/app/session'
     | '/api/assistant/chat'
@@ -917,6 +959,8 @@ export interface FileRouteTypes {
     | '/api/desktop/bootstrap'
     | '/api/desktop/login-token'
     | '/api/desktop/release'
+    | '/api/feedback/reports'
+    | '/api/feedback/suspension'
     | '/api/past-papers/annotations'
     | '/api/past-papers/attempts'
     | '/api/past-papers/browse'
@@ -978,6 +1022,8 @@ export interface FileRouteTypes {
     | '/api/readiness'
     | '/app/open'
     | '/app-open/'
+    | '/api/admin/feedback'
+    | '/api/admin/github-issues'
     | '/api/admin/users'
     | '/api/app/session'
     | '/api/assistant/chat'
@@ -1004,6 +1050,8 @@ export interface FileRouteTypes {
     | '/api/desktop/bootstrap'
     | '/api/desktop/login-token'
     | '/api/desktop/release'
+    | '/api/feedback/reports'
+    | '/api/feedback/suspension'
     | '/api/past-papers/annotations'
     | '/api/past-papers/attempts'
     | '/api/past-papers/browse'
@@ -1066,6 +1114,8 @@ export interface RootRouteChildren {
   ApiReadinessRoute: typeof ApiReadinessRoute
   AppOpenRoute: typeof AppOpenRoute
   AppOpenIndexRoute: typeof AppOpenIndexRoute
+  ApiAdminFeedbackRoute: typeof ApiAdminFeedbackRoute
+  ApiAdminGithubIssuesRoute: typeof ApiAdminGithubIssuesRoute
   ApiAdminUsersRoute: typeof ApiAdminUsersRoute
   ApiAppSessionRoute: typeof ApiAppSessionRoute
   ApiAssistantChatRoute: typeof ApiAssistantChatRoute
@@ -1092,6 +1142,8 @@ export interface RootRouteChildren {
   ApiDesktopBootstrapRoute: typeof ApiDesktopBootstrapRoute
   ApiDesktopLoginTokenRoute: typeof ApiDesktopLoginTokenRoute
   ApiDesktopReleaseRoute: typeof ApiDesktopReleaseRoute
+  ApiFeedbackReportsRoute: typeof ApiFeedbackReportsRoute
+  ApiFeedbackSuspensionRoute: typeof ApiFeedbackSuspensionRoute
   ApiPastPapersAnnotationsRoute: typeof ApiPastPapersAnnotationsRoute
   ApiPastPapersAttemptsRoute: typeof ApiPastPapersAttemptsRoute
   ApiPastPapersBrowseRoute: typeof ApiPastPapersBrowseRoute
@@ -1539,6 +1591,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPastPapersAnnotationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/feedback/suspension': {
+      id: '/api/feedback/suspension'
+      path: '/api/feedback/suspension'
+      fullPath: '/api/feedback/suspension'
+      preLoaderRoute: typeof ApiFeedbackSuspensionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/feedback/reports': {
+      id: '/api/feedback/reports'
+      path: '/api/feedback/reports'
+      fullPath: '/api/feedback/reports'
+      preLoaderRoute: typeof ApiFeedbackReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/desktop/release': {
       id: '/api/desktop/release'
       path: '/api/desktop/release'
@@ -1721,6 +1787,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/github-issues': {
+      id: '/api/admin/github-issues'
+      path: '/api/admin/github-issues'
+      fullPath: '/api/admin/github-issues'
+      preLoaderRoute: typeof ApiAdminGithubIssuesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/feedback': {
+      id: '/api/admin/feedback'
+      path: '/api/admin/feedback'
+      fullPath: '/api/admin/feedback'
+      preLoaderRoute: typeof ApiAdminFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/classroom/sync-sessions/$sessionId': {
       id: '/api/classroom/sync-sessions/$sessionId'
       path: '/$sessionId'
@@ -1782,6 +1862,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReadinessRoute: ApiReadinessRoute,
   AppOpenRoute: AppOpenRoute,
   AppOpenIndexRoute: AppOpenIndexRoute,
+  ApiAdminFeedbackRoute: ApiAdminFeedbackRoute,
+  ApiAdminGithubIssuesRoute: ApiAdminGithubIssuesRoute,
   ApiAdminUsersRoute: ApiAdminUsersRoute,
   ApiAppSessionRoute: ApiAppSessionRoute,
   ApiAssistantChatRoute: ApiAssistantChatRoute,
@@ -1808,6 +1890,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDesktopBootstrapRoute: ApiDesktopBootstrapRoute,
   ApiDesktopLoginTokenRoute: ApiDesktopLoginTokenRoute,
   ApiDesktopReleaseRoute: ApiDesktopReleaseRoute,
+  ApiFeedbackReportsRoute: ApiFeedbackReportsRoute,
+  ApiFeedbackSuspensionRoute: ApiFeedbackSuspensionRoute,
   ApiPastPapersAnnotationsRoute: ApiPastPapersAnnotationsRoute,
   ApiPastPapersAttemptsRoute: ApiPastPapersAttemptsRoute,
   ApiPastPapersBrowseRoute: ApiPastPapersBrowseRoute,
