@@ -423,13 +423,13 @@ export default function Login() {
           className={styles.dotField}
           style={{ position: 'absolute', inset: 0 }}
           dotRadius={3}
-          dotSpacing={12}
+          dotSpacing={34.5}
           cursorRadius={360}
           bulgeStrength={48}
           glowRadius={220}
           gradientFrom="rgba(247, 248, 248, 0.18)"
           gradientTo="rgba(112, 115, 255, 0.204)"
-          glowColor="#171925"
+          glowColor="var(--accent-color)"
         />
         <div className={`${styles.loginContainer} ${styles.fadeIn}`}>
           <div className={`${styles.loginHeader} ${isTransitioning ? styles.fadeOut : ''}`}>
