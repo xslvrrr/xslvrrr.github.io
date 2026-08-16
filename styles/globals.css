@@ -1491,9 +1491,13 @@ html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-to
         overflow: hidden;
     }
 
-    /* When sidebar is collapsed, add left margin too */
+    /* Expanded, the gap between the sidebar surface and this panel is the sidebar container's
+       own 8px of padding, which is why there is no left margin to add. Collapsed, the container
+       is 2px wider than the gap the panel lays out against, so 2px is all it takes to land the
+       same 8px band — a full 12px here stacks on the padding and leaves 18px, a visibly wider
+       gutter on the right of the rail than the 8px on its left. */
     [data-slot="sidebar-wrapper"]:has([data-variant="inset"][data-state="collapsed"]) [data-slot="sidebar-inset"] {
-        margin-left: 12px;
+        margin-left: 2px;
     }
 
     /* Ensure sidebar wrapper has the proper dark background for contrast */
@@ -1631,23 +1635,56 @@ html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-to
 
 /* Sidebar collapse hide - visibility-based transition instead of display:none */
 .sidebar-collapse-hide {
-    transition: opacity var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), max-width var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), visibility var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
+    transition: opacity var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), max-width var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), padding var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), visibility var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
     overflow: hidden;
     max-width: 200px;
 }
 
-/* Apply hidden state when sidebar is collapsed */
+/* Apply hidden state when sidebar is collapsed. The padding has to go with the width: a
+   border-box element cannot shrink below its own horizontal padding, so any inline padding
+   left here keeps occupying the rail and pushes the avatar out of the collapsed button. */
 [data-collapsible="icon"] .sidebar-collapse-hide {
     opacity: 0;
     visibility: hidden;
     max-width: 0;
+    padding-left: 0;
+    padding-right: 0;
     overflow: hidden;
 }
 
-/* Keep button padding consistent - avatar doesn't need to move */
-[data-collapsible="icon"] [data-slot="sidebar-header"] button {
-    padding: 8px;
-    justify-content: flex-start;
+/* ── Collapsed rail sizing ───────────────────────────────────────────────
+   The collapsed rail is exactly one icon button wide, so every horizontal padding inside it
+   is subtracted from the space the buttons get. The rail measures
+   --sidebar-width-icon (48) + the container's p-2 (16) + 2 = 66px; that leaves a 50px inner
+   track, minus the inner surface's own 4px a side = 42px, so the group and footer can only
+   afford 5px a side for the 32px buttons to fit. At 8px they are clipped by 6px.
+
+   Everything here stays left-anchored on purpose. `data-collapsible` flips the instant the
+   toggle is pressed while the rail width is still animating, so any rule that centres against
+   the current track (align-items, justify-content, margin auto) resolves against the OLD wide
+   width and throws the icons off to the right before they slide back. Padding is measured from
+   the left edge, which does not move, so the icons only travel the 4px between their expanded
+   and collapsed columns. */
+[data-collapsible="icon"] [data-sidebar="group"],
+[data-collapsible="icon"] [data-slot="sidebar-header"],
+[data-collapsible="icon"] [data-slot="sidebar-footer"] {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* Icons are 18px but the collapsed button is 32px with 8px padding, which leaves a 16px
+   content box and shaves 1px off each side of every icon. 7px lands the icon exactly, and
+   puts its centre on the centre of the rail. */
+[data-collapsible="icon"] [data-sidebar="menu-button"] {
+    padding: 7px !important;
+}
+
+/* These paddings change between states, so they travel with the width instead of stepping the
+   icon column sideways at the start of the animation. */
+[data-sidebar="group"],
+[data-slot="sidebar-header"],
+[data-slot="sidebar-footer"] {
+    transition: padding var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing);
 }
 
 /* Footer styling */
@@ -1743,9 +1780,11 @@ html.desktop-shell.desktop-window-controls-visible
     opacity: 1 !important;
 }
 
-/* Fixed padding in collapsed mode - arrow stays at left edge, doesn't center */
+/* Fixed padding in collapsed mode, measured from the left edge so the arrow slides with the
+   width instead of jumping. 10px puts the 12px arrow's centre on the centre of the rail, the
+   same column the icons below it sit in. */
 [data-collapsible="icon"] [data-sidebar="group-label"] {
-    padding-left: 11px;
+    padding-left: 10px;
     padding-right: 4px;
 }
 
