@@ -1491,9 +1491,13 @@ html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-to
         overflow: hidden;
     }
 
-    /* When sidebar is collapsed, add left margin too */
+    /* Expanded, the gap between the sidebar surface and this panel is the sidebar container's
+       own 8px of padding, which is why there is no left margin to add. Collapsed, the container
+       is 2px wider than the gap the panel lays out against, so 2px is all it takes to land the
+       same 8px band — a full 12px here stacks on the padding and leaves 18px, a visibly wider
+       gutter on the right of the rail than the 8px on its left. */
     [data-slot="sidebar-wrapper"]:has([data-variant="inset"][data-state="collapsed"]) [data-slot="sidebar-inset"] {
-        margin-left: 12px;
+        margin-left: 2px;
     }
 
     /* Ensure sidebar wrapper has the proper dark background for contrast */
@@ -1675,16 +1679,6 @@ html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-to
     padding: 7px !important;
 }
 
-/* The rail is the click target that toggles the sidebar, and it centres itself on its
-   container's right edge. Expanded that edge is the seam against the inset panel, which is
-   where the toggle belongs. Collapsed it is not: the gap the inset lays out against is
-   --sidebar-width-icon + 16 = 64px while the container is 2px wider, and the inset then adds
-   its own 12px margin-left, putting the seam 10px past the container edge. Shifting the rail
-   by that 10px keeps the toggle on the border in both states. */
-[data-collapsible="icon"] [data-sidebar="rail"] {
-    right: -26px;
-}
-
 /* These paddings change between states, so they travel with the width instead of stepping the
    icon column sideways at the start of the animation. */
 [data-sidebar="group"],
@@ -1786,9 +1780,11 @@ html.desktop-shell.desktop-window-controls-visible
     opacity: 1 !important;
 }
 
-/* Fixed padding in collapsed mode - arrow stays at left edge, doesn't center */
+/* Fixed padding in collapsed mode, measured from the left edge so the arrow slides with the
+   width instead of jumping. 10px puts the 12px arrow's centre on the centre of the rail, the
+   same column the icons below it sit in. */
 [data-collapsible="icon"] [data-sidebar="group-label"] {
-    padding-left: 11px;
+    padding-left: 10px;
     padding-right: 4px;
 }
 
