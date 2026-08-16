@@ -143,3 +143,5 @@ AGENTS.md
 .nitro/
 .output/
 .env*
+# The template carries names only, no values, and is meant to be committed.
+!.env.example

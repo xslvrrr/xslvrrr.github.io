@@ -3,6 +3,7 @@ import { crossOriginMutationResponse } from '../../../../lib/csrf';
 import {
   decryptPortalCredentials,
   encryptPortalCredentials,
+  reusablePortalCookies,
 } from '../../../../lib/portal-credentials';
 import {
   PortalAuthError,
@@ -65,8 +66,8 @@ async function runPortalAccountOperation(
 ) {
   const envelope = await getUserPortalCredentialEnvelope(userId);
   const savedCredentials = decryptPortalCredentials(userId, envelope);
-  const cookies = savedCredentials?.cookies?.length
-    ? savedCredentials.cookies
+  const cookies = savedCredentials
+    ? reusablePortalCookies(savedCredentials) || []
     : session.portalCookies || [];
   if (cookies.length === 0 && !savedCredentials) {
     throw new PortalSyncError('No saved Millennium login is available for account details.', {

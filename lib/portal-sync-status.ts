@@ -124,7 +124,7 @@ async function fetchUltraYear(settings: PortalDataSettings, year: number, signal
 async function restorePortalData(data: PortalData | null | undefined): Promise<PortalData | null> {
   if (!data) {
     await clearPortalDataCache();
-    await fetch('/api/portal/data', { method: 'DELETE' }).catch(() => null);
+    await fetch('/api/portal/data?keepSavedLogin=true', { method: 'DELETE' }).catch(() => null);
     return null;
   }
 

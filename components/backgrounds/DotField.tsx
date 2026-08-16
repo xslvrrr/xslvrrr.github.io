@@ -1,13 +1,11 @@
 import {
   memo,
   useEffect,
-  useId,
   useRef,
   type HTMLAttributes,
 } from 'react';
 
-const TWO_PI = Math.PI * 2;
-
+/** Dots stay in the layout as invisible joints; the grid lines connect them. */
 interface Dot {
   ax: number;
   ay: number;
@@ -17,32 +15,39 @@ interface Dot {
   vy: number;
   x: number;
   y: number;
+  px: number;
+  py: number;
 }
 
 interface DotFieldProps extends HTMLAttributes<HTMLDivElement> {
   dotRadius?: number;
   dotSpacing?: number;
+  lineWidth?: number;
   cursorRadius?: number;
   cursorForce?: number;
   bulgeOnly?: boolean;
   bulgeStrength?: number;
   glowRadius?: number;
-  sparkle?: boolean;
+  glowStrength?: number;
+  glowFade?: number;
   waveAmplitude?: number;
   gradientFrom?: string;
   gradientTo?: string;
+  /** Accepts a literal colour or a `var(--token)` reference resolved off the container. */
   glowColor?: string;
 }
 
 const DotField = memo(function DotField({
   dotRadius = 1.5,
   dotSpacing = 14,
+  lineWidth = 1,
   cursorRadius = 500,
   cursorForce = 0.1,
   bulgeOnly = true,
   bulgeStrength = 67,
   glowRadius = 160,
-  sparkle = false,
+  glowStrength = 0.09,
+  glowFade = 0.022,
   waveAmplitude = 0,
   gradientFrom = 'rgba(168, 85, 247, 0.35)',
   gradientTo = 'rgba(180, 151, 207, 0.25)',
@@ -50,9 +55,11 @@ const DotField = memo(function DotField({
   style,
   ...rest
 }: DotFieldProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const glowRef = useRef<SVGCircleElement>(null);
   const dotsRef = useRef<Dot[]>([]);
+  const gridRef = useRef({ rows: 0, columns: 0 });
+  const resolvedGlowRef = useRef(glowColor);
   const mouseRef = useRef({
     x: -9999,
     y: -9999,
@@ -62,31 +69,37 @@ const DotField = memo(function DotField({
   });
   const rafRef = useRef<number | null>(null);
   const sizeRef = useRef({ w: 0, h: 0, offsetX: 0, offsetY: 0 });
-  const glowOpacityRef = useRef(0);
   const engagementRef = useRef(0);
   const propsRef = useRef({
     dotRadius,
     dotSpacing,
+    lineWidth,
     cursorRadius,
     cursorForce,
     bulgeOnly,
     bulgeStrength,
-    sparkle,
+    glowRadius,
+    glowStrength,
+    glowFade,
+    glowColor,
     waveAmplitude,
     gradientFrom,
     gradientTo,
   });
   const rebuildRef = useRef<(() => void) | null>(null);
-  const glowId = `dot-field-glow-${useId().replace(/:/g, '')}`;
 
   propsRef.current = {
     dotRadius,
     dotSpacing,
+    lineWidth,
     cursorRadius,
     cursorForce,
     bulgeOnly,
     bulgeStrength,
-    sparkle,
+    glowRadius,
+    glowStrength,
+    glowFade,
+    glowColor,
     waveAmplitude,
     gradientFrom,
     gradientTo,
@@ -94,22 +107,57 @@ const DotField = memo(function DotField({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const glowElement = glowRef.current;
     if (!canvas) return;
 
     const context = canvas.getContext('2d', { alpha: true });
     if (!context) return;
 
+    // The trail lives on its own layer so it can persist and decay between
+    // frames; the main canvas is cleared every tick.
+    const trailCanvas = document.createElement('canvas');
+    const trailContext = trailCanvas.getContext('2d', { alpha: true });
+    if (!trailContext) return;
+
+    // Holds the accent-coloured grid clipped to the trail.
+    const glowCanvas = document.createElement('canvas');
+    const glowContext = glowCanvas.getContext('2d', { alpha: true });
+    if (!glowContext) return;
+
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let resizeTimer: ReturnType<typeof setTimeout>;
+
+    const resolveGlowColor = () => {
+      const raw = propsRef.current.glowColor.trim();
+      const token = raw.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*(.+))?\)$/);
+      if (!token) {
+        resolvedGlowRef.current = raw;
+        return;
+      }
+
+      const target = containerRef.current ?? document.documentElement;
+      const value = getComputedStyle(target)
+        .getPropertyValue(token[1])
+        .trim();
+      resolvedGlowRef.current = value || token[2]?.trim() || '#6366F1';
+    };
+
+    // Themes swap accent tokens at runtime, so re-resolve when they change.
+    const themeObserver = new MutationObserver(resolveGlowColor);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'style', 'data-theme'],
+    });
+    resolveGlowColor();
 
     const buildDots = (width: number, height: number) => {
       const props = propsRef.current;
       const step = props.dotRadius + props.dotSpacing;
-      const columns = Math.floor(width / step);
-      const rows = Math.floor(height / step);
-      const paddingX = (width % step) / 2;
-      const paddingY = (height % step) / 2;
+      // One extra row and column on every side, so the grid runs past the edges
+      // instead of stopping at them.
+      const columns = Math.floor(width / step) + 2;
+      const rows = Math.floor(height / step) + 2;
+      const paddingX = (width % step) / 2 - step;
+      const paddingY = (height % step) / 2 - step;
       const dots = new Array<Dot>(rows * columns);
       let index = 0;
 
@@ -126,12 +174,15 @@ const DotField = memo(function DotField({
             vy: 0,
             x: ax,
             y: ay,
+            px: ax,
+            py: ay,
           };
           index += 1;
         }
       }
 
       dotsRef.current = dots;
+      gridRef.current = { rows, columns };
     };
 
     const resizeCanvas = () => {
@@ -144,6 +195,12 @@ const DotField = memo(function DotField({
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      trailCanvas.width = rect.width * dpr;
+      trailCanvas.height = rect.height * dpr;
+      trailContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+      glowCanvas.width = rect.width * dpr;
+      glowCanvas.height = rect.height * dpr;
+      glowContext.setTransform(dpr, 0, 0, dpr, 0, 0);
       sizeRef.current = {
         w: rect.width,
         h: rect.height,
@@ -192,24 +249,15 @@ const DotField = memo(function DotField({
       if (engagementRef.current < 0.001) engagementRef.current = 0;
 
       const engagement = engagementRef.current;
-      glowOpacityRef.current +=
-        (engagement - glowOpacityRef.current) * 0.08;
-
-      if (glowElement) {
-        glowElement.setAttribute('cx', String(mouse.x));
-        glowElement.setAttribute('cy', String(mouse.y));
-        glowElement.style.opacity = String(glowOpacityRef.current);
-      }
 
       context.clearRect(0, 0, width, height);
       const gradient = context.createLinearGradient(0, 0, width, height);
       gradient.addColorStop(0, props.gradientFrom);
       gradient.addColorStop(1, props.gradientTo);
-      context.fillStyle = gradient;
+      context.strokeStyle = gradient;
+      context.lineWidth = props.lineWidth;
 
       const cursorRadiusSquared = props.cursorRadius * props.cursorRadius;
-      const radius = props.dotRadius / 2;
-      context.beginPath();
 
       for (let index = 0; index < dots.length; index += 1) {
         const dot = dots[index];
@@ -261,16 +309,77 @@ const DotField = memo(function DotField({
             0.5;
         }
 
-        const sparkleRadius =
-          props.sparkle &&
-          (((index * 2654435761) ^ (frameCount >> 3)) >>> 0) % 100 < 3
-            ? radius * 1.8
-            : radius;
-        context.moveTo(drawX + sparkleRadius, drawY);
-        context.arc(drawX, drawY, sparkleRadius, 0, TWO_PI);
+        dot.px = drawX;
+        dot.py = drawY;
       }
 
-      context.fill();
+      // Trace the grid through the dots: a run per row, then a run per column.
+      const { rows, columns } = gridRef.current;
+      const gridPath = new Path2D();
+
+      for (let row = 0; row < rows; row += 1) {
+        for (let column = 0; column < columns; column += 1) {
+          const dot = dots[row * columns + column];
+          if (column === 0) gridPath.moveTo(dot.px, dot.py);
+          else gridPath.lineTo(dot.px, dot.py);
+        }
+      }
+
+      for (let column = 0; column < columns; column += 1) {
+        for (let row = 0; row < rows; row += 1) {
+          const dot = dots[row * columns + column];
+          if (row === 0) gridPath.moveTo(dot.px, dot.py);
+          else gridPath.lineTo(dot.px, dot.py);
+        }
+      }
+
+      context.stroke(gridPath);
+
+      // Age the whole trail, then stamp the cursor's current position onto it.
+      trailContext.globalCompositeOperation = 'destination-out';
+      trailContext.fillStyle = `rgba(0, 0, 0, ${props.glowFade})`;
+      trailContext.fillRect(0, 0, width, height);
+
+      if (mouse.x > -9998) {
+        const glow = trailContext.createRadialGradient(
+          mouse.x,
+          mouse.y,
+          0,
+          mouse.x,
+          mouse.y,
+          props.glowRadius,
+        );
+        glow.addColorStop(0, resolvedGlowRef.current);
+        glow.addColorStop(1, 'transparent');
+
+        trailContext.globalCompositeOperation = 'lighter';
+        trailContext.globalAlpha = props.glowStrength;
+        trailContext.fillStyle = glow;
+        trailContext.fillRect(
+          mouse.x - props.glowRadius,
+          mouse.y - props.glowRadius,
+          props.glowRadius * 2,
+          props.glowRadius * 2,
+        );
+        trailContext.globalAlpha = 1;
+      }
+
+      // Re-stroke the same grid at full accent, keep only the part the trail has
+      // touched, then add it back over the base lines. Masking this way lets the
+      // lines actually brighten instead of being capped at their own alpha.
+      glowContext.globalCompositeOperation = 'source-over';
+      glowContext.clearRect(0, 0, width, height);
+      glowContext.strokeStyle = resolvedGlowRef.current;
+      glowContext.lineWidth = props.lineWidth;
+      glowContext.stroke(gridPath);
+      glowContext.globalCompositeOperation = 'destination-in';
+      glowContext.drawImage(trailCanvas, 0, 0, width, height);
+
+      context.save();
+      context.globalCompositeOperation = 'lighter';
+      context.drawImage(glowCanvas, 0, 0, width, height);
+      context.restore();
+
       rafRef.current = window.requestAnimationFrame(tick);
     };
 
@@ -291,6 +400,7 @@ const DotField = memo(function DotField({
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
+      themeObserver.disconnect();
     };
   }, []);
 
@@ -300,6 +410,7 @@ const DotField = memo(function DotField({
 
   return (
     <div
+      ref={containerRef}
       aria-hidden="true"
       style={{ position: 'relative', width: '100%', height: '100%', ...style }}
       {...rest}
@@ -313,30 +424,6 @@ const DotField = memo(function DotField({
           height: '100%',
         }}
       />
-      <svg
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-        }}
-      >
-        <defs>
-          <radialGradient id={glowId}>
-            <stop offset="0%" stopColor={glowColor} />
-            <stop offset="100%" stopColor="transparent" />
-          </radialGradient>
-        </defs>
-        <circle
-          ref={glowRef}
-          cx="-9999"
-          cy="-9999"
-          r={glowRadius}
-          fill={`url(#${glowId})`}
-          style={{ opacity: 0, willChange: 'opacity' }}
-        />
-      </svg>
     </div>
   );
 });

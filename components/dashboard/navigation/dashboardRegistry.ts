@@ -337,8 +337,26 @@ const preReleaseSettingsSections = new Set<string>(
   SETTINGS_SECTIONS.filter((section) => "preRelease" in section && section.preRelease).map((section) => section.id)
 )
 
+/**
+ * Sections a developer has opted into seeing despite being unreleased.
+ *
+ * Set `VITE_PRERELEASE_SECTIONS=classroom` (comma separated) to work on one before it ships. It is
+ * an allowlist rather than a blanket "show everything in dev" switch on purpose: several unrelated
+ * features are parked behind this flag, and turning them all on to look at one of them means
+ * reviewing a sidebar that no user has.
+ *
+ * Unset everywhere by default, so a build with no such variable behaves exactly as before.
+ */
+const forcedDashboardSections = new Set(
+  String(import.meta.env?.VITE_PRERELEASE_SECTIONS ?? "")
+    .split(",")
+    .map((section) => section.trim())
+    .filter(Boolean)
+)
+
 /** Dashboard pages a released build must never navigate to or advertise. */
 export function isPreReleaseDashboardSection(value: string): boolean {
+  if (forcedDashboardSections.has(value)) return false
   return preReleaseDashboardSections.has(value)
 }
 

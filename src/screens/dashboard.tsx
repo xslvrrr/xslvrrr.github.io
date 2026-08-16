@@ -37,6 +37,7 @@ import type { Notice, AttendanceData, GradeEntry, NotificationState, PortalData 
 import { DEFAULT_ATTENDANCE_THRESHOLDS, resolveAttendanceThresholds } from '@/types/portal';
 import { highestTabSequence, loadDashboardTabs, saveDashboardTabs } from '@/lib/dashboard-tabs';
 import { inferSchoolTermsByYear } from '@/lib/school-terms';
+import { getPeriodBounds } from '@/lib/bell-times';
 import { NotificationsSidebar } from '@/components/dashboard/notifications/NotificationsSidebar';
 import { NotificationsResizer } from '@/components/dashboard/notifications/NotificationsResizer';
 import {
@@ -1587,21 +1588,6 @@ export default function Dashboard() {
             monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6,
         };
 
-        const periodSchedule: Record<string, { start: number; end: number }> = {
-            '1': { start: 8 * 60 + 45, end: 9 * 60 + 24 },
-            '2': { start: 9 * 60 + 24, end: 10 * 60 + 3 },
-            '3': { start: 10 * 60 + 3, end: 10 * 60 + 42 },
-            '3a': { start: 10 * 60 + 3, end: 10 * 60 + 42 },
-            '3b': { start: 10 * 60 + 32, end: 11 * 60 + 11 },
-            '4': { start: 11 * 60 + 11, end: 11 * 60 + 50 },
-            '5': { start: 11 * 60 + 50, end: 12 * 60 + 31 },
-            '6': { start: 12 * 60 + 31, end: 13 * 60 + 8 },
-            '6a': { start: 12 * 60 + 31, end: 13 * 60 + 8 },
-            '6b': { start: 12 * 60 + 58, end: 13 * 60 + 37 },
-            '7': { start: 13 * 60 + 37, end: 14 * 60 + 16 },
-            '8': { start: 14 * 60 + 16, end: 14 * 60 + 55 },
-        };
-
         const parsePeriodCode = (period: unknown) => {
             const raw = String(period || '').toLowerCase();
             const match = raw.match(/(\d+)\s*([ab])?/);
@@ -1610,17 +1596,6 @@ export default function Dashboard() {
             const suffix = match[2] || '';
             const periodCode = `${periodNumber}${suffix}`;
             return { periodNumber, periodCode };
-        };
-
-        const getPeriodBounds = (dayKey: string, periodCode: string) => {
-            const normalizedCode = String(periodCode || '').toLowerCase();
-            const numberOnly = normalizedCode.match(/\d+/)?.[0] || normalizedCode;
-            const bounds = periodSchedule[normalizedCode] || periodSchedule[numberOnly];
-            if (!bounds) return null;
-            if (dayKey === 'tuesday' && numberOnly === '8') {
-                return { ...bounds, end: bounds.start + 28 };
-            }
-            return bounds;
         };
 
         const mapped: CalendarEvent[] = [];
@@ -5564,20 +5539,6 @@ export default function Dashboard() {
                                 }));
                             }
 
-                            const periodSchedule: Record<string, { start: number; end: number }> = {
-                                '1': { start: 8 * 60 + 45, end: 9 * 60 + 24 },
-                                '2': { start: 9 * 60 + 24, end: 10 * 60 + 3 },
-                                '3': { start: 10 * 60 + 3, end: 10 * 60 + 42 },
-                                '3a': { start: 10 * 60 + 3, end: 10 * 60 + 42 },
-                                '3b': { start: 10 * 60 + 32, end: 11 * 60 + 11 },
-                                '4': { start: 11 * 60 + 11, end: 11 * 60 + 50 },
-                                '5': { start: 11 * 60 + 50, end: 12 * 60 + 31 },
-                                '6': { start: 12 * 60 + 31, end: 13 * 60 + 8 },
-                                '6a': { start: 12 * 60 + 31, end: 13 * 60 + 8 },
-                                '6b': { start: 12 * 60 + 58, end: 13 * 60 + 37 },
-                                '7': { start: 13 * 60 + 37, end: 14 * 60 + 16 },
-                                '8': { start: 14 * 60 + 16, end: 14 * 60 + 55 },
-                            };
                             const currentMinutes = now.getHours() * 60 + now.getMinutes();
                             const getClassPeriodState = (period: string) => {
                                 const raw = String(period || '').toLowerCase();
@@ -5585,13 +5546,8 @@ export default function Dashboard() {
                                 if (!match) return 'upcoming';
 
                                 const code = `${Number(match[1])}${match[2] || ''}`;
-                                const numberOnly = match[1];
-                                const baseBounds = periodSchedule[code] || periodSchedule[numberOnly];
-                                if (!baseBounds) return 'upcoming';
-
-                                const bounds = todayName.toLowerCase() === 'tuesday' && numberOnly === '8'
-                                    ? { ...baseBounds, end: baseBounds.start + 28 }
-                                    : baseBounds;
+                                const bounds = getPeriodBounds(todayName, code);
+                                if (!bounds) return 'upcoming';
 
                                 if (currentMinutes >= bounds.start && currentMinutes < bounds.end) return 'current';
                                 if (currentMinutes >= bounds.end) return 'past';

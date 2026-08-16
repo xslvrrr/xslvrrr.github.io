@@ -635,7 +635,10 @@ export async function replaceUserPortalData(userId: string, portalData: any | nu
     };
 }
 
-export async function wipeUserPortalData(userId: string): Promise<User | null> {
+export async function wipeUserPortalData(
+    userId: string,
+    options: { keepSavedLogin?: boolean } = {},
+): Promise<User | null> {
     const existing = await findUserIdentityById(userId);
     if (!existing) return null;
 
@@ -644,8 +647,11 @@ export async function wipeUserPortalData(userId: string): Promise<User | null> {
         .update({
             last_sync: null,
             portal_data: null,
-            portal_credentials: null,
-            portal_credentials_updated_at: null,
+            // Erasing synced data is not the same request as forgetting the saved
+            // login, and a wiped envelope can never be recovered.
+            ...(options.keepSavedLogin
+                ? {}
+                : { portal_credentials: null, portal_credentials_updated_at: null }),
         })
         .eq('id', userId);
 

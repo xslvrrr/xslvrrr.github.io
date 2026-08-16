@@ -1202,7 +1202,10 @@ export default function Calendar({
                                             className={headerClasses}
                                             onClick={() => {
                                                 setCurrentDate(day);
-                                                requestViewMode('day');
+                                                // In week view the header narrows to that one day;
+                                                // in day view it is the only date on screen, so the
+                                                // same click widens back out to its week.
+                                                requestViewMode(viewMode === 'day' ? 'week' : 'day');
                                             }}
                                         >
                                             <span className={styles.dayName}>
@@ -1247,7 +1250,19 @@ export default function Calendar({
 
                                     return (
                                         <ContextMenu key={i}>
-                                            <ContextMenuTrigger render={<div className={cellClasses} />}>
+                                            <ContextMenuTrigger
+                                                render={
+                                                    <div
+                                                        className={cellClasses}
+                                                        onClick={(e) => {
+                                                            // Only empty space adds an event; clicks on an
+                                                            // event inside the cell open that event instead.
+                                                            if (e.target !== e.currentTarget) return;
+                                                            handleAllDaySlotClick(day);
+                                                        }}
+                                                    />
+                                                }
+                                            >
                                                     {dayEvents.map(event => (
                                                         <ContextMenu key={event.id}>
                                                             <EventDescriptionTooltip event={event}>
