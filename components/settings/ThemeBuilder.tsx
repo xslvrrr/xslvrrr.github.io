@@ -612,7 +612,7 @@ interface ThemePreviewMockProps {
 }
 
 /** Miniature dashboard rendered in a theme's own palette, shared by library and explore cards. */
-function ThemePreviewMock({ colors, height }: ThemePreviewMockProps) {
+const ThemePreviewMock = React.memo(function ThemePreviewMock({ colors, height }: ThemePreviewMockProps) {
     const accent = colors.accent || DEFAULT_ACCENT
     const hairline = colors.borderSubtle || colors.borderDefault || 'rgba(128,128,128,0.28)'
     const bar = colors.borderStrong || colors.borderDefault || 'rgba(128,128,128,0.45)'
@@ -694,7 +694,7 @@ function ThemePreviewMock({ colors, height }: ThemePreviewMockProps) {
             </div>
         </div>
     )
-}
+})
 
 interface ThemeCardFooterProps {
     name: string
@@ -823,23 +823,89 @@ function ThemeGalleryCard({ theme, isSelected, onSelect, onEdit, onDelete, onCon
     )
 }
 
+/**
+ * Explore holds a couple of hundred cards, and every card is a miniature dashboard whose accent may
+ * be an animated gradient. Mounting all of them at once stalls the gallery on open and leaves the
+ * offscreen ones repainting forever, so a card stays an empty box of the right size until it comes
+ * within a screen or so of the viewport, then keeps its preview for the rest of the session.
+ */
+const EXPLORE_CARD_ROOT_MARGIN = '700px 0px'
+
+function useNearViewport<T extends HTMLElement>(): [React.MutableRefObject<T | null>, boolean] {
+    const ref = React.useRef<T | null>(null)
+    const [isNear, setIsNear] = React.useState(false)
+
+    React.useEffect(() => {
+        if (isNear) return
+        const node = ref.current
+        if (!node) return
+
+        // Without the observer (older browsers, jsdom) every card renders eagerly, which is the
+        // previous behaviour rather than a blank gallery.
+        if (typeof IntersectionObserver === 'undefined') {
+            setIsNear(true)
+            return
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) setIsNear(true)
+            },
+            { rootMargin: EXPLORE_CARD_ROOT_MARGIN }
+        )
+        observer.observe(node)
+        return () => observer.disconnect()
+    }, [isNear])
+
+    return [ref, isNear]
+}
+
 interface ExploreThemeCardProps {
     theme: ExploreTheme
     isInLibrary: boolean
-    onUse: () => void
-    onContextMenu: (event: React.MouseEvent) => void
+    onUse: (theme: ExploreTheme) => void
+    onContextMenu: (event: React.MouseEvent, theme: ExploreTheme) => void
 }
 
-function ExploreThemeCard({ theme, isInLibrary, onUse, onContextMenu }: ExploreThemeCardProps) {
+const ExploreThemeCard = React.memo(function ExploreThemeCard({
+    theme,
+    isInLibrary,
+    onUse,
+    onContextMenu,
+}: ExploreThemeCardProps) {
+    const [cardRef, isNear] = useNearViewport<HTMLDivElement>()
+
+    if (!isNear) {
+        return (
+            <div
+                ref={cardRef}
+                aria-hidden
+                style={{
+                    height: `${THEME_CARD_HEIGHT}px`,
+                    borderRadius: '14px',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-elevated)',
+                }}
+            />
+        )
+    }
+
     return (
         <div
+            ref={cardRef}
             className="group transition-transform duration-150 ease-out hover:-translate-y-0.5"
-            style={{ position: 'relative' }}
-            onContextMenu={onContextMenu}
+            style={{
+                position: 'relative',
+                // Lets the browser skip layout and paint for cards scrolled well out of view even
+                // after they have mounted.
+                contentVisibility: 'auto',
+                containIntrinsicSize: `${THEME_CARD_HEIGHT}px`,
+            }}
+            onContextMenu={(event) => onContextMenu(event, theme)}
         >
             <button
                 type="button"
-                onClick={onUse}
+                onClick={() => onUse(theme)}
                 title={isInLibrary
                     ? `${theme.name}\nClick to apply the copy in your library`
                     : `${theme.name}\nClick to add to your library and apply`}
@@ -901,7 +967,7 @@ function ExploreThemeCard({ theme, isInLibrary, onUse, onContextMenu }: ExploreT
             </div>
         </div>
     )
-}
+})
 
 interface ExploreFilterGroupProps<T extends string> {
     label: string
@@ -1776,6 +1842,12 @@ export function ThemeBuilder({ onCreateTheme, isAdministrator = false }: ThemeBu
         setContextMenu({ kind, themeId, x: Math.max(4, x), y: Math.max(4, y) })
     }, [])
 
+    // Explore cards are memoised, so their handlers have to keep the same identity across renders
+    // or every card in the gallery re-renders whenever one is added to the library.
+    const openExploreContextMenu = useCallback((event: React.MouseEvent, theme: ExploreTheme) => {
+        openThemeContextMenu(event, theme.id, 'explore')
+    }, [openThemeContextMenu])
+
     // ---- Explore + sharing -------------------------------------------------
 
     const refreshCommunityThemes = useCallback(async () => {
@@ -1884,6 +1956,17 @@ export function ThemeBuilder({ onCreateTheme, isAdministrator = false }: ThemeBu
             isAdvanced: theme.isAdvanced,
         })
     }, [addThemeToLibrary, allSavedThemes, handleSelectSavedTheme])
+
+    // The click handler changes identity every time the library does. Reading it through a ref keeps
+    // one stable prop on the memoised cards, so adding a theme re-renders the card that changed
+    // rather than every card the gallery has mounted.
+    const useExploreThemeRef = React.useRef(handleUseExploreTheme)
+    React.useEffect(() => {
+        useExploreThemeRef.current = handleUseExploreTheme
+    }, [handleUseExploreTheme])
+    const handleExploreCardUse = useCallback((theme: ExploreTheme) => {
+        useExploreThemeRef.current(theme)
+    }, [])
 
     const handleShareTheme = useCallback((theme: SavedCustomTheme) => {
         try {
@@ -3242,8 +3325,8 @@ export function ThemeBuilder({ onCreateTheme, isAdministrator = false }: ThemeBu
                                         key={theme.id}
                                         theme={theme}
                                         isInLibrary={libraryThemeNames.has(theme.name.trim().toLowerCase())}
-                                        onUse={() => handleUseExploreTheme(theme)}
-                                        onContextMenu={(event) => openThemeContextMenu(event, theme.id, 'explore')}
+                                        onUse={handleExploreCardUse}
+                                        onContextMenu={openExploreContextMenu}
                                     />
                                 ))}
                             </div>
