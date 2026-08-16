@@ -1167,6 +1167,14 @@
     display: flex;
     flex-wrap: wrap;
     gap: 2px;
+    cursor: pointer;
+    transition: background-color var(--anim-duration-fast) ease;
+}
+
+/* Same rule as `.hourCell`: only empty space is clickable, so hovering an
+   event inside the cell must not light the cell up. */
+.allDayCell:hover:not(:has(.allDayEvent:hover)) {
+    background: var(--hover-bg, rgba(255, 255, 255, 0.02));
 }
 
 /* All-day cell transition states */
