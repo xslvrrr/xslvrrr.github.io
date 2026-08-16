@@ -50,9 +50,17 @@ export function SidebarProfileCard({
               type="button"
               className={cn(
                 "flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/35 p-2 text-left",
-                "transition-[background-color,border-color,box-shadow] duration-200 hover:border-sidebar-border hover:bg-sidebar-accent/75 hover:shadow-sm",
+                // Width and padding are in the transition because the avatar is the row's last
+                // item: without them the card snaps to icon width and the avatar teleports across
+                // the rail instead of riding the collapse.
+                "transition-[background-color,border-color,box-shadow,width,padding,gap] duration-200 hover:border-sidebar-border hover:bg-sidebar-accent/75 hover:shadow-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                // Collapsed, the button is exactly the avatar: the row gap would otherwise still
+                // reserve 12px next to the zero-width name block and push the avatar out of frame.
+                // No justify-* here — the avatar is the last item, so it rides the shrinking box
+                // to the left edge on its own; centring it would jump it mid-collapse.
                 "group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:rounded-full! group-data-[collapsible=icon]:border-0! group-data-[collapsible=icon]:bg-transparent! group-data-[collapsible=icon]:p-0!",
+                "group-data-[collapsible=icon]:gap-0!",
               )}
               data-sidebar="profile-card"
             />

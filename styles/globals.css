@@ -1631,23 +1631,66 @@ html[data-anim-toast-animations="enabled"] [data-sonner-toaster] [data-sonner-to
 
 /* Sidebar collapse hide - visibility-based transition instead of display:none */
 .sidebar-collapse-hide {
-    transition: opacity var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), max-width var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), visibility var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
+    transition: opacity var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), max-width var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), padding var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing), visibility var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing) !important;
     overflow: hidden;
     max-width: 200px;
 }
 
-/* Apply hidden state when sidebar is collapsed */
+/* Apply hidden state when sidebar is collapsed. The padding has to go with the width: a
+   border-box element cannot shrink below its own horizontal padding, so any inline padding
+   left here keeps occupying the rail and pushes the avatar out of the collapsed button. */
 [data-collapsible="icon"] .sidebar-collapse-hide {
     opacity: 0;
     visibility: hidden;
     max-width: 0;
+    padding-left: 0;
+    padding-right: 0;
     overflow: hidden;
 }
 
-/* Keep button padding consistent - avatar doesn't need to move */
-[data-collapsible="icon"] [data-slot="sidebar-header"] button {
-    padding: 8px;
-    justify-content: flex-start;
+/* ── Collapsed rail sizing ───────────────────────────────────────────────
+   The collapsed rail is exactly one icon button wide, so every horizontal padding inside it
+   is subtracted from the space the buttons get. The rail measures
+   --sidebar-width-icon (48) + the container's p-2 (16) + 2 = 66px; that leaves a 50px inner
+   track, minus the inner surface's own 4px a side = 42px, so the group and footer can only
+   afford 5px a side for the 32px buttons to fit. At 8px they are clipped by 6px.
+
+   Everything here stays left-anchored on purpose. `data-collapsible` flips the instant the
+   toggle is pressed while the rail width is still animating, so any rule that centres against
+   the current track (align-items, justify-content, margin auto) resolves against the OLD wide
+   width and throws the icons off to the right before they slide back. Padding is measured from
+   the left edge, which does not move, so the icons only travel the 4px between their expanded
+   and collapsed columns. */
+[data-collapsible="icon"] [data-sidebar="group"],
+[data-collapsible="icon"] [data-slot="sidebar-header"],
+[data-collapsible="icon"] [data-slot="sidebar-footer"] {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* Icons are 18px but the collapsed button is 32px with 8px padding, which leaves a 16px
+   content box and shaves 1px off each side of every icon. 7px lands the icon exactly, and
+   puts its centre on the centre of the rail. */
+[data-collapsible="icon"] [data-sidebar="menu-button"] {
+    padding: 7px !important;
+}
+
+/* The rail is the click target that toggles the sidebar, and it centres itself on its
+   container's right edge. Expanded that edge is the seam against the inset panel, which is
+   where the toggle belongs. Collapsed it is not: the gap the inset lays out against is
+   --sidebar-width-icon + 16 = 64px while the container is 2px wider, and the inset then adds
+   its own 12px margin-left, putting the seam 10px past the container edge. Shifting the rail
+   by that 10px keeps the toggle on the border in both states. */
+[data-collapsible="icon"] [data-sidebar="rail"] {
+    right: -26px;
+}
+
+/* These paddings change between states, so they travel with the width instead of stepping the
+   icon column sideways at the start of the animation. */
+[data-sidebar="group"],
+[data-slot="sidebar-header"],
+[data-slot="sidebar-footer"] {
+    transition: padding var(--anim-sidebarAnimations-duration) var(--anim-sidebarAnimations-easing);
 }
 
 /* Footer styling */
