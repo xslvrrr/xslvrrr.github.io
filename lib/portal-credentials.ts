@@ -3,6 +3,11 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 const ENVELOPE_VERSION = 1;
 const ALGORITHM = 'aes-256-gcm';
 
+// The portal drops an idle session well before the envelope itself ages out.
+// Cookies older than this are treated as spent, so a refresh signs in again with
+// the saved password instead of scraping a logged-out portal.
+const COOKIE_FRESHNESS_MS = 4 * 60 * 60 * 1000;
+
 export interface PortalCredentials {
   username: string;
   password: string;
@@ -38,6 +43,14 @@ function deriveUserKey(userId: string): Buffer {
 
 function associatedData(userId: string): Buffer {
   return Buffer.from(`millennium-user:${userId}:portal-credentials:v1`, 'utf8');
+}
+
+export function reusablePortalCookies(credentials: PortalCredentials | null, now = Date.now()): string[] | null {
+  if (!credentials?.cookies?.length) return null;
+  const updatedAt = credentials.cookiesUpdatedAt ? Date.parse(credentials.cookiesUpdatedAt) : Number.NaN;
+  if (!Number.isFinite(updatedAt)) return null;
+  if (now - updatedAt > COOKIE_FRESHNESS_MS || updatedAt > now + 60_000) return null;
+  return credentials.cookies;
 }
 
 export function encryptPortalCredentials(userId: string, credentials: PortalCredentials): PortalCredentialEnvelope {

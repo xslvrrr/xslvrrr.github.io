@@ -108,7 +108,10 @@ export const Route = createFileRoute('/api/portal/data')({
             return Response.json({ message: 'Unauthorized' }, { status: 401 });
           }
 
-          const user = await wipeUserPortalData(session.userId);
+          // `keepSavedLogin` is the ultra-run rollback: it erases the synced
+          // chunks it wrote without forgetting the account's saved login.
+          const keepSavedLogin = new URL(request.url).searchParams.get('keepSavedLogin') === 'true';
+          const user = await wipeUserPortalData(session.userId, { keepSavedLogin });
           if (!user) {
             return Response.json({ message: 'User not found' }, { status: 404 });
           }

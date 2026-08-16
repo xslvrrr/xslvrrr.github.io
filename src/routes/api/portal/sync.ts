@@ -1,7 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { toPortalSyncOptions } from '../../../../lib/data-settings';
 import { PortalDataIntegrityError } from '../../../../lib/portal-data-integrity';
-import { decryptPortalCredentials, encryptPortalCredentials } from '../../../../lib/portal-credentials';
+import {
+  decryptPortalCredentials,
+  encryptPortalCredentials,
+  reusablePortalCookies,
+} from '../../../../lib/portal-credentials';
 import {
   GLOBAL_ULTRA_RUN_LOCK_KEY,
   acquireUltraRunLock,
@@ -21,6 +25,19 @@ import { consumeRateLimit, rateLimitResponse } from '../../../../lib/rate-limit'
 import { readJsonBody, requestBodyErrorResponse } from '../../../../lib/request-body';
 import { crossOriginMutationResponse } from '../../../../lib/csrf';
 import { persistReportPdfs } from '../../../../lib/report-pdfs';
+
+// A spent portal session rarely comes back as an auth failure: the portal
+// answers a logged-out request with the login page, a missing section, or a 403.
+// Only a transport-level failure makes signing in again pointless, so every
+// other reuse failure retries with the saved login rather than surfacing an
+// error the saved login could have prevented.
+function shouldRetryWithSavedLogin(error: unknown): boolean {
+  if (error instanceof PortalAuthError) return true;
+  if (error instanceof PortalSyncError) {
+    return error.code !== 'PORTAL_SYNC_TIMEOUT' && error.code !== 'PORTAL_TRANSIENT_FAILURE';
+  }
+  return true;
+}
 
 export const Route = createFileRoute('/api/portal/sync')({
   server: {
@@ -77,9 +94,16 @@ export const Route = createFileRoute('/api/portal/sync')({
               if (!syncState) throw new PortalAuthError('Your Millennium app session is no longer valid.');
 
               const savedCredentials = decryptPortalCredentials(userId, syncState.portalCredentialEnvelope);
-              const encryptedCookies = savedCredentials?.cookies?.length ? savedCredentials.cookies : null;
+              if (!savedCredentials && syncState.portalCredentialEnvelope) {
+                logger.warn('[Portal Sync] Stored portal credentials could not be read; automatic refresh needs a new sign-in.', { userId });
+              }
               const legacySessionCookies = session.portalCookies?.length ? session.portalCookies : null;
-              const reusableCookies = encryptedCookies || legacySessionCookies;
+              // A saved login always outranks the session cookies: stale cookies
+              // are skipped so the refresh signs in again instead of scraping a
+              // logged-out portal and storing the spent cookies back.
+              const reusableCookies = savedCredentials
+                ? reusablePortalCookies(savedCredentials)
+                : legacySessionCookies;
               let result;
 
               if (reusableCookies) {
@@ -92,7 +116,11 @@ export const Route = createFileRoute('/api/portal/sync')({
                       : undefined,
                   );
                 } catch (error) {
-                  if (!(error instanceof PortalAuthError) || !savedCredentials) throw error;
+                  if (!savedCredentials || !shouldRetryWithSavedLogin(error)) throw error;
+                  logger.warn('[Portal Sync] Saved portal session could not be reused; signing in with the saved login.', {
+                    userId,
+                    code: error instanceof PortalSyncError ? error.code : 'PORTAL_SESSION_UNUSABLE',
+                  });
                   result = await loginAndScrapePortal(savedCredentials.username, savedCredentials.password, syncOptions);
                 }
               } else if (savedCredentials) {
