@@ -2986,8 +2986,13 @@
   z-index: 1;
 }
 
+/* min-height: 0 lets the body shrink below its content height, which is what gives
+   .detailsBody a bounded box to scroll inside. Without it the column grows past the
+   panel and the overflow is clipped by .notificationsContainer, so a long notification
+   simply cannot be scrolled. */
 .detailsContent {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
