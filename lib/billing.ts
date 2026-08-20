@@ -1,13 +1,10 @@
 import { supabaseAdmin } from "./supabase";
 import {
   type AiModelDefinition,
-  type AiModelId,
   type AiPlanTier,
-  AI_MODELS,
-  DEFAULT_AI_MODEL_ID,
   canUseAiModel,
-  getAiModel,
 } from "./ai-models";
+import { getAssistantModelCatalog, resolveAssistantModel } from "./assistant/model-catalog";
 
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 
@@ -53,22 +50,25 @@ export async function getBillingState(userId: string): Promise<BillingState> {
 
 export async function getBillingSummary(userId: string) {
   const billing = await getBillingState(userId);
-  const [trialResult, usage] = await Promise.all([
+  const [trialResult, usage, catalog] = await Promise.all([
     supabaseAdmin
       .from("study_trial_uses")
       .select("status, used_at")
       .eq("user_id", userId)
       .maybeSingle(),
     getAiUsageSummary(userId, billing.tier),
+    getAssistantModelCatalog(),
   ]);
   if (trialResult.error) throw trialResult.error;
   const trial = trialResult.data;
 
   return {
     ...billing,
-    models: AI_MODELS.map(({ providerModel: _providerModel, ...model }) => ({
+    // `providerModel` is stripped deliberately: the picker needs a label and an id, and the upstream
+    // slug is an implementation detail the client has no use for.
+    models: catalog.map(({ providerModel: _providerModel, ...model }) => ({
       ...model,
-      locked: !canUseAiModel(billing.tier, getAiModel(model.id)),
+      locked: !canUseAiModel(billing.tier, model as AiModelDefinition),
       priceBand: model.completionPricePerToken <= 0.000006
         ? 1
         : model.completionPricePerToken <= 0.00002 ? 2 : 3,
@@ -83,13 +83,12 @@ export async function resolveAiModelForUser(
   userId: string,
   requestedModelId: unknown,
 ): Promise<{ model: AiModelDefinition; billing: BillingState }> {
-  const billing = await getBillingState(userId);
-  const modelId = typeof requestedModelId === "string"
-    ? requestedModelId as AiModelId
-    : DEFAULT_AI_MODEL_ID;
-  const model = getAiModel(modelId);
+  const [billing, model] = await Promise.all([
+    getBillingState(userId),
+    resolveAssistantModel(requestedModelId),
+  ]);
 
-  if (model.id !== modelId || !canUseAiModel(billing.tier, model)) {
+  if (!model || !canUseAiModel(billing.tier, model)) {
     const error = new Error("Selected model is not included in your current plan.");
     (error as Error & { status?: number }).status = 403;
     throw error;

@@ -9,16 +9,18 @@
  * behaviour for this release.
  */
 export type AiPlanTier = "free" | "study" | "frontier";
-export type AiLabId =
-  | "openrouter"
-  | "openai"
-  | "google"
-  | "nvidia";
-export type AiModelId =
-  | "fast-free"
-  | "nemotron-ultra-free"
-  | "gemma-4-free"
-  | "gpt-oss-free";
+/**
+ * Lab and model ids are open strings rather than unions.
+ *
+ * The catalogue below is now a fallback: the models actually offered are fetched from OpenRouter at
+ * runtime by `lib/assistant/model-catalog.ts`, because the free tier turns over faster than a
+ * literal list can be maintained. A closed union cannot describe a list that is discovered, and
+ * pretending otherwise would have meant a cast at every point a fetched model is used.
+ *
+ * The four entries here stay as the offline fallback and as the source of the auto-routing entry.
+ */
+export type AiLabId = string;
+export type AiModelId = string;
 
 export interface AiModelDefinition {
   id: AiModelId;
@@ -50,7 +52,7 @@ export const AI_MODELS: readonly AiModelDefinition[] = [
     lab: "openrouter",
     description: "Routes to an available free model that supports requested tools.",
     recommended: true,
-    maxCompletionTokens: 2_200,
+    maxCompletionTokens: 8_000,
     promptPricePerToken: 0,
     completionPricePerToken: 0,
   },
@@ -61,7 +63,7 @@ export const AI_MODELS: readonly AiModelDefinition[] = [
     minimumTier: "free",
     lab: "nvidia",
     description: "Free long-context reasoning from NVIDIA.",
-    maxCompletionTokens: 2_200,
+    maxCompletionTokens: 8_000,
     promptPricePerToken: 0,
     completionPricePerToken: 0,
   },
@@ -72,7 +74,7 @@ export const AI_MODELS: readonly AiModelDefinition[] = [
     minimumTier: "free",
     lab: "google",
     description: "Free general-purpose Google open model.",
-    maxCompletionTokens: 2_200,
+    maxCompletionTokens: 8_000,
     promptPricePerToken: 0,
     completionPricePerToken: 0,
   },
@@ -83,7 +85,7 @@ export const AI_MODELS: readonly AiModelDefinition[] = [
     minimumTier: "free",
     lab: "openai",
     description: "Free OpenAI open-weight model for simple agent work.",
-    maxCompletionTokens: 2_200,
+    maxCompletionTokens: 8_000,
     promptPricePerToken: 0,
     completionPricePerToken: 0,
   },

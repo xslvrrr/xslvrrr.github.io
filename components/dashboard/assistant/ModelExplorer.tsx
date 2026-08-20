@@ -59,6 +59,17 @@ const LAB_LABELS: Record<string, string> = {
 
 const LAB_ORDER = ["openrouter", "anthropic", "openai", "google", "moonshot", "z-ai", "x-ai", "nvidia"];
 
+/**
+ * A readable name for a lab the list above has never heard of.
+ *
+ * The catalogue is fetched from OpenRouter now, so the set of labs is open — a free model can turn
+ * up from a vendor that did not exist when this file was written. Falling back to the raw slug and
+ * tidying it beats hiding the model behind a tab that never renders.
+ */
+function labName(lab: string): string {
+  return LAB_LABELS[lab] || lab.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function tierLabel(tier: ModelTier) {
   if (tier === "frontier") return "Frontier";
   if (tier === "study") return "Study";
@@ -94,19 +105,27 @@ export function ModelExplorer({
   const [section, setSection] = useState("recommended");
   const [query, setQuery] = useState("");
   const selected = models.find((model) => model.id === selectedModelId) || models[0];
-  const labs = useMemo(() => (
-    LAB_ORDER.filter((lab) => models.some((model) => model.lab === lab))
-  ), [models]);
+  // Known labs keep their order; anything the catalogue turned up that is not on the list follows,
+  // alphabetically. Filtering to LAB_ORDER alone left a fetched model with no tab to appear under
+  // and no way to reach it.
+  const labs = useMemo(() => {
+    const present = [...new Set(models.map((model) => model.lab))];
+    return [
+      ...LAB_ORDER.filter((lab) => present.includes(lab)),
+      ...present.filter((lab) => !LAB_ORDER.includes(lab)).sort(),
+    ];
+  }, [models]);
   const visibleModels = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return models.filter((model) => {
-      if (section === "recommended" && !model.recommended) return false;
-      if (section !== "recommended" && model.lab !== section) return false;
-      if (!normalizedQuery) return true;
-      return `${model.label} ${model.description} ${LAB_LABELS[model.lab] || model.lab}`
-        .toLowerCase()
-        .includes(normalizedQuery);
-    });
+    const matchesQuery = (model: (typeof models)[number]) => (
+      !normalizedQuery
+      || `${model.label} ${model.description} ${labName(model.lab)}`.toLowerCase().includes(normalizedQuery)
+    );
+    // A typed query searches the whole catalogue. Scoping it to the open tab meant typing a model's
+    // name and being told there were no results, while the model sat one tab away.
+    if (normalizedQuery) return models.filter(matchesQuery);
+    if (section === "recommended") return models.filter((model) => model.recommended);
+    return models.filter((model) => model.lab === section);
   }, [models, query, section]);
 
   return (
@@ -182,7 +201,7 @@ export function ModelExplorer({
                     render={(
                       <button
                         type="button"
-                        aria-label={`${LAB_LABELS[lab] || lab} models`}
+                        aria-label={`${labName(lab)} models`}
                         onClick={() => setSection(lab)}
                         className={cn(
                           "flex size-9 items-center justify-center rounded-md transition-colors",
@@ -193,7 +212,7 @@ export function ModelExplorer({
                   >
                     <LabLogo lab={lab} />
                   </TooltipTrigger>
-                  <TooltipContent side="right">{LAB_LABELS[lab] || lab}</TooltipContent>
+                  <TooltipContent side="right">{labName(lab)}</TooltipContent>
                 </Tooltip>
               ))}
             </div>
@@ -201,7 +220,7 @@ export function ModelExplorer({
           <div className="min-h-0 overflow-y-auto p-2">
             <div className="mb-2 flex items-center justify-between px-1">
               <span className="text-xs font-medium">
-                {section === "recommended" ? "Recommended" : LAB_LABELS[section] || section}
+                {section === "recommended" ? "Recommended" : labName(section)}
               </span>
               <span className="text-[10px] text-muted-foreground">{visibleModels.length} models</span>
             </div>
