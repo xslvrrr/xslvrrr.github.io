@@ -25,6 +25,8 @@ import { consumeRateLimit, rateLimitResponse } from '../../../../lib/rate-limit'
 import { readJsonBody, requestBodyErrorResponse } from '../../../../lib/request-body';
 import { crossOriginMutationResponse } from '../../../../lib/csrf';
 import { persistReportPdfs } from '../../../../lib/report-pdfs';
+import { detectTeacherChanges } from '../../../../lib/portal-teacher-changes';
+import { recordTeacherChanges } from '../../../../lib/portal-teacher-changes-store';
 
 // A spent portal session rarely comes back as an auth failure: the portal
 // answers a logged-out request with the login page, a missing section, or a 403.
@@ -179,10 +181,24 @@ export const Route = createFileRoute('/api/portal/sync')({
 
               const warnings: string[] = persistedReports.warnings;
 
-              return { result, user, warnings };
+              // Compared against the grid as it stood *before* this sync's merge, which is why
+              // `previousTimetable` is read at the start of the run. The lookahead grid is a second
+              // fetch of the same page a fortnight out and is deliberately not persisted: it is
+              // evidence about today's change, not a timetable anyone should be shown.
+              const teacherChanges = detectTeacherChanges({
+                previous: syncState.previousTimetable as any,
+                current: portalData.timetable,
+                lookahead: portalData.timetableLookahead,
+                lookaheadDate: portalData.timetableLookahead?.date,
+              });
+              const pendingTeacherChanges = teacherChanges.length > 0
+                ? await recordTeacherChanges(userId, teacherChanges)
+                : [];
+
+              return { result, user, warnings, pendingTeacherChanges };
             }, 300);
 
-            const { result, user, warnings } = coordinated.value;
+            const { result, user, warnings, pendingTeacherChanges } = coordinated.value;
             const portalData = result.data;
             const totalDurationMs = Date.now() - startedAt;
             return Response.json(
@@ -202,6 +218,9 @@ export const Route = createFileRoute('/api/portal/sync')({
                   failedPages: portalData.syncMeta?.failedPages || [],
                 },
                 ...(warnings.length ? { syncWarnings: warnings } : {}),
+                // Returned with the sync rather than left for the dashboard to poll for: the change
+                // was found by this request, and a student who refreshed is standing right here.
+                ...(pendingTeacherChanges.length ? { teacherChanges: pendingTeacherChanges } : {}),
               },
               {
                 headers: {

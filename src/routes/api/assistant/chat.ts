@@ -30,6 +30,8 @@ import { consumeRateLimit, rateLimitResponse } from '../../../../lib/rate-limit'
 import { readJsonBody, requestBodyErrorResponse } from '../../../../lib/request-body';
 import { crossOriginMutationResponse } from '../../../../lib/csrf';
 import { getUserFlashcardSnapshot, saveUserFlashcardSets } from '../../../../lib/study-server';
+import * as pastPaperRepository from '../../../../lib/past-papers/repository';
+import { listPendingTeacherChanges } from '../../../../lib/portal-teacher-changes-store';
 import { SupabaseStudyRepository } from '../../../../lib/study/supabase-repository';
 import { StudyService } from '../../../../lib/study/service';
 import { StudyWorkshopService } from '../../../../lib/study/workshop-service';
@@ -62,6 +64,7 @@ import {
   ASSISTANT_MAX_ATTACHMENT_DATA_URL_CHARS,
   ASSISTANT_MAX_CHAT_STEPS,
   ASSISTANT_MAX_COMPLETION_TOKENS,
+  ASSISTANT_MAX_CONTINUATION_ROUNDS,
   ASSISTANT_MAX_CONTEXT_TEXT_CHARS,
   ASSISTANT_MAX_MESSAGE_CHARS,
   ASSISTANT_MAX_MESSAGES,
@@ -264,6 +267,18 @@ function splitThinkingText(input: string, state: { inThink: boolean; carry: stri
   return { content, thinking };
 }
 
+/**
+ * Whether a provider stopped because it ran out of output budget.
+ *
+ * Nothing used to read this. A reply cut off at `max_tokens` arrived looking exactly like a reply
+ * the model had finished writing, so a half-sentence — or a half-thought, from a model that reasons
+ * in plain prose — was saved to the thread and shown to the student as the answer. Every provider
+ * shape says so in a different field, so they are normalised here and read in one place.
+ */
+function isTruncatedFinishReason(value: unknown): boolean {
+  return value === 'length' || value === 'max_tokens' || value === 'MAX_TOKENS';
+}
+
 function normalizeToolCalls(value: unknown): AssistantToolCall[] {
   if (!Array.isArray(value)) return [];
   if (value.length > ASSISTANT_MAX_TOOL_CALLS_PER_STEP) {
@@ -277,9 +292,12 @@ function normalizeToolCalls(value: unknown): AssistantToolCall[] {
     }
     const rawId = typeof toolCall.id === 'string' ? toolCall.id.trim() : '';
     const id = (rawId || `tool-${index + 1}`).slice(0, 200);
-    const name = typeof toolCall.function.name === 'string' ? toolCall.function.name.trim() : '';
+    // Bounded but not checked against the tool list. A name that does not exist is answered as a
+    // failed tool result naming the right tool, because a model that invented one should lose a
+    // round trip rather than the student losing the whole reply.
+    const name = (typeof toolCall.function.name === 'string' ? toolCall.function.name.trim() : '').slice(0, 80);
     const args = normalizeAssistantToolArguments(toolCall.function.arguments ?? {});
-    if (!id || seenIds.has(id) || !isKnownAssistantAction(name) || !args) {
+    if (!id || seenIds.has(id) || !name || !args) {
       throw new OpenRouterRequestError(502, 'Provider returned an invalid tool call');
     }
     seenIds.add(id);
@@ -378,10 +396,23 @@ function hasFileParserAttachments(messages: AssistantMessage[]) {
   ));
 }
 
+/**
+ * Whether to ask the provider for reasoning tokens on this turn.
+ *
+ * Reasoning is not free here: on the built-in free models it comes out of the same completion budget
+ * as the answer, so a turn that reasons is a turn with less room to reply in. The previous rule
+ * matched `all`, `why`, `create` and `notifications`, which meant "what are all my classes today" —
+ * a lookup with the answer already resolved in the snapshot — bought a round of deliberation it had
+ * no use for and then ran out of budget mid-sentence.
+ *
+ * The list below is now only work that genuinely benefits: multi-step edits, comparisons, and
+ * planning. Reads, lookups and single changes answer directly.
+ */
 function getReasoningOptions(messages: AssistantMessage[]) {
   const latestUser = [...messages].reverse().find((message) => message.role === 'user');
   const text = `${latestUser?.content || ''} ${latestUser?.attachments?.map((file) => file.name).join(' ') || ''}`.toLowerCase();
-  const needsReasoning = text.length > 700 || /\b(debug|fix|refactor|implement|build|create|organise|organize|notifications?|audit|compare|analyse|analyze|investigate|why|plan|strategy|architecture|optimi[sz]e|all|bulk|multiple|skill)\b/.test(text);
+  const needsReasoning = text.length > 1_200
+    || /\b(debug|refactor|audit|compare|contrast|analyse|analyze|investigate|strategy|architecture|optimi[sz]e|reorganis|reorganiz|step by step|work out|figure out)\b/.test(text);
   return needsReasoning ? { effort: 'low', exclude: false } : { exclude: true };
 }
 
@@ -389,7 +420,9 @@ function validateChatBody(value: unknown): value is Record<string, any> {
   if (!isRecord(value) || !Array.isArray(value.messages) || value.messages.length > ASSISTANT_MAX_MESSAGES) return false;
   if (value.threadId !== undefined && (typeof value.threadId !== 'string' || value.threadId.length > 160)) return false;
   if (value.summarizeThinking !== undefined && typeof value.summarizeThinking !== 'boolean') return false;
-  if (value.modelId !== undefined && (typeof value.modelId !== 'string' || value.modelId.length > 64)) return false;
+  // 128 rather than 64: a fetched free-model id is `or:` plus the full OpenRouter slug, and several
+  // of the current ones are longer than the old cap.
+  if (value.modelId !== undefined && (typeof value.modelId !== 'string' || value.modelId.length > 128)) return false;
   if (value.studyTrial !== undefined && typeof value.studyTrial !== 'boolean') return false;
 
   return value.messages.every((message: unknown) => {
@@ -543,8 +576,59 @@ function mergeProviderUsage(
   };
 }
 
+/**
+ * The student's saved past papers, as the assistant sees them.
+ *
+ * `inspect_past_papers` and two built-in skills have always told the model to read a paper before
+ * writing cards from it, but nothing ever populated `state.pastPapers` — so the tool reported zero
+ * saved papers on every account, and the skills instructed the model to call a tool that could only
+ * fail. Metadata only: paper text extraction happens in the reader, not here, and the tool already
+ * says so when a paper has no text yet.
+ *
+ * Failures are swallowed to an empty list. A past-paper table that is unreachable should cost the
+ * student one tool result, not the whole chat request.
+ */
+async function loadAssistantPastPapers(userId: string) {
+  try {
+    const saves = await pastPaperRepository.listSaves(userId);
+    if (saves.length === 0) return [];
+    const papers = await pastPaperRepository.findPapersByIds(saves.map((save) => save.paperId));
+    return papers.map((paper) => ({
+      id: paper.id,
+      title: paper.title,
+      subject: paper.subject,
+      year: paper.year,
+      school: paper.school,
+      totalMarks: paper.totalMarks,
+      durationMinutes: paper.durationMinutes,
+    }));
+  } catch (error) {
+    logger.warn('Assistant past-paper snapshot could not be loaded', error);
+    return [];
+  }
+}
+
+/**
+ * Teacher changes the student has not acknowledged.
+ *
+ * Only the unacknowledged ones. An acknowledged change is a fact the student has already been told,
+ * and carrying the whole history into every chat would mean the assistant volunteering last term's
+ * substitute as news. `inspect_teacher_changes` reads this; the snapshot only counts it.
+ *
+ * Failures are swallowed to an empty list: an unreachable table should cost one tool result, not
+ * the chat request.
+ */
+async function loadAssistantTeacherChanges(userId: string) {
+  try {
+    return await listPendingTeacherChanges(userId);
+  } catch (error) {
+    logger.warn('Assistant teacher-change snapshot could not be loaded', error);
+    return [];
+  }
+}
+
 async function loadAssistantState(userId: string): Promise<AssistantDashboardState> {
-  const [user, preferences, localCalendar, themeBuilder, assistantState, notificationStates, flashcardSnapshot] = await Promise.all([
+  const [user, preferences, localCalendar, themeBuilder, assistantState, notificationStates, flashcardSnapshot, pastPapers, teacherChanges] = await Promise.all([
     getUserAssistantPortalSnapshot(userId),
     getUserPreferences(userId),
     getUserLocalCalendar(userId),
@@ -552,6 +636,8 @@ async function loadAssistantState(userId: string): Promise<AssistantDashboardSta
     getUserAssistantState(userId),
     getUserNotificationStates(userId),
     getUserFlashcardSnapshot(userId),
+    loadAssistantPastPapers(userId),
+    loadAssistantTeacherChanges(userId),
   ]);
 
   return {
@@ -573,6 +659,8 @@ async function loadAssistantState(userId: string): Promise<AssistantDashboardSta
     skills: normalizeAssistantSkills(assistantState.skills),
     flashcardSets: flashcardSnapshot.sets,
     flashcardRevision: flashcardSnapshot.revision,
+    pastPapers,
+    teacherChanges,
   };
 }
 
@@ -997,6 +1085,7 @@ async function callAnthropic(
       reasoningDetails: [],
       model: typeof payload.model === 'string' ? payload.model.slice(0, 160) : selectedModel.providerModel,
       usage: normalizeAnthropicUsage(payload.usage),
+      truncated: isTruncatedFinishReason(payload.stop_reason),
     };
   } catch (error) {
     if (error instanceof OpenRouterRequestError || error instanceof AssistantGuardrailError) throw error;
@@ -1064,6 +1153,8 @@ async function callOpenRouter(
       reasoningDetails: Array.isArray(message.reasoning_details) ? message.reasoning_details : [],
       model: typeof payload.model === 'string' ? payload.model.slice(0, 160) : selectedModel.providerModel,
       usage: normalizeProviderUsage(payload.usage),
+      truncated: isTruncatedFinishReason(payload.choices[0].finish_reason)
+        || isTruncatedFinishReason(payload.choices[0].native_finish_reason),
     };
   } catch (error) {
     if (error instanceof OpenRouterRequestError || error instanceof AssistantGuardrailError) throw error;
@@ -1116,6 +1207,7 @@ async function callAnthropicStream(
     let receivedBytes = 0;
     let model = selectedModel.providerModel;
     let usage: ReturnType<typeof normalizeProviderUsage> = null;
+    let truncated = false;
 
     try {
       while (true) {
@@ -1154,6 +1246,9 @@ async function callAnthropicStream(
           }
           if (payload.type === 'message_delta') {
             usage = mergeProviderUsage(usage, normalizeAnthropicUsage(payload.usage));
+            if (isRecord(payload.delta) && isTruncatedFinishReason(payload.delta.stop_reason)) {
+              truncated = true;
+            }
           }
 
           const index = Number(payload.index);
@@ -1222,6 +1317,7 @@ async function callAnthropicStream(
       reasoningDetails: [],
       model,
       usage,
+      truncated,
     };
   } catch (error) {
     if (error instanceof OpenRouterRequestError || error instanceof AssistantGuardrailError) throw error;
@@ -1304,6 +1400,7 @@ async function callOpenRouterStream(
     let receivedBytes = 0;
     let usage: ReturnType<typeof normalizeProviderUsage> = null;
     let resolvedModel = selectedModel.providerModel;
+    let truncated = false;
 
     try {
       while (true) {
@@ -1335,6 +1432,12 @@ async function callOpenRouterStream(
           if (typeof payload.model === 'string') resolvedModel = payload.model.slice(0, 160);
           usage = normalizeProviderUsage(payload.usage) || usage;
           const choice = Array.isArray(payload.choices) && isRecord(payload.choices[0]) ? payload.choices[0] : {};
+          if (
+            isTruncatedFinishReason(choice.finish_reason)
+            || isTruncatedFinishReason(choice.native_finish_reason)
+          ) {
+            truncated = true;
+          }
           const delta = isRecord(choice.delta) ? choice.delta : {};
           const splitContent = splitThinkingText(extractAssistantText(delta), thinkingState);
           const contentDelta = splitContent.content;
@@ -1400,6 +1503,7 @@ async function callOpenRouterStream(
       reasoningDetails: rawReasoningDetails,
       model: resolvedModel,
       usage,
+      truncated,
     };
   } catch (error) {
     if (error instanceof OpenRouterRequestError || error instanceof AssistantGuardrailError) throw error;
@@ -1471,6 +1575,9 @@ function streamAssistantResponse(
         let totalToolCalls = 0;
         let toolLoopExhausted = false;
 
+        let continuationRounds = 0;
+        let continuationCarry = '';
+
         const maximumSteps = studyTrialReservationId ? 2 : ASSISTANT_MAX_CHAT_STEPS;
         for (let step = 0; step < maximumSteps; step += 1) {
           deadline.throwIfExpired();
@@ -1501,10 +1608,47 @@ function streamAssistantResponse(
           model = result.model;
           requestModel = modelForNextToolRound(selectedModel, result.model);
           usage = mergeProviderUsage(usage, result.usage);
-          finalText = result.content;
+          finalText = `${continuationCarry}${result.content}`;
           finalThinking = [finalThinking, result.thinking].filter(Boolean).join('\n\n');
 
-          if (result.toolCalls.length === 0) break;
+          if (result.toolCalls.length === 0) {
+            if (!result.truncated) break;
+
+            // The model ran out of output budget rather than finishing. What is in `finalText` is
+            // the first part of a sentence, and shipping it as the answer is how a half-finished
+            // thought ended up in the thread looking like a considered reply.
+            const canContinue = Boolean(result.content.trim())
+              && continuationRounds < ASSISTANT_MAX_CONTINUATION_ROUNDS
+              && step < maximumSteps - 1;
+
+            if (!canContinue) {
+              finalText = result.content.trim()
+                ? `${finalText}\n\n[The reply was cut off at its length limit. Ask for the rest, or for a shorter answer.]`
+                : 'That model used its whole output budget before writing an answer. Try again, ask for something narrower, or pick a different model in the model picker.';
+              emit('delta', {
+                content: result.content.trim()
+                  ? '\n\n[The reply was cut off at its length limit. Ask for the rest, or for a shorter answer.]'
+                  : finalText,
+                thinking: '',
+              });
+              break;
+            }
+
+            continuationRounds += 1;
+            continuationCarry = finalText;
+            emit('status', { message: 'Continuing the answer' });
+            messages.push({ role: 'assistant', content: result.content });
+            messages.push({
+              role: 'user',
+              content: 'Your previous message was cut off at its length limit. Continue it from exactly where it stopped. Do not repeat anything already written, do not restart, and do not apologise.',
+            });
+            continue;
+          }
+
+          // A round that used tools starts a fresh answer, so an earlier continuation must not be
+          // carried into it.
+          continuationRounds = 0;
+          continuationCarry = '';
           if (
             studyTrialReservationId
             && (result.toolCalls.length !== 1 || totalToolCalls > 0 || result.toolCalls[0]?.function.name !== 'create_flashcard_sets')
@@ -1925,6 +2069,8 @@ export const Route = createFileRoute('/api/assistant/chat')({
           const requestStartedAt = Date.now();
           let totalToolCalls = 0;
           let toolLoopExhausted = false;
+          let continuationRounds = 0;
+          let continuationCarry = '';
 
           for (let step = 0; step < ASSISTANT_MAX_CHAT_STEPS; step += 1) {
             deadline.throwIfExpired();
@@ -1938,12 +2084,37 @@ export const Route = createFileRoute('/api/assistant/chat')({
             model = result.model;
             requestModel = modelForNextToolRound(selectedModel, result.model);
             usage = result.usage;
-            finalText = result.content;
+            finalText = `${continuationCarry}${result.content}`;
             if (!summarizeThinking) finalThinking = [finalThinking, result.thinking].filter(Boolean).join('\n\n');
 
             if (result.toolCalls.length === 0) {
-              break;
+              if (!result.truncated) break;
+
+              // Same rule as the streaming path: a reply that stopped at its length limit is not a
+              // finished reply, and is never returned as though it were.
+              const canContinue = Boolean(result.content.trim())
+                && continuationRounds < ASSISTANT_MAX_CONTINUATION_ROUNDS
+                && step < ASSISTANT_MAX_CHAT_STEPS - 1;
+
+              if (!canContinue) {
+                finalText = result.content.trim()
+                  ? `${finalText}\n\n[The reply was cut off at its length limit. Ask for the rest, or for a shorter answer.]`
+                  : 'That model used its whole output budget before writing an answer. Try again, ask for something narrower, or pick a different model in the model picker.';
+                break;
+              }
+
+              continuationRounds += 1;
+              continuationCarry = finalText;
+              messages.push({ role: 'assistant', content: result.content });
+              messages.push({
+                role: 'user',
+                content: 'Your previous message was cut off at its length limit. Continue it from exactly where it stopped. Do not repeat anything already written, do not restart, and do not apologise.',
+              });
+              continue;
             }
+
+            continuationRounds = 0;
+            continuationCarry = '';
             totalToolCalls += result.toolCalls.length;
             if (totalToolCalls > ASSISTANT_MAX_TOTAL_TOOL_CALLS) {
               throw new AssistantGuardrailError(

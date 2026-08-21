@@ -21,8 +21,29 @@ export const ASSISTANT_MAX_SKILL_PROMPT_CHARS = 24_000;
 export const ASSISTANT_MAX_PROVIDER_PAYLOAD_BYTES = 8 * 1024 * 1024;
 export const ASSISTANT_MAX_PROVIDER_RESPONSE_BYTES = 2 * 1024 * 1024;
 export const ASSISTANT_MAX_CHAT_STEPS = 5;
-export const ASSISTANT_MAX_COMPLETION_TOKENS = 1_200;
+/**
+ * Output budget for one provider call.
+ *
+ * This was 1,200, which is roughly a page. That is a generous answer and a very small *completion*:
+ * every free model on the built-in provider emits its reasoning into the same budget, and several
+ * reason unconditionally. A model that spent nine hundred tokens thinking had three hundred left to
+ * answer in, and the reply stopped mid-sentence — or, when the reasoning was untagged prose, the
+ * fragment that reached the student was the reasoning itself.
+ *
+ * Raised to a figure the free models can all serve (their own ceilings are 32k and up) so the
+ * answer is bounded by the model finishing rather than by the budget running out. Truncation is now
+ * also detected and continued rather than shipped, so this is a ceiling and not a target.
+ */
+export const ASSISTANT_MAX_COMPLETION_TOKENS = 4_000;
 export const ASSISTANT_MAX_SKILL_COMPLETION_TOKENS = 1_600;
+
+/**
+ * How many times a cut-off answer may be asked to continue.
+ *
+ * One is almost always enough — a second round means the model is writing something far longer than
+ * the question warranted, and continuing forever would turn one request into an unbounded bill.
+ */
+export const ASSISTANT_MAX_CONTINUATION_ROUNDS = 2;
 
 export const ASSISTANT_REQUEST_DEADLINE_MS = 90_000;
 export const ASSISTANT_APPROVAL_DEADLINE_MS = 45_000;

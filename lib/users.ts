@@ -62,6 +62,15 @@ export interface PortalSyncUserState {
     user: User;
     portalCredentialEnvelope: unknown | null;
     portalSyncFingerprint: PortalSyncFingerprint | null;
+    /**
+     * The timetable as it stood before this sync.
+     *
+     * Read here rather than after the merge because the merge overwrites it: comparing teachers
+     * needs the old grid and the new one at the same moment. It is a few kilobytes of JSON, which is
+     * why it can be selected on the sync path at all — `portal_data` as a whole is megabytes and
+     * deliberately never crosses PostgREST during a recurring sync.
+     */
+    previousTimetable: unknown | null;
 }
 
 interface PersistedPortalUserRow {
@@ -427,7 +436,7 @@ export async function findUserForPortalSync(id: string, syncSignature: string): 
     const [userResult, fingerprintResult] = await Promise.all([
         supabaseAdmin
             .from('users')
-            .select('id, millennium_uid, email, name, school, settings, created_at, last_sync, portal_credentials, reports:portal_data->reports')
+            .select('id, millennium_uid, email, name, school, settings, created_at, last_sync, portal_credentials, reports:portal_data->reports, timetable:portal_data->timetable')
             .eq('id', id)
             .maybeSingle(),
         supabaseAdmin
@@ -455,6 +464,7 @@ export async function findUserForPortalSync(id: string, syncSignature: string): 
         },
         portalCredentialEnvelope: data.portal_credentials ?? null,
         portalSyncFingerprint: fingerprint,
+        previousTimetable: data.timetable ?? null,
     };
 }
 

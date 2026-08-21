@@ -707,6 +707,13 @@ export function DataSettings({
               checked={settings.includeCalendar}
               onCheckedChange={(checked) => updateBoolean("includeCalendar", checked)}
             />
+            <SyncToggle
+              id="include-teacher-lookahead"
+              label="Teacher change check"
+              description="Fetches your timetable a fortnight ahead as well, so a new teacher can be reported as a permanent change or a substitute rather than just a change."
+              checked={settings.includeTeacherLookahead}
+              onCheckedChange={(checked) => updateBoolean("includeTeacherLookahead", checked)}
+            />
           </FieldGroup>
         </CardContent>
       </Card>
