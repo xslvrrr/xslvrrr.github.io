@@ -19,6 +19,12 @@ export interface PortalDataSettings {
   includeReports: boolean;
   includeClasses: boolean;
   includeCalendar: boolean;
+  /**
+   * Whether to fetch the second, fortnight-ahead timetable page that tells a permanent teacher
+   * change apart from a substitute. One extra page per sync; off means teacher changes are still
+   * detected, but reported as unconfirmed rather than classified.
+   */
+  includeTeacherLookahead: boolean;
   showUltraRunLiveStatus: boolean;
   showSyncUpdates: boolean;
 }
@@ -39,6 +45,7 @@ export interface PortalSyncOptions {
   includeReports: boolean;
   includeClasses: boolean;
   includeCalendar: boolean;
+  includeTeacherLookahead: boolean;
   ultraRun?: PortalUltraRunOptions;
 }
 
@@ -93,6 +100,7 @@ export function getDefaultDataSettings(now = new Date()): PortalDataSettings {
     includeReports: true,
     includeClasses: true,
     includeCalendar: true,
+    includeTeacherLookahead: true,
     showUltraRunLiveStatus: true,
     showSyncUpdates: true,
   };
@@ -127,6 +135,7 @@ export function normalizeDataSettings(input: unknown, now = new Date()): PortalD
     includeReports: source.includeReports !== false,
     includeClasses: source.includeClasses !== false,
     includeCalendar: source.includeCalendar !== false,
+    includeTeacherLookahead: source.includeTeacherLookahead !== false,
     showUltraRunLiveStatus: source.showUltraRunLiveStatus !== false,
     showSyncUpdates: source.showSyncUpdates !== false,
   };
@@ -192,6 +201,7 @@ export function toPortalSyncOptions(input: unknown): PortalSyncOptions {
     includeReports: settings.includeReports,
     includeClasses: settings.includeClasses,
     includeCalendar: settings.includeCalendar,
+    includeTeacherLookahead: settings.includeTeacherLookahead,
     ...(source.ultraRun ? { ultraRun: normalizeUltraRunOptions(source.ultraRun) } : {}),
   };
 }

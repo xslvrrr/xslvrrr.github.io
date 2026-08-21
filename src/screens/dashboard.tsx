@@ -378,6 +378,8 @@ import {
     FeedbackProvider,
     FeedbackSidebarButton,
 } from '@/components/feedback';
+import { TeacherChangeDialog } from '@/components/dashboard/TeacherChangeDialog';
+import { useTeacherChanges } from '@/hooks/useTeacherChanges';
 import { useTourDashboardAdapter } from '@/hooks/useTourDashboardAdapter';
 import { REPLAY_FULL_TOUR_EVENT, REPLAY_UPDATE_TOUR_EVENT } from '@/lib/tour/dashboardRegistry';
 import { SYNC_REVIEW_ACK_KEY as ACKED_SYNC_REVIEW_KEY } from '@/lib/one-time-notices';
@@ -1018,6 +1020,11 @@ export default function Dashboard() {
     } = useDashboardData(isPreviewMode);
 
     const classroom = useGoogleClassroom(session?.userId, !isPreviewMode && Boolean(session?.loggedIn));
+
+    const {
+        changes: teacherChanges,
+        dismiss: dismissTeacherChanges,
+    } = useTeacherChanges(!isPreviewMode && Boolean(session?.loggedIn));
 
     const {
         homeSettings,
@@ -6838,6 +6845,10 @@ export default function Dashboard() {
                         userId={session.userId || session.portalUid || session.username || null}
                         enabled={!isPreviewMode}
                     />
+                    {/* A changed teacher is news the student has to be told once, so it interrupts
+                        rather than joining the notification list. Preview frames are excluded: they
+                        render against fixture data and have no account to acknowledge against. */}
+                    <TeacherChangeDialog changes={teacherChanges} onDismiss={dismissTeacherChanges} />
                     {/* Waiting reports are shown to every administrator, oldest first. */}
                     <AdminFeedbackQueue enabled={!isPreviewMode && session.role === 'admin'} />
                     <PortalSyncStatusToasts />

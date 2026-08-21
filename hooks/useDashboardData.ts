@@ -17,6 +17,11 @@ import { getDataFetchIntervalMs, isUltraRunClientLocked, readDataSettings, toPor
 import { notifyPortalSyncError, notifyPortalSyncSuccess } from '../components/PortalSyncStatusToasts';
 import { mergePortalData } from '../lib/portal-data-merge';
 import { PORTAL_DATA_UPDATED_EVENT } from '../lib/portal-sync-status';
+import {
+  emitTeacherChanges,
+  toTeacherChangeSummary,
+  type TeacherChangeSummary,
+} from './useTeacherChanges';
 import { fetchJsonWithTimeout, fetchWithTimeout } from '../lib/http';
 import { disconnectClassroomProfile } from '../lib/desktop/classroom';
 import {
@@ -461,6 +466,15 @@ export function useDashboardData(preview = false) {
         }
 
         if (controller.signal.aborted || generation !== syncGenerationRef.current) return;
+        // Lifted off the payload before anything merges it. It is news about this sync, not a
+        // section of the dashboard, and leaving it on `data` would spread it into the merged
+        // snapshot and then into the offline cache, where it would sit being wrong.
+        if (Array.isArray(data?.teacherChanges)) {
+          emitTeacherChanges(
+            data.teacherChanges.map(toTeacherChangeSummary).filter(Boolean) as TeacherChangeSummary[],
+          );
+          delete data.teacherChanges;
+        }
         const isIncremental = data?.incremental === true;
         // A sync response only carries the sections that changed. Merging one
         // onto a missing or unverified snapshot would publish (and cache) a
