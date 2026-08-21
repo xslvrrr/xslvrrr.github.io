@@ -14,6 +14,7 @@ import {
   type FlashcardSet,
 } from "../study.ts";
 import { buildBuiltinSkillBlock } from "./builtin-skills.ts";
+import type { StoredTeacherChange } from "../portal-teacher-changes-store.ts";
 import {
   ASSISTANT_READ_TOOL_NAMES,
   executeAssistantReadTool,
@@ -148,6 +149,13 @@ export interface AssistantDashboardState {
    * that can ask for one paper's contents is far cheaper than a snapshot carrying all of them.
    */
   pastPapers?: AssistantPastPaper[];
+  /**
+   * Teacher changes found by a sync, with the permanent-or-substitute verdict already worked out.
+   *
+   * Supplied by the chat route. Nothing else in the state can answer "did my teacher change": the
+   * timetable grid only ever shows who teaches a class now, never who used to.
+   */
+  teacherChanges?: StoredTeacherChange[];
 }
 
 export interface AssistantActionServices {
@@ -286,6 +294,108 @@ const READ_ONLY_ASSISTANT_ACTIONS = new Set<string>([
 
 export function isKnownAssistantAction(name: string): boolean {
   return ASSISTANT_ACTION_NAME_SET.has(name);
+}
+
+/**
+ * Verbs that mean "read". A name built on one of these is asking a question, whatever noun follows.
+ *
+ * Used to keep a suggestion off the mutating tools: `show_calendar` is nearest to `create_calendar`
+ * by word overlap alone, and answering a read with the name of a tool that writes is a worse
+ * failure than answering it with nothing.
+ */
+const READ_VERBS = new Set([
+  "get", "read", "list", "show", "find", "check", "fetch", "view", "see", "look", "query",
+  "search", "inspect", "describe", "what", "when", "who",
+]);
+
+/**
+ * The subject word a made-up tool name is about, mapped to the tool that answers it.
+ *
+ * Written out rather than inferred. The invented names are built from the student's vocabulary, not
+ * the codebase's — a model reaches for `get_timetable`, and no amount of string similarity connects
+ * "timetable" to `inspect_schedule`, because they share no letters that matter.
+ */
+const ACTION_SUBJECT_ALIASES: Record<string, string> = {
+  timetable: "inspect_schedule",
+  schedule: "inspect_schedule",
+  lesson: "inspect_schedule",
+  lessons: "inspect_schedule",
+  period: "inspect_schedule",
+  periods: "inspect_schedule",
+  class: "inspect_schedule",
+  classes: "inspect_schedule",
+  attendance: "inspect_attendance",
+  absence: "inspect_attendance",
+  absences: "inspect_attendance",
+  grade: "inspect_academics",
+  grades: "inspect_academics",
+  mark: "inspect_academics",
+  marks: "inspect_academics",
+  result: "inspect_academics",
+  results: "inspect_academics",
+  report: "inspect_academics",
+  reports: "inspect_academics",
+  academics: "inspect_academics",
+  calendar: "inspect_calendar",
+  event: "inspect_calendar",
+  events: "inspect_calendar",
+  holiday: "inspect_calendar",
+  holidays: "inspect_calendar",
+  notice: "inspect_notices",
+  notices: "inspect_notices",
+  announcement: "inspect_notices",
+  announcements: "inspect_notices",
+  bulletin: "inspect_notices",
+  teacher: "inspect_teacher_changes",
+  teachers: "inspect_teacher_changes",
+  substitute: "inspect_teacher_changes",
+  substitutes: "inspect_teacher_changes",
+  skill: "inspect_skills",
+  skills: "inspect_skills",
+  notification: "inspect_notifications",
+  notifications: "inspect_notifications",
+  flashcard: "inspect_flashcards",
+  flashcards: "inspect_flashcards",
+  deck: "inspect_flashcards",
+  decks: "inspect_flashcards",
+  paper: "inspect_past_papers",
+  papers: "inspect_past_papers",
+  dashboard: "inspect_dashboard",
+  snapshot: "inspect_dashboard",
+};
+
+/**
+ * The real tool a made-up tool name was probably reaching for.
+ *
+ * Small models invent plausible names — `get_timetable`, `read_attendance`, `list_notices` — and a
+ * bare "that tool does not exist" leaves them to guess again, usually badly. Word overlap against
+ * the real names is tried first, then the subject alias above; a name that matches neither gets no
+ * suggestion rather than a confident wrong one.
+ */
+export function suggestAssistantAction(name: string): string | null {
+  const words = name.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  if (words.length === 0) return null;
+  const readsOnly = words.some((word) => READ_VERBS.has(word));
+
+  let best: { name: string; score: number } | null = null;
+  for (const candidate of ASSISTANT_ACTION_NAMES) {
+    if (readsOnly && !candidate.startsWith("inspect_")) continue;
+    const candidateWords = new Set(candidate.split("_"));
+    // "inspect" and "create" appear in most names and separate nothing, so the subject word is what
+    // actually decides the match.
+    const score = words.reduce((total, word) => (
+      total + (candidateWords.has(word) ? (word === "inspect" || word === "create" ? 1 : 3) : 0)
+    ), 0);
+    if (score >= 3 && (!best || score > best.score)) best = { name: candidate, score };
+  }
+  if (best) return best.name;
+
+  for (const word of words) {
+    const alias = ACTION_SUBJECT_ALIASES[word];
+    if (alias) return alias;
+  }
+
+  return null;
 }
 
 export function isMutatingAssistantAction(name: string): boolean {
@@ -1092,9 +1202,28 @@ export function buildAssistantSystemPrompt(state: AssistantDashboardState, now =
     "- Never emit text meant as private reasoning. If you reason, keep it out of the reply entirely.",
     "- Match the length to the question. A lookup gets the value and one line of context. Lists get a list.",
     "- If a fact is not in the snapshot or a tool result, say so in one sentence and stop. Do not reason aloud towards a guess.",
+    // A routing table rather than prose. There are two dozen tools, several of which sound alike to
+    // a model reading names only — `inspect_dashboard` in particular reads like "the tool for
+    // questions about the dashboard", which is every question. Small models pick a tool by matching
+    // the question against a list far more reliably than by inferring from descriptions, and the
+    // failure this replaces was not a refusal but a confident answer assembled from the wrong data.
+    "TOOL ROUTING — match the question to a row, then call that tool. One tool answers each row:",
+    "- Today's classes, what is on now, what is next → read snapshot.today and snapshot.nextClass. No tool call.",
+    "- Any other day's classes, or several days → inspect_schedule.",
+    "- Attendance, absences, attendance percentages → inspect_attendance.",
+    "- Marks, results, assessment results, reports → inspect_academics.",
+    "- What is on, what is coming up, when is an event, holidays → inspect_calendar.",
+    "- What a notice says, searching notices → inspect_notices.",
+    "- Whether a teacher changed, who teaches a class now, substitutes → inspect_teacher_changes.",
+    "- What a skill says → inspect_skills.",
+    "- Notification ids for a bulk edit → inspect_notifications.",
+    "- Saved past papers → inspect_past_papers.",
+    "- Flashcard sets and due counts → inspect_flashcards.",
+    "inspect_dashboard is a summary of the snapshot you already have. It is not the tool for questions in the table above, and calling it instead of the right one gets a summary rather than an answer.",
+    "Call one tool, read its result, then answer. Do not call several tools for one question hoping one of them fits.",
     "Calendar changes currently create local Millennium events unless the user asks only for advice.",
-    "For today's classes and the next class, read snapshot.today and snapshot.nextClass. Both already have the Week A/B rotation, school holidays and bell times applied — read them out, do not re-derive them from the timetable grids. For any other day, call inspect_schedule. Never work a school day out from timetable.weekA/weekB yourself; those grids are undated and do not say which week it is.",
-    "Attendance, marked work, and reports are not in the snapshot. Call inspect_attendance or inspect_academics before answering anything about them, and say so if the data is not there.",
+    "Both timetable grids in the snapshot are undated and do not say which week is which. Never work a school day out from timetable.weekA/weekB yourself.",
+    "Attendance, marked work, reports, notice bodies and teacher changes are not in the snapshot. Read them with the tool above and say so if the data is not there.",
     "Classes with enrolled=false or identities listed in unenrolledClassKeys are not current. Never include them in schedules, plans, summaries, next-class answers, or flashcards unless the user explicitly asks about old classes.",
     "You can create and edit local calendars/events, notification folders and notice states, class colours, home notes/layout/settings, shortcuts, themes, assistant skills, and flashcard sets through tools.",
     "You can read user-attached text files, images, PDFs, and other attached files in the current message when the model/provider exposes their content.",
@@ -1561,7 +1690,17 @@ export async function executeAssistantAction(
   services: AssistantActionServices
 ): Promise<AssistantActionResult> {
   if (!isKnownAssistantAction(name)) {
-    return { action: name, ok: false, message: "Unsupported assistant action." };
+    // Answered as a tool result rather than thrown. An invented tool name used to fail the whole
+    // request, so one hallucinated call cost the student their answer instead of costing the model
+    // one round trip — and the model never learned the name was wrong.
+    const suggestion = suggestAssistantAction(name);
+    return {
+      action: name,
+      ok: false,
+      message: suggestion
+        ? `There is no tool called “${name}”. Use ${suggestion} instead.`
+        : `There is no tool called “${name}”. Use one of the tools you were given, or answer from the snapshot.`,
+    };
   }
   const normalizedArguments = normalizeAssistantToolArguments(rawArgs);
   if (!normalizedArguments) {

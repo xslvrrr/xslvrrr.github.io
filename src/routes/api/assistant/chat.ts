@@ -31,6 +31,7 @@ import { readJsonBody, requestBodyErrorResponse } from '../../../../lib/request-
 import { crossOriginMutationResponse } from '../../../../lib/csrf';
 import { getUserFlashcardSnapshot, saveUserFlashcardSets } from '../../../../lib/study-server';
 import * as pastPaperRepository from '../../../../lib/past-papers/repository';
+import { listPendingTeacherChanges } from '../../../../lib/portal-teacher-changes-store';
 import { SupabaseStudyRepository } from '../../../../lib/study/supabase-repository';
 import { StudyService } from '../../../../lib/study/service';
 import { StudyWorkshopService } from '../../../../lib/study/workshop-service';
@@ -291,9 +292,12 @@ function normalizeToolCalls(value: unknown): AssistantToolCall[] {
     }
     const rawId = typeof toolCall.id === 'string' ? toolCall.id.trim() : '';
     const id = (rawId || `tool-${index + 1}`).slice(0, 200);
-    const name = typeof toolCall.function.name === 'string' ? toolCall.function.name.trim() : '';
+    // Bounded but not checked against the tool list. A name that does not exist is answered as a
+    // failed tool result naming the right tool, because a model that invented one should lose a
+    // round trip rather than the student losing the whole reply.
+    const name = (typeof toolCall.function.name === 'string' ? toolCall.function.name.trim() : '').slice(0, 80);
     const args = normalizeAssistantToolArguments(toolCall.function.arguments ?? {});
-    if (!id || seenIds.has(id) || !isKnownAssistantAction(name) || !args) {
+    if (!id || seenIds.has(id) || !name || !args) {
       throw new OpenRouterRequestError(502, 'Provider returned an invalid tool call');
     }
     seenIds.add(id);
@@ -604,8 +608,27 @@ async function loadAssistantPastPapers(userId: string) {
   }
 }
 
+/**
+ * Teacher changes the student has not acknowledged.
+ *
+ * Only the unacknowledged ones. An acknowledged change is a fact the student has already been told,
+ * and carrying the whole history into every chat would mean the assistant volunteering last term's
+ * substitute as news. `inspect_teacher_changes` reads this; the snapshot only counts it.
+ *
+ * Failures are swallowed to an empty list: an unreachable table should cost one tool result, not
+ * the chat request.
+ */
+async function loadAssistantTeacherChanges(userId: string) {
+  try {
+    return await listPendingTeacherChanges(userId);
+  } catch (error) {
+    logger.warn('Assistant teacher-change snapshot could not be loaded', error);
+    return [];
+  }
+}
+
 async function loadAssistantState(userId: string): Promise<AssistantDashboardState> {
-  const [user, preferences, localCalendar, themeBuilder, assistantState, notificationStates, flashcardSnapshot, pastPapers] = await Promise.all([
+  const [user, preferences, localCalendar, themeBuilder, assistantState, notificationStates, flashcardSnapshot, pastPapers, teacherChanges] = await Promise.all([
     getUserAssistantPortalSnapshot(userId),
     getUserPreferences(userId),
     getUserLocalCalendar(userId),
@@ -614,6 +637,7 @@ async function loadAssistantState(userId: string): Promise<AssistantDashboardSta
     getUserNotificationStates(userId),
     getUserFlashcardSnapshot(userId),
     loadAssistantPastPapers(userId),
+    loadAssistantTeacherChanges(userId),
   ]);
 
   return {
@@ -636,6 +660,7 @@ async function loadAssistantState(userId: string): Promise<AssistantDashboardSta
     flashcardSets: flashcardSnapshot.sets,
     flashcardRevision: flashcardSnapshot.revision,
     pastPapers,
+    teacherChanges,
   };
 }
 
