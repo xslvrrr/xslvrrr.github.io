@@ -1,5 +1,6 @@
 import { portalClassKey, sanitizeClassEntries } from '@/lib/portal-classes';
 import type { PortalData } from '@/types/portal';
+import { mergeAttendancePeriods } from './portal-attendance';
 
 function hasItems(value: any): boolean {
   if (Array.isArray(value)) return value.length > 0;
@@ -56,7 +57,7 @@ export function compactPortalNotices(notices: unknown): any[] {
   return mergeNotices([], Array.isArray(notices) ? notices : []);
 }
 
-const TIMETABLE_KEY_FIELDS = ['day', 'period', 'classCode', 'course', 'subject'] as const;
+const TIMETABLE_KEY_FIELDS = ['day', 'period'] as const;
 
 function timetableEntryKey(entry: any): string {
   return TIMETABLE_KEY_FIELDS
@@ -92,7 +93,7 @@ function mergeAttendance(existing: any, incoming: any) {
     yearly: mergeByKey(existing?.yearly, incoming?.yearly, (entry: any) => String(entry?.year || '')),
     subjects: mergeByKey(existing?.subjects, incoming?.subjects, (entry: any) => String(entry?.classCode || entry?.course || '')),
     absences: incoming?.absences?.length ? incoming.absences : (existing?.absences || []),
-    recentPeriods: incoming?.recentPeriods?.length ? incoming.recentPeriods : (existing?.recentPeriods || []),
+    recentPeriods: mergeAttendancePeriods(existing?.recentPeriods, incoming?.recentPeriods),
     totals: incoming?.totals || existing?.totals,
   };
 }

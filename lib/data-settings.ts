@@ -20,11 +20,12 @@ export interface PortalDataSettings {
   includeClasses: boolean;
   includeCalendar: boolean;
   /**
-   * Whether to fetch the second, fortnight-ahead timetable page that tells a permanent teacher
-   * change apart from a substitute. One extra page per sync; off means teacher changes are still
-   * detected, but reported as unconfirmed rather than classified.
+   * Whether to read the timetable again for this week and the two after it, so a new name against
+   * a class can be called a permanent change rather than a substitute. Three extra pages per sync;
+   * off means a change is still shown, but only ever as a substitute.
    */
-  includeTeacherLookahead: boolean;
+  includeTimetableReferences: boolean;
+  liveAttendanceEnabled: boolean;
   showUltraRunLiveStatus: boolean;
   showSyncUpdates: boolean;
 }
@@ -45,7 +46,8 @@ export interface PortalSyncOptions {
   includeReports: boolean;
   includeClasses: boolean;
   includeCalendar: boolean;
-  includeTeacherLookahead: boolean;
+  includeTimetableReferences: boolean;
+  liveAttendanceOnly?: boolean;
   ultraRun?: PortalUltraRunOptions;
 }
 
@@ -100,7 +102,8 @@ export function getDefaultDataSettings(now = new Date()): PortalDataSettings {
     includeReports: true,
     includeClasses: true,
     includeCalendar: true,
-    includeTeacherLookahead: true,
+    includeTimetableReferences: true,
+    liveAttendanceEnabled: true,
     showUltraRunLiveStatus: true,
     showSyncUpdates: true,
   };
@@ -109,6 +112,10 @@ export function getDefaultDataSettings(now = new Date()): PortalDataSettings {
 export function normalizeDataSettings(input: unknown, now = new Date()): PortalDataSettings {
   const defaults = getDefaultDataSettings(now);
   const source = input && typeof input === 'object' ? input as Partial<PortalDataSettings> : {};
+  // A user who turned the superseded fortnight-ahead lookahead off keeps it off: the dated
+  // reference grids answer the same question, so the retired key still speaks for the new one.
+  const legacyLookaheadOff = !!input && typeof input === 'object'
+    && 'includeTeacherLookahead' in input && input.includeTeacherLookahead === false;
   const fetchIntervalUnit: DataFetchIntervalUnit = source.fetchIntervalUnit === 'hours' ? 'hours' : 'minutes';
   const fetchIntervalValue = fetchIntervalUnit === 'hours'
     ? clampInteger(source.fetchIntervalValue, 1, 24, defaults.fetchIntervalValue)
@@ -135,7 +142,8 @@ export function normalizeDataSettings(input: unknown, now = new Date()): PortalD
     includeReports: source.includeReports !== false,
     includeClasses: source.includeClasses !== false,
     includeCalendar: source.includeCalendar !== false,
-    includeTeacherLookahead: source.includeTeacherLookahead !== false,
+    includeTimetableReferences: source.includeTimetableReferences !== false && !legacyLookaheadOff,
+    liveAttendanceEnabled: source.liveAttendanceEnabled !== false,
     showUltraRunLiveStatus: source.showUltraRunLiveStatus !== false,
     showSyncUpdates: source.showSyncUpdates !== false,
   };
@@ -185,6 +193,7 @@ export function getDataFetchIntervalMs(settings: PortalDataSettings): number {
 export function toPortalSyncOptions(input: unknown): PortalSyncOptions {
   const settings = normalizeDataSettings(input);
   const source = input && typeof input === 'object' ? input as Partial<PortalSyncOptions> : {};
+  const liveAttendanceOnly = source.liveAttendanceOnly === true;
   return {
     portalDate: settings.portalDate,
     noticeLookbehindDays: settings.noticeLookbehindDays,
@@ -194,15 +203,16 @@ export function toPortalSyncOptions(input: unknown): PortalSyncOptions {
     reportsYearLookback: settings.reportsYearLookback,
     attendanceYearLookback: settings.attendanceYearLookback,
     gradeItemLimit: settings.gradeItemLimit,
-    includeTimetable: settings.includeTimetable,
-    includeNotices: settings.includeNotices,
-    includeGrades: settings.includeGrades,
-    includeAttendance: settings.includeAttendance,
-    includeReports: settings.includeReports,
-    includeClasses: settings.includeClasses,
-    includeCalendar: settings.includeCalendar,
-    includeTeacherLookahead: settings.includeTeacherLookahead,
-    ...(source.ultraRun ? { ultraRun: normalizeUltraRunOptions(source.ultraRun) } : {}),
+    includeTimetable: !liveAttendanceOnly && settings.includeTimetable,
+    includeNotices: !liveAttendanceOnly && settings.includeNotices,
+    includeGrades: !liveAttendanceOnly && settings.includeGrades,
+    includeAttendance: liveAttendanceOnly || settings.includeAttendance,
+    includeReports: !liveAttendanceOnly && settings.includeReports,
+    includeClasses: !liveAttendanceOnly && settings.includeClasses,
+    includeCalendar: !liveAttendanceOnly && settings.includeCalendar,
+    includeTimetableReferences: !liveAttendanceOnly && settings.includeTimetableReferences,
+    ...(typeof source.liveAttendanceOnly === 'boolean' ? { liveAttendanceOnly } : {}),
+    ...(!liveAttendanceOnly && source.ultraRun ? { ultraRun: normalizeUltraRunOptions(source.ultraRun) } : {}),
   };
 }
 

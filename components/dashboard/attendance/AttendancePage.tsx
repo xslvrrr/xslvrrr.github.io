@@ -19,6 +19,8 @@ import styles from "@/styles/Dashboard.module.css"
 import type { AttendanceData, AttendancePeriodDay, AttendancePeriodMark, SubjectAttendance } from "@/types/portal"
 import { getAttendanceBand, resolveAttendanceThresholds } from "@/types/portal"
 import { findTermForDate, parsePortalDate, type SchoolTerm } from "@/lib/school-terms"
+import { getSchoolDate } from "@/lib/portal-class-changes"
+import { formatCalendarDate } from "@/lib/calendar-date"
 
 type AttendanceThresholds = ReturnType<typeof resolveAttendanceThresholds>
 
@@ -284,7 +286,7 @@ export function AttendancePage({
   )
   const hasTermData = termSummaries.some((summary) => summary.percentage !== null || summary.absences > 0)
 
-  if (!attendance || (yearlyAttendance.length === 0 && subjectAttendance.length === 0 && absences.length === 0)) {
+  if (!attendance || (yearlyAttendance.length === 0 && subjectAttendance.length === 0 && absences.length === 0 && recentPeriods.length === 0)) {
     return (
       <div className={styles.contentWrapper} data-tour-id="page-attendance">
         <div className={styles.contentWrapperInner}>
@@ -465,7 +467,10 @@ export function AttendancePage({
                 <h3 className={styles.attendanceSectionTitle}><IconClock size={18} />Recent Period Attendance</h3>
                 <div className={styles.attendancePeriodList}>
                   {recentPeriods.map((day) => {
-                    const displayPeriods = fillUnmarkedPeriods(getPeriodsForDay(day), visiblePeriodLabels, attendanceFillingEnabled)
+                    const date = parsePortalDate(day.date)
+                    // Today's blank rolls are still awaiting a teacher; do not infer live marks.
+                    const isToday = date && formatCalendarDate(date) === getSchoolDate()
+                    const displayPeriods = fillUnmarkedPeriods(getPeriodsForDay(day), visiblePeriodLabels, attendanceFillingEnabled && !isToday)
                     return (
                     <div className={styles.attendancePeriodRow} key={`${day.day}-${day.date}`}>
                       <div className={styles.attendancePeriodDate}><strong>{day.day}</strong><span>{day.date}</span></div>

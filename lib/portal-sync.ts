@@ -234,6 +234,7 @@ function isUltraRun(options?: PortalSyncOptions): boolean {
 }
 
 function getScrapeRuntimeOptions(options?: PortalSyncOptions): ScrapeRuntimeOptions {
+  if (options?.liveAttendanceOnly) return { concurrency: 1, pageRetries: 0, pageTimeoutMs: 6_500 };
   const configuredConcurrency = Number(process.env.PORTAL_SYNC_CONCURRENCY);
   const normalConcurrency = Number.isFinite(configuredConcurrency)
     ? Math.max(4, Math.min(16, Math.trunc(configuredConcurrency)))
@@ -244,6 +245,7 @@ function getScrapeRuntimeOptions(options?: PortalSyncOptions): ScrapeRuntimeOpti
 }
 
 function operationTimeoutMs(options?: PortalSyncOptions): number {
+  if (options?.liveAttendanceOnly) return 25_000;
   return isUltraRun(options) ? ULTRA_OPERATION_TIMEOUT_MS : NORMAL_OPERATION_TIMEOUT_MS;
 }
 
@@ -989,19 +991,20 @@ export async function loginAndScrapePortal(
   options?: PortalSyncOptions,
 ): Promise<PortalSyncExecution> {
   return withOperationDeadline(options, async (signal) => {
-    if (browserFallbackEnabled() && process.env.PORTAL_SYNC_PREFER_BROWSER === 'true') {
+    if (!options?.liveAttendanceOnly && browserFallbackEnabled() && process.env.PORTAL_SYNC_PREFER_BROWSER === 'true') {
       return loginAndScrapeWithPuppeteer(username, password, options, signal);
     }
 
     let lastError: PortalSyncError | null = null;
-    for (let attempt = 0; attempt < PORTAL_LOGIN_ATTEMPTS; attempt += 1) {
+    const attempts = options?.liveAttendanceOnly ? 1 : PORTAL_LOGIN_ATTEMPTS;
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
       try {
         return await loginAndScrapeWithFetch(username, password, options, signal);
       } catch (error) {
         const normalized = normalizePortalError(error, 'login');
         lastError = normalized;
         const canRetryLegacyAuth = normalized instanceof PortalAuthError
-          && attempt < PORTAL_LOGIN_ATTEMPTS - 1
+          && attempt < attempts - 1
           && !signal.aborted;
         if (!canRetryLegacyAuth) break;
         await wait(350 * (attempt + 1), signal);
@@ -1013,7 +1016,7 @@ export async function loginAndScrapePortal(
       stage: 'login',
     });
     const browserOnAuthFailure = process.env.PORTAL_SYNC_BROWSER_ON_AUTH_FAILURE === 'true';
-    if (!browserFallbackEnabled() || signal.aborted || (normalized instanceof PortalAuthError && !browserOnAuthFailure)) {
+    if (options?.liveAttendanceOnly || !browserFallbackEnabled() || signal.aborted || (normalized instanceof PortalAuthError && !browserOnAuthFailure)) {
       throw normalized;
     }
     return loginAndScrapeWithPuppeteer(username, password, options, signal);
@@ -1033,7 +1036,7 @@ export async function scrapePortalSession(
       return { data, cookies: jar.toArray(), portalUrl: PORTAL_URL, transport: 'http', durationMs: Date.now() - startedAt };
     } catch (error) {
       const normalized = normalizePortalError(error, 'session');
-      if (!browserFallbackEnabled() || signal.aborted || normalized instanceof PortalAuthError) throw normalized;
+      if (options?.liveAttendanceOnly || !browserFallbackEnabled() || signal.aborted || normalized instanceof PortalAuthError) throw normalized;
       return scrapeSessionWithPuppeteer(cookies, options, signal, credentials);
     }
   });

@@ -247,8 +247,15 @@ export function DataSettings({
       }
     }
 
+    const handleSettingsChange = () => {
+      const next = readDataSettings()
+      setSettings((current) => JSON.stringify(current) === JSON.stringify(next) ? current : next)
+    }
+
+    window.addEventListener("millennium-data-settings-change", handleSettingsChange)
     window.addEventListener("storage", handleStorage)
     return () => {
+      window.removeEventListener("millennium-data-settings-change", handleSettingsChange)
       window.removeEventListener("storage", handleStorage)
     }
   }, [])
@@ -472,6 +479,14 @@ export function DataSettings({
               step={intervalStep}
               suffix={settings.fetchIntervalValue === 24 && settings.fetchIntervalUnit === "hours" ? "daily" : intervalSuffix}
               onChange={(value) => updateNumber("fetchIntervalValue", value)}
+            />
+            <SyncToggle
+              id="live-attendance-enabled"
+              label="Live attendance"
+              anchor="sync-live-attendance"
+              description="Refresh today's timetable and attendance silently every minute while the dashboard is open. Requires Attendance in Synced Data Types."
+              checked={settings.liveAttendanceEnabled}
+              onCheckedChange={(checked) => updateBoolean("liveAttendanceEnabled", checked)}
             />
           </FieldGroup>
         </CardContent>
@@ -708,11 +723,11 @@ export function DataSettings({
               onCheckedChange={(checked) => updateBoolean("includeCalendar", checked)}
             />
             <SyncToggle
-              id="include-teacher-lookahead"
-              label="Teacher change check"
-              description="Fetches your timetable a fortnight ahead as well, so a new teacher can be reported as a permanent change or a substitute rather than just a change."
-              checked={settings.includeTeacherLookahead}
-              onCheckedChange={(checked) => updateBoolean("includeTeacherLookahead", checked)}
+              id="include-timetable-references"
+              label="Class change confirmation"
+              description="Reads your timetable for this week and the next two as well, so a new teacher can be reported as a permanent change rather than a substitute."
+              checked={settings.includeTimetableReferences}
+              onCheckedChange={(checked) => updateBoolean("includeTimetableReferences", checked)}
             />
           </FieldGroup>
         </CardContent>

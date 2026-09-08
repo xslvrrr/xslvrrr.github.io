@@ -14,7 +14,7 @@ import {
   type FlashcardSet,
 } from "../study.ts";
 import { buildBuiltinSkillBlock } from "./builtin-skills.ts";
-import type { StoredTeacherChange } from "../portal-teacher-changes-store.ts";
+import type { PortalClassChange } from "../portal-class-changes.ts";
 import {
   ASSISTANT_READ_TOOL_NAMES,
   executeAssistantReadTool,
@@ -150,12 +150,13 @@ export interface AssistantDashboardState {
    */
   pastPapers?: AssistantPastPaper[];
   /**
-   * Teacher changes found by a sync, with the permanent-or-substitute verdict already worked out.
+   * Today's teacher changes, each already classified as a permanent handover or a cover.
    *
-   * Supplied by the chat route. Nothing else in the state can answer "did my teacher change": the
-   * timetable grid only ever shows who teaches a class now, never who used to.
+   * Derived by the chat route from the stored snapshot on every request rather than persisted:
+   * the verdict is a pure function of the homepage card and the dated timetable references, and a
+   * stored copy would only be a stale answer to a question that can always be re-asked.
    */
-  teacherChanges?: StoredTeacherChange[];
+  teacherChanges?: PortalClassChange[];
 }
 
 export interface AssistantActionServices {

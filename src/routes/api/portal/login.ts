@@ -39,7 +39,11 @@ export const Route = createFileRoute('/api/portal/login')({
           const body = await readJsonBody<any>(request, 16 * 1024);
           const { username, password } = body;
           const rememberCredentials = body?.rememberCredentials !== false;
-          const syncOptions = toPortalSyncOptions(body?.syncOptions);
+          const liveAttendanceOnly = body?.syncOptions?.liveAttendanceOnly === true;
+          const syncOptions = {
+            ...toPortalSyncOptions(body?.syncOptions),
+            ...(liveAttendanceOnly ? { liveAttendanceOnly: true, ultraRun: undefined } : {}),
+          };
 
           if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
             return Response.json({ success: false, message: 'Username and password are required' }, { status: 400 });
@@ -106,6 +110,9 @@ export const Route = createFileRoute('/api/portal/login')({
               },
               account: portalData.account,
               timetable: portalData.timetable,
+              todayTimetable: portalData.todayTimetable,
+              timetableReferences: portalData.timetableReferences,
+              liveAttendanceOnly,
               notices: portalData.notices,
               grades: portalData.grades,
               attendance: portalData.attendance,
@@ -140,13 +147,14 @@ export const Route = createFileRoute('/api/portal/login')({
             }
             // Login may occur on a new device. Return complete durable history once;
             // recurring background sync uses compact incremental responses.
-            const durableUser = await findUserPortalDataById(user.id);
+            const durableUser = liveAttendanceOnly ? null : await findUserPortalDataById(user.id);
 
             return Response.json(
               {
                 success: true,
                 message: 'Login successful',
                 sync: {
+                  ...(liveAttendanceOnly ? { liveAttendanceOnly: true } : {}),
                   transport: result.transport,
                   durationMs: result.durationMs,
                   degraded: portalData.syncMeta?.degraded === true,
@@ -155,7 +163,7 @@ export const Route = createFileRoute('/api/portal/login')({
                 userId: user.id,
                 ...(durableUser?.portalData || user.portalData || {}),
                 user: { name: user.name, school: user.school, uid: user.millenniumUid },
-                lastUpdated: user.lastSync || portalData.lastUpdated,
+                lastUpdated: liveAttendanceOnly ? portalData.lastUpdated : user.lastSync || portalData.lastUpdated,
               },
               {
                 headers: {

@@ -25,8 +25,6 @@ import { consumeRateLimit, rateLimitResponse } from '../../../../lib/rate-limit'
 import { readJsonBody, requestBodyErrorResponse } from '../../../../lib/request-body';
 import { crossOriginMutationResponse } from '../../../../lib/csrf';
 import { persistReportPdfs } from '../../../../lib/report-pdfs';
-import { detectTeacherChanges } from '../../../../lib/portal-teacher-changes';
-import { recordTeacherChanges } from '../../../../lib/portal-teacher-changes-store';
 
 // A spent portal session rarely comes back as an auth failure: the portal
 // answers a logged-out request with the login page, a missing section, or a 403.
@@ -39,6 +37,22 @@ function shouldRetryWithSavedLogin(error: unknown): boolean {
     return error.code !== 'PORTAL_SYNC_TIMEOUT' && error.code !== 'PORTAL_TRANSIENT_FAILURE';
   }
   return true;
+}
+
+// The coordinator lease protects active work; this cache also deduplicates
+// completed live polls for one minute within this server process.
+const liveResults = new Map<string, { signature: string; expiresAt: number; value: unknown }>();
+async function runLiveAttendanceSync<T>(userId: string, signature: string, task: () => Promise<T>, ttlSeconds: number) {
+  const now = Date.now();
+  for (const [key, result] of liveResults) {
+    if (result.expiresAt <= now) liveResults.delete(key);
+  }
+  const cached = liveResults.get(userId);
+  if (cached?.signature === signature) return { value: cached.value as T, shared: true };
+  const result = await runPortalSyncSingleFlight(userId, signature, task, ttlSeconds);
+  if (liveResults.size >= 128) liveResults.delete(liveResults.keys().next().value!);
+  liveResults.set(userId, { signature, expiresAt: Date.now() + 60_000, value: result.value });
+  return result;
 }
 
 export const Route = createFileRoute('/api/portal/sync')({
@@ -64,7 +78,11 @@ export const Route = createFileRoute('/api/portal/sync')({
           if (!syncLimit.allowed) return rateLimitResponse(syncLimit);
 
           const body = await readJsonBody<any>(request, 64 * 1024);
-          const syncOptions = toPortalSyncOptions(body?.syncOptions);
+          const liveAttendanceOnly = body?.syncOptions?.liveAttendanceOnly === true;
+          const syncOptions = {
+            ...toPortalSyncOptions(body?.syncOptions),
+            ...(liveAttendanceOnly ? { liveAttendanceOnly: true, ultraRun: undefined } : {}),
+          };
           const isUltraRun = !!syncOptions.ultraRun;
           const lockKeys = [GLOBAL_ULTRA_RUN_LOCK_KEY, `user:${userId}`];
 
@@ -91,7 +109,9 @@ export const Route = createFileRoute('/api/portal/sync')({
 
           try {
             const signature = portalSyncSignature(syncOptions);
-            const coordinated = await runPortalSyncSingleFlight(userId, signature, async () => {
+            if (!liveAttendanceOnly) liveResults.delete(userId);
+            const coordinateSync = liveAttendanceOnly ? runLiveAttendanceSync : runPortalSyncSingleFlight;
+            const coordinated = await coordinateSync(userId, signature, async () => {
               const syncState = await findUserForPortalSync(userId, signature);
               if (!syncState) throw new PortalAuthError('Your Millennium app session is no longer valid.');
 
@@ -137,14 +157,14 @@ export const Route = createFileRoute('/api/portal/sync')({
               if (portalData.account) {
                 portalData.account.username = savedCredentials?.username || session.username || portalData.account.username;
               }
-              const persistedReports = await persistReportPdfs(
+              const persistedReports = liveAttendanceOnly ? { reports: undefined, warnings: [] } : await persistReportPdfs(
                 userId,
                 portalData.reports,
                 result.cookies,
                 undefined,
                 syncState.user.portalData?.reports,
               );
-              portalData.reports = persistedReports.reports;
+              if (!liveAttendanceOnly) portalData.reports = persistedReports.reports;
               const rotatedCredentialEnvelope = savedCredentials
                 ? encryptPortalCredentials(userId, {
                     username: savedCredentials.username,
@@ -162,6 +182,9 @@ export const Route = createFileRoute('/api/portal/sync')({
                 },
                 account: portalData.account,
                 timetable: portalData.timetable,
+                todayTimetable: portalData.todayTimetable,
+                timetableReferences: portalData.timetableReferences,
+                liveAttendanceOnly,
                 notices: portalData.notices,
                 grades: portalData.grades,
                 attendance: portalData.attendance,
@@ -181,28 +204,21 @@ export const Route = createFileRoute('/api/portal/sync')({
 
               const warnings: string[] = persistedReports.warnings;
 
-              // Compared against the grid as it stood *before* this sync's merge, which is why
-              // `previousTimetable` is read at the start of the run. The lookahead grid is a second
-              // fetch of the same page a fortnight out and is deliberately not persisted: it is
-              // evidence about today's change, not a timetable anyone should be shown.
-              const teacherChanges = detectTeacherChanges({
-                previous: syncState.previousTimetable as any,
-                current: portalData.timetable,
-                lookahead: portalData.timetableLookahead,
-                lookaheadDate: portalData.timetableLookahead?.date,
-              });
-              const pendingTeacherChanges = teacherChanges.length > 0
-                ? await recordTeacherChanges(userId, teacherChanges)
-                : [];
+              return { result, user, warnings };
+            }, liveAttendanceOnly ? 60 : 300);
 
-              return { result, user, warnings, pendingTeacherChanges };
-            }, 300);
-
-            const { result, user, warnings, pendingTeacherChanges } = coordinated.value;
+            const { result, user, warnings } = coordinated.value;
             const portalData = result.data;
             const totalDurationMs = Date.now() - startedAt;
             return Response.json(
-              {
+              liveAttendanceOnly ? {
+                user: { name: user.name, school: user.school, uid: user.millenniumUid },
+                todayTimetable: user.portalData?.todayTimetable,
+                attendance: { recentPeriods: user.portalData?.attendance?.recentPeriods || [] },
+                lastUpdated: portalData.lastUpdated,
+                syncMeta: portalData.syncMeta,
+                sync: { liveAttendanceOnly: true, shared: coordinated.shared },
+              } : {
                 ...(user.portalData || {}),
                 incremental: true,
                 unchanged: !user.portalChanged,
@@ -218,9 +234,6 @@ export const Route = createFileRoute('/api/portal/sync')({
                   failedPages: portalData.syncMeta?.failedPages || [],
                 },
                 ...(warnings.length ? { syncWarnings: warnings } : {}),
-                // Returned with the sync rather than left for the dashboard to poll for: the change
-                // was found by this request, and a student who refreshed is standing right here.
-                ...(pendingTeacherChanges.length ? { teacherChanges: pendingTeacherChanges } : {}),
               },
               {
                 headers: {

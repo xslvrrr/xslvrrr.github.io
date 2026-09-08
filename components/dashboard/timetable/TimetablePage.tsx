@@ -20,7 +20,9 @@ import {
 } from "@/components/dashboard/classes/classTimetableInsights"
 import { cn } from "@/lib/utils"
 import styles from "@/styles/Dashboard.module.css"
-import type { FullTimetable, FullTimetableEntry } from "@/types/portal"
+import type { FullTimetable, FullTimetableEntry, TodayTimetable } from "@/types/portal"
+import { overlayTodayTimetable } from "@/lib/portal-today"
+import { getSchoolDate } from "@/lib/portal-class-changes"
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const
 const COLOR_PRESETS = [
@@ -36,6 +38,7 @@ type DisplayTimetableEntry = FullTimetableEntry & {
 
 interface TimetablePageProps {
   timetable: unknown
+  todayTimetable?: TodayTimetable
   dataLoading: boolean
   selectedWeek: TimetableWeekKey
   currentWeek: TimetableWeekKey
@@ -104,6 +107,7 @@ function formatPeriodRange(entry: DisplayTimetableEntry): string {
 
 export function TimetablePage({
   timetable,
+  todayTimetable,
   dataLoading,
   selectedWeek,
   currentWeek,
@@ -113,8 +117,8 @@ export function TimetablePage({
   getSubjectColor,
   onColorChange,
 }: TimetablePageProps) {
-  const fullTimetable = normalizeFullTimetable(timetable)
-  const currentDayName = DAYS[new Date().getDay() - 1] || ""
+  const fullTimetable = overlayTodayTimetable(normalizeFullTimetable(timetable), todayTimetable, currentWeek)
+  const currentDayName = DAYS[new Date(`${getSchoolDate()}T12:00:00Z`).getUTCDay() - 1] || ""
   const displayedWeeks: TimetableWeekKey[] = showBothWeeks ? ["weekA", "weekB"] : [selectedWeek]
   const displayedEntries = displayedWeeks.flatMap((week) => fullTimetable[week])
   const displayedRooms = new Set(displayedEntries.map((entry) => entry.room).filter(Boolean))

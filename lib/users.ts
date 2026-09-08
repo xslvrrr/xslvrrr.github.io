@@ -8,7 +8,7 @@ import {
     type PortalSyncFingerprint,
 } from './portal-sync-diff';
 import type { ClassroomSnapshot } from '../types/classroom';
-import type { Notice, NotificationState, PortalAccount } from '../types/portal';
+import type { Notice, NotificationState, PortalAccount, TimetableEntry, FullTimetable } from '../types/portal';
 
 export interface UserSettings {
     theme: 'light' | 'dark' | 'system';
@@ -62,15 +62,6 @@ export interface PortalSyncUserState {
     user: User;
     portalCredentialEnvelope: unknown | null;
     portalSyncFingerprint: PortalSyncFingerprint | null;
-    /**
-     * The timetable as it stood before this sync.
-     *
-     * Read here rather than after the merge because the merge overwrites it: comparing teachers
-     * needs the old grid and the new one at the same moment. It is a few kilobytes of JSON, which is
-     * why it can be selected on the sync path at all — `portal_data` as a whole is megabytes and
-     * deliberately never crosses PostgREST during a recurring sync.
-     */
-    previousTimetable: unknown | null;
 }
 
 interface PersistedPortalUserRow {
@@ -261,7 +252,6 @@ function mergeTimetable(existing: any, incoming: any): any {
     const keyFor = (entry: any) => [
         entry?.day || '',
         entry?.period || '',
-        entry?.classCode || entry?.course || entry?.subject || '',
     ].join('::');
 
     if (Array.isArray(existing) || Array.isArray(incoming)) {
@@ -436,7 +426,7 @@ export async function findUserForPortalSync(id: string, syncSignature: string): 
     const [userResult, fingerprintResult] = await Promise.all([
         supabaseAdmin
             .from('users')
-            .select('id, millennium_uid, email, name, school, settings, created_at, last_sync, portal_credentials, reports:portal_data->reports, timetable:portal_data->timetable')
+            .select('id, millennium_uid, email, name, school, settings, created_at, last_sync, portal_credentials, reports:portal_data->reports')
             .eq('id', id)
             .maybeSingle(),
         supabaseAdmin
@@ -464,7 +454,6 @@ export async function findUserForPortalSync(id: string, syncSignature: string): 
         },
         portalCredentialEnvelope: data.portal_credentials ?? null,
         portalSyncFingerprint: fingerprint,
-        previousTimetable: data.timetable ?? null,
     };
 }
 
@@ -509,6 +498,10 @@ export async function persistPortalSyncSnapshot(data: {
     user: { name: string; school: string; uid: string };
     account?: PortalAccount;
     timetable?: any;
+    todayTimetable?: { date: string; entries: TimetableEntry[] };
+    timetableReferences?: { date: string; timetable: FullTimetable }[];
+    liveAttendance?: boolean;
+    liveAttendanceOnly?: boolean;
     notices?: any[];
     grades?: any[];
     attendance?: any;
@@ -523,6 +516,7 @@ export async function persistPortalSyncSnapshot(data: {
     syncSignature?: string;
     previousFingerprint?: PortalSyncFingerprint | null;
 } = {}): Promise<User & { portalChanged: boolean }> {
+    const liveAttendanceOnly = data.liveAttendance === true || data.liveAttendanceOnly === true;
     const millenniumUid = data.user.uid || '';
     const existing = Object.prototype.hasOwnProperty.call(options, 'existingUser')
         ? options.existingUser ?? null
@@ -534,7 +528,14 @@ export async function persistPortalSyncSnapshot(data: {
 
     // Database RPC merges under a row lock. Existing multi-megabyte portal_data
     // never crosses PostgREST during recurring sync.
-    const portalData: any = {
+    const portalData: any = liveAttendanceOnly ? {
+        ...(data.todayTimetable !== undefined ? { todayTimetable: data.todayTimetable } : {}),
+        ...(data.attendance?.recentPeriods !== undefined
+            ? { attendance: { recentPeriods: data.attendance.recentPeriods } } : {}),
+        syncMeta: data.syncMeta,
+    } : {
+        ...(data.todayTimetable !== undefined ? { todayTimetable: data.todayTimetable } : {}),
+        ...(data.timetableReferences !== undefined ? { timetableReferences: data.timetableReferences } : {}),
         ...(data.account ? { account: data.account } : {}),
         timetable: data.timetable,
         notices: mergeNotices([], data.notices),
@@ -545,7 +546,7 @@ export async function persistPortalSyncSnapshot(data: {
         classes: data.classes || [],
         syncMeta: data.syncMeta,
     };
-    portalData.syncCounts = getPortalDataCounts(portalData);
+    if (!liveAttendanceOnly) portalData.syncCounts = getPortalDataCounts(portalData);
     const diff = options.syncSignature
         ? buildPortalSyncDelta(
             portalData,
@@ -558,7 +559,7 @@ export async function persistPortalSyncSnapshot(data: {
             ? {
                 ...diff.delta,
                 syncMeta: portalData.syncMeta,
-                syncCounts: portalData.syncCounts,
+                ...(!liveAttendanceOnly ? { syncCounts: portalData.syncCounts } : {}),
             }
             : {}
         : portalData;
@@ -570,7 +571,8 @@ export async function persistPortalSyncSnapshot(data: {
         p_name: data.user.name,
         p_school: data.user.school,
         p_settings: existing?.settings || getDefaultSettings(),
-        p_snapshot: databaseDelta,
+        // Always send the internal marker, even for an unchanged live poll.
+        p_snapshot: liveAttendanceOnly ? { ...databaseDelta, liveAttendanceOnly: true } : databaseDelta,
         p_last_sync: data.lastUpdated,
         p_update_credentials: updateCredentials,
         p_portal_credentials: updateCredentials ? options.portalCredentialEnvelope ?? null : null,
@@ -582,7 +584,7 @@ export async function persistPortalSyncSnapshot(data: {
     const row = (Array.isArray(persisted) ? persisted[0] : persisted) as PersistedPortalUserRow | null;
     if (!row) throw new Error('Portal snapshot merge returned no user');
     let accountChanged = false;
-    if (data.account) {
+    if (!liveAttendanceOnly && data.account) {
         const accountResult = await supabaseAdmin.rpc('merge_portal_account', {
             p_user_id: row.id,
             p_account: data.account,
@@ -605,7 +607,19 @@ export async function persistPortalSyncSnapshot(data: {
             changedSections.has(key) || key === 'syncMeta' || key === 'syncCounts'
         )))
         : {};
-    if (data.account) portalDelta.account = data.account;
+    if (!liveAttendanceOnly && data.account) portalDelta.account = data.account;
+    if (liveAttendanceOnly) {
+        // Read only the live fields after the SQL merge so an unmarked scrape
+        // cannot send downgraded official attendance back to the client.
+        const liveResult = await supabaseAdmin.from('users')
+            .select('todayTimetable:portal_data->todayTimetable, recentPeriods:portal_data->attendance->recentPeriods')
+            .eq('id', row.id)
+            .single();
+        if (liveResult.error) throw liveResult.error;
+        portalDelta.todayTimetable = liveResult.data.todayTimetable ?? data.todayTimetable;
+        portalDelta.attendance = { recentPeriods: liveResult.data.recentPeriods || [] };
+        portalDelta.syncMeta = data.syncMeta;
+    }
 
     return {
         id: row.id,
@@ -614,7 +628,7 @@ export async function persistPortalSyncSnapshot(data: {
         school: row.school,
         settings: row.settings || getDefaultSettings(),
         createdAt: row.created_at,
-        lastSync: row.last_sync || data.lastUpdated,
+        lastSync: row.last_sync || (liveAttendanceOnly ? '' : data.lastUpdated),
         portalData: portalDelta,
         profileImage: null,
         portalChanged: row.changed || accountChanged,

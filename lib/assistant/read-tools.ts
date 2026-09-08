@@ -18,7 +18,7 @@
 
 import { BUILTIN_ASSISTANT_SKILLS } from "./builtin-skills.ts";
 import { isHolidayEntry, parsePortalDate } from "../school-terms.ts";
-import { describeTeacherChange } from "../portal-teacher-changes.ts";
+import { describePortalClassChange } from "../portal-class-changes.ts";
 import {
   findCurrentClass,
   findNextClass,
@@ -185,8 +185,8 @@ export function getAssistantReadTools() {
       function: {
         name: "inspect_teacher_changes",
         description: [
-          "Read teacher changes found in the timetable, each already classified as a permanent change",
-          "or a substitute covering. This is the only place that knows a teacher changed at all: the",
+          "Read today's teacher changes, each already classified as a permanent change or a",
+          "substitute covering. This is the only place that knows a teacher changed at all: the",
           "timetable shows who teaches a class now and never who used to, so it cannot be worked out",
           "from the snapshot.",
         ].join(" "),
@@ -195,7 +195,7 @@ export function getAssistantReadTools() {
           properties: {
             kind: {
               type: "string",
-              enum: ["permanent", "substitute", "unconfirmed", "all"],
+              enum: ["permanent", "substitute", "all"],
               description: "Filter to one kind of change. Defaults to all.",
             },
             subject: { type: "string", description: "Filter to one subject or class code." },
@@ -546,11 +546,15 @@ export async function executeAssistantReadTool(
       return fail("No teacher changes have been found. Either nothing changed, or the timetable has only been synced once so far.");
     }
 
-    const kind = ["permanent", "substitute", "unconfirmed"].includes(String(args.kind)) ? String(args.kind) : "all";
+    // `permanent` is the vocabulary the model was first taught; the detector calls the same verdict
+    // `teacher-change`, so both names have to select it.
+    const requested = String(args.kind) === "teacher-change" ? "permanent" : String(args.kind);
+    const kind = requested === "permanent" || requested === "substitute" ? requested : "all";
+    const wanted = kind === "permanent" ? "teacher-change" : kind;
     const subject = cleanText(args.subject, 200).toLowerCase();
     const matched = changes.filter((change) => (
-      (kind === "all" || change.kind === kind)
-      && matchesSubject(subject, change.course, change.classCode)
+      (kind === "all" || change.type === wanted)
+      && matchesSubject(subject, change.classCode)
     ));
 
     if (matched.length === 0) {
@@ -563,7 +567,7 @@ export async function executeAssistantReadTool(
       // The verdicts are stated in the message as well as the data, because the whole value of this
       // tool is the permanent/substitute distinction and a model that only skims the message should
       // still get it right.
-      message: matched.map(describeTeacherChange).join(" "),
+      message: matched.map(describePortalClassChange).join(" "),
       data: { changes: matched },
     };
   }

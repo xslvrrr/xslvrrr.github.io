@@ -31,7 +31,11 @@ import { readJsonBody, requestBodyErrorResponse } from '../../../../lib/request-
 import { crossOriginMutationResponse } from '../../../../lib/csrf';
 import { getUserFlashcardSnapshot, saveUserFlashcardSets } from '../../../../lib/study-server';
 import * as pastPaperRepository from '../../../../lib/past-papers/repository';
-import { listPendingTeacherChanges } from '../../../../lib/portal-teacher-changes-store';
+import {
+  detectPortalClassChanges,
+  type PortalClassChange,
+  type PortalClassChangeInput,
+} from '../../../../lib/portal-class-changes';
 import { SupabaseStudyRepository } from '../../../../lib/study/supabase-repository';
 import { StudyService } from '../../../../lib/study/service';
 import { StudyWorkshopService } from '../../../../lib/study/workshop-service';
@@ -609,26 +613,28 @@ async function loadAssistantPastPapers(userId: string) {
 }
 
 /**
- * Teacher changes the student has not acknowledged.
+ * Today's teacher changes, derived rather than stored.
  *
- * Only the unacknowledged ones. An acknowledged change is a fact the student has already been told,
- * and carrying the whole history into every chat would mean the assistant volunteering last term's
- * substitute as news. `inspect_teacher_changes` reads this; the snapshot only counts it.
+ * The verdict is a pure function of the snapshot this request already loaded — the homepage card
+ * against the dated timetable references — so there is nothing extra to query and no acknowledged
+ * history to filter out. Only teacher-affecting verdicts are passed on, because the tool that
+ * reads them is named and documented as reporting teacher changes.
  *
- * Failures are swallowed to an empty list: an unreachable table should cost one tool result, not
- * the chat request.
+ * A detector that throws on a malformed snapshot costs one tool result, not the chat request.
  */
-async function loadAssistantTeacherChanges(userId: string) {
+function readAssistantTeacherChanges(portalData: unknown): PortalClassChange[] {
+  if (!portalData || typeof portalData !== 'object') return [];
   try {
-    return await listPendingTeacherChanges(userId);
+    return detectPortalClassChanges(portalData as PortalClassChangeInput)
+      .filter((change) => change.type === 'substitute' || change.type === 'teacher-change');
   } catch (error) {
-    logger.warn('Assistant teacher-change snapshot could not be loaded', error);
+    logger.warn('Assistant teacher-change verdicts could not be derived', error);
     return [];
   }
 }
 
 async function loadAssistantState(userId: string): Promise<AssistantDashboardState> {
-  const [user, preferences, localCalendar, themeBuilder, assistantState, notificationStates, flashcardSnapshot, pastPapers, teacherChanges] = await Promise.all([
+  const [user, preferences, localCalendar, themeBuilder, assistantState, notificationStates, flashcardSnapshot, pastPapers] = await Promise.all([
     getUserAssistantPortalSnapshot(userId),
     getUserPreferences(userId),
     getUserLocalCalendar(userId),
@@ -637,7 +643,6 @@ async function loadAssistantState(userId: string): Promise<AssistantDashboardSta
     getUserNotificationStates(userId),
     getUserFlashcardSnapshot(userId),
     loadAssistantPastPapers(userId),
-    loadAssistantTeacherChanges(userId),
   ]);
 
   return {
@@ -660,7 +665,7 @@ async function loadAssistantState(userId: string): Promise<AssistantDashboardSta
     flashcardSets: flashcardSnapshot.sets,
     flashcardRevision: flashcardSnapshot.revision,
     pastPapers,
-    teacherChanges,
+    teacherChanges: readAssistantTeacherChanges(user.portalData),
   };
 }
 
