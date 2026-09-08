@@ -47,6 +47,17 @@ export interface FullTimetable {
   weekB: FullTimetableEntry[];
 }
 
+/** Dated homepage card; overrides today's display without changing the recurring schedule. */
+export interface TodayTimetable {
+  date: string;
+  entries: TimetableEntry[];
+}
+
+export interface TimetableReference {
+  date: string;
+  timetable: FullTimetable;
+}
+
 export interface Notice {
   title: string;
   preview: string;
@@ -89,6 +100,8 @@ export interface PortalData {
   };
   account?: PortalAccount;
   timetable: TimetableEntry[] | FullTimetable;
+  todayTimetable?: TodayTimetable;
+  timetableReferences?: TimetableReference[];
   notices: Notice[];
   diary: DiaryEntry[];
   grades?: GradeEntry[];
@@ -98,6 +111,7 @@ export interface PortalData {
   classes?: ClassEntry[];
   lastUpdated: string;
   sync?: {
+    liveAttendanceOnly?: boolean;
     transport?: 'http' | 'browser';
     durationMs?: number;
     totalDurationMs?: number;

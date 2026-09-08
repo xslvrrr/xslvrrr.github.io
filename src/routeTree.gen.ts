@@ -53,7 +53,6 @@ import { Route as ApiStudyAnalyticsRouteImport } from './routes/api/study/analyt
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiReportsPdfRouteImport } from './routes/api/reports/pdf'
 import { Route as ApiReportsAnnotationsRouteImport } from './routes/api/reports/annotations'
-import { Route as ApiPortalTeacherChangesRouteImport } from './routes/api/portal/teacher-changes'
 import { Route as ApiPortalSyncRouteImport } from './routes/api/portal/sync'
 import { Route as ApiPortalLoginRouteImport } from './routes/api/portal/login'
 import { Route as ApiPortalDataRouteImport } from './routes/api/portal/data'
@@ -318,11 +317,6 @@ const ApiReportsPdfRoute = ApiReportsPdfRouteImport.update({
 const ApiReportsAnnotationsRoute = ApiReportsAnnotationsRouteImport.update({
   id: '/api/reports/annotations',
   path: '/api/reports/annotations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPortalTeacherChangesRoute = ApiPortalTeacherChangesRouteImport.update({
-  id: '/api/portal/teacher-changes',
-  path: '/api/portal/teacher-changes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPortalSyncRoute = ApiPortalSyncRouteImport.update({
@@ -613,7 +607,6 @@ export interface FileRoutesByFullPath {
   '/api/portal/data': typeof ApiPortalDataRoute
   '/api/portal/login': typeof ApiPortalLoginRoute
   '/api/portal/sync': typeof ApiPortalSyncRoute
-  '/api/portal/teacher-changes': typeof ApiPortalTeacherChangesRoute
   '/api/reports/annotations': typeof ApiReportsAnnotationsRoute
   '/api/reports/pdf': typeof ApiReportsPdfRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -705,7 +698,6 @@ export interface FileRoutesByTo {
   '/api/portal/data': typeof ApiPortalDataRoute
   '/api/portal/login': typeof ApiPortalLoginRoute
   '/api/portal/sync': typeof ApiPortalSyncRoute
-  '/api/portal/teacher-changes': typeof ApiPortalTeacherChangesRoute
   '/api/reports/annotations': typeof ApiReportsAnnotationsRoute
   '/api/reports/pdf': typeof ApiReportsPdfRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -798,7 +790,6 @@ export interface FileRoutesById {
   '/api/portal/data': typeof ApiPortalDataRoute
   '/api/portal/login': typeof ApiPortalLoginRoute
   '/api/portal/sync': typeof ApiPortalSyncRoute
-  '/api/portal/teacher-changes': typeof ApiPortalTeacherChangesRoute
   '/api/reports/annotations': typeof ApiReportsAnnotationsRoute
   '/api/reports/pdf': typeof ApiReportsPdfRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -892,7 +883,6 @@ export interface FileRouteTypes {
     | '/api/portal/data'
     | '/api/portal/login'
     | '/api/portal/sync'
-    | '/api/portal/teacher-changes'
     | '/api/reports/annotations'
     | '/api/reports/pdf'
     | '/api/stripe/webhook'
@@ -984,7 +974,6 @@ export interface FileRouteTypes {
     | '/api/portal/data'
     | '/api/portal/login'
     | '/api/portal/sync'
-    | '/api/portal/teacher-changes'
     | '/api/reports/annotations'
     | '/api/reports/pdf'
     | '/api/stripe/webhook'
@@ -1076,7 +1065,6 @@ export interface FileRouteTypes {
     | '/api/portal/data'
     | '/api/portal/login'
     | '/api/portal/sync'
-    | '/api/portal/teacher-changes'
     | '/api/reports/annotations'
     | '/api/reports/pdf'
     | '/api/stripe/webhook'
@@ -1169,7 +1157,6 @@ export interface RootRouteChildren {
   ApiPortalDataRoute: typeof ApiPortalDataRoute
   ApiPortalLoginRoute: typeof ApiPortalLoginRoute
   ApiPortalSyncRoute: typeof ApiPortalSyncRoute
-  ApiPortalTeacherChangesRoute: typeof ApiPortalTeacherChangesRoute
   ApiReportsAnnotationsRoute: typeof ApiReportsAnnotationsRoute
   ApiReportsPdfRoute: typeof ApiReportsPdfRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
@@ -1511,13 +1498,6 @@ declare module '@tanstack/react-router' {
       path: '/api/reports/annotations'
       fullPath: '/api/reports/annotations'
       preLoaderRoute: typeof ApiReportsAnnotationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/portal/teacher-changes': {
-      id: '/api/portal/teacher-changes'
-      path: '/api/portal/teacher-changes'
-      fullPath: '/api/portal/teacher-changes'
-      preLoaderRoute: typeof ApiPortalTeacherChangesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/portal/sync': {
@@ -1925,7 +1905,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPortalDataRoute: ApiPortalDataRoute,
   ApiPortalLoginRoute: ApiPortalLoginRoute,
   ApiPortalSyncRoute: ApiPortalSyncRoute,
-  ApiPortalTeacherChangesRoute: ApiPortalTeacherChangesRoute,
   ApiReportsAnnotationsRoute: ApiReportsAnnotationsRoute,
   ApiReportsPdfRoute: ApiReportsPdfRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,

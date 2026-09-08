@@ -3,6 +3,19 @@ import { describe, expect, test } from "vitest";
 import { executeAssistantReadTool, getAssistantReadTools } from "./read-tools.ts";
 import { normalizeAssistantPreferences } from "./actions.ts";
 import type { AssistantDashboardState } from "./actions.ts";
+import type { PortalClassChange } from "../portal-class-changes.ts";
+
+/**
+ * A read-tool result carries whichever payload its tool returns, so this one has to be narrowed
+ * before a field can be read. Throwing beats defaulting to an empty array: a tool that stopped
+ * returning changes should fail the assertion the test wrote, not silently report zero of them.
+ */
+function returnedChanges(data: unknown): PortalClassChange[] {
+  if (!data || typeof data !== "object" || !("changes" in data) || !Array.isArray(data.changes)) {
+    throw new Error("The tool result did not carry a changes array");
+  }
+  return data.changes;
+}
 
 const NOW = new Date(2026, 1, 16, 9, 0);
 
@@ -226,14 +239,12 @@ describe("inspect_notices", () => {
 describe("inspect_teacher_changes", () => {
   const changes = [
     {
-      key: "a", week: "weekA" as const, day: "Monday", period: "1", course: "Physics", classCode: "PHY11",
-      room: "B204", previousTeacher: "Mrs J Smith", currentTeacher: "Mr K Patel", kind: "permanent" as const,
-      lookaheadDate: "2026-03-02", detectedAt: "2026-02-16T00:00:00.000Z",
+      type: "teacher-change" as const, date: "2026-02-16", period: "1", classCode: "PHY11",
+      from: "Mrs J Smith", to: "Mr K Patel", referenceDates: ["2026-02-16", "2026-02-23", "2026-03-02"],
     },
     {
-      key: "b", week: "weekB" as const, day: "Friday", period: "3", course: "Chemistry", classCode: "CHE11",
-      room: "S1", previousTeacher: "Mr L Wu", currentTeacher: "Ms R Nguyen", kind: "substitute" as const,
-      lookaheadDate: "2026-03-02", detectedAt: "2026-02-16T00:00:00.000Z",
+      type: "substitute" as const, date: "2026-02-16", period: "3", classCode: "CHE11",
+      from: "Mr L Wu", to: "Ms R Nguyen",
     },
   ];
 
@@ -258,8 +269,32 @@ describe("inspect_teacher_changes", () => {
       NOW,
     );
 
-    expect((result.data as any).changes).toHaveLength(1);
-    expect((result.data as any).changes[0].course).toBe("Chemistry");
+    expect(returnedChanges(result.data)).toHaveLength(1);
+    expect(returnedChanges(result.data)[0].classCode).toBe("CHE11");
+  });
+
+  test.each(["permanent", "teacher-change"])("accepts %s for the permanent verdict", async (kind) => {
+    const result = await executeAssistantReadTool(
+      "inspect_teacher_changes",
+      { kind },
+      buildState({ teacherChanges: changes }),
+      NOW,
+    );
+
+    expect(returnedChanges(result.data)).toHaveLength(1);
+    expect(returnedChanges(result.data)[0].classCode).toBe("PHY11");
+  });
+
+  test("filters to one class code", async () => {
+    const result = await executeAssistantReadTool(
+      "inspect_teacher_changes",
+      { subject: "che11" },
+      buildState({ teacherChanges: changes }),
+      NOW,
+    );
+
+    expect(returnedChanges(result.data)).toHaveLength(1);
+    expect(returnedChanges(result.data)[0].to).toBe("Ms R Nguyen");
   });
 
   test("says nothing was found rather than implying nothing changed", async () => {

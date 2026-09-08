@@ -20,9 +20,12 @@ import {
 import {
   buildClassInsights,
   getClassReviewKey,
+  normalizeFullTimetable,
   partitionClassInsights,
   type ClassInsight,
 } from "@/components/dashboard/classes/classTimetableInsights"
+import { getSchoolWeekType } from "@/lib/portal-class-changes"
+import { overlayTodayTimetable } from "@/lib/portal-today"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,7 +41,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { AttendanceData, ClassEntry } from "@/types/portal"
+import type { AttendanceData, ClassEntry, TodayTimetable } from "@/types/portal"
 
 const COLOR_PRESETS = [
   "#ef4444", "#f97316", "#eab308", "#22c55e",
@@ -51,6 +54,7 @@ const ATTENDANCE_RISK_THRESHOLD = 90
 interface ClassesPageProps {
   classes: ClassEntry[]
   timetable: unknown
+  todayTimetable?: TodayTimetable
   attendance?: AttendanceData | null
   dataLoading: boolean
   locallyUnenrolledClassKeys: readonly string[]
@@ -274,6 +278,7 @@ function UnenrolledClassRow({ classItem, onRestoreClass }: UnenrolledClassRowPro
 export function ClassesPage({
   classes: portalClasses,
   timetable,
+  todayTimetable,
   attendance,
   dataLoading,
   locallyUnenrolledClassKeys,
@@ -282,10 +287,15 @@ export function ClassesPage({
   onRestoreClass,
 }: ClassesPageProps) {
   const classInsights = useMemo(
-    () => buildClassInsights(portalClasses, timetable, attendance, {
-      locallyUnenrolledKeys: locallyUnenrolledClassKeys,
-    }),
-    [attendance, locallyUnenrolledClassKeys, portalClasses, timetable]
+    // Today's homepage lesson is the real one, so a substituted or moved period must not read as a
+    // timetable mismatch here while the Timetable page shows it correctly.
+    () => buildClassInsights(
+      portalClasses,
+      overlayTodayTimetable(normalizeFullTimetable(timetable), todayTimetable, getSchoolWeekType()),
+      attendance,
+      { locallyUnenrolledKeys: locallyUnenrolledClassKeys },
+    ),
+    [attendance, locallyUnenrolledClassKeys, portalClasses, timetable, todayTimetable]
   )
   const { enrolled, unenrolled } = useMemo(
     () => partitionClassInsights(classInsights),

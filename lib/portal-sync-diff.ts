@@ -9,6 +9,8 @@ const PORTAL_SYNC_SECTIONS = [
   'notices',
   'reports',
   'timetable',
+  'todayTimetable',
+  'timetableReferences',
 ] as const;
 
 type PortalSyncSection = typeof PORTAL_SYNC_SECTIONS[number];
@@ -57,6 +59,7 @@ function field(value: unknown, key: string): string {
 }
 
 const recordKeyFor: Partial<Record<PortalSyncSection, (value: unknown) => string>> = {
+  timetableReferences: (value) => field(value, 'date'),
   calendar: (value) => [field(value, 'date'), field(value, 'title'), field(value, 'type')].join('\u001f'),
   classes: (value) => [field(value, 'classCode'), field(value, 'course')].join('\u001f'),
   grades: (value) => [field(value, 'subject'), field(value, 'task'), field(value, 'date')].join('\u001f'),
@@ -73,9 +76,6 @@ const recordKeyFor: Partial<Record<PortalSyncSection, (value: unknown) => string
   timetable: (value) => [
     field(value, 'day'),
     field(value, 'period'),
-    field(value, 'classCode'),
-    field(value, 'course'),
-    field(value, 'subject'),
   ].join('\u001f'),
 };
 
@@ -174,11 +174,11 @@ export function buildPortalSyncDelta(
   previous: PortalSyncFingerprint | null | undefined,
   updatedAt: string,
 ): { delta: Record<string, unknown>; fingerprint: PortalSyncFingerprint } {
-  const sections: Partial<Record<PortalSyncSection, SectionFingerprint>> = {};
+  const sections: Partial<Record<PortalSyncSection, SectionFingerprint>> = { ...previous?.sections };
   const delta: Record<string, unknown> = {};
 
   for (const section of PORTAL_SYNC_SECTIONS) {
-    if (!(section in snapshot)) continue;
+    if (snapshot[section] === undefined) continue;
     const result = diffSection(section, snapshot[section], previous?.sections[section]);
     sections[section] = result.fingerprint;
     if (result.delta !== undefined) delta[section] = result.delta;

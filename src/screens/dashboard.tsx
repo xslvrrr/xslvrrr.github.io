@@ -378,11 +378,20 @@ import {
     FeedbackProvider,
     FeedbackSidebarButton,
 } from '@/components/feedback';
-import { TeacherChangeDialog } from '@/components/dashboard/TeacherChangeDialog';
-import { useTeacherChanges } from '@/hooks/useTeacherChanges';
 import { useTourDashboardAdapter } from '@/hooks/useTourDashboardAdapter';
 import { REPLAY_FULL_TOUR_EVENT, REPLAY_UPDATE_TOUR_EVENT } from '@/lib/tour/dashboardRegistry';
 import { SYNC_REVIEW_ACK_KEY as ACKED_SYNC_REVIEW_KEY } from '@/lib/one-time-notices';
+import { PortalClassChangeContent } from '@/components/dashboard/classes/PortalClassChangeContent';
+import {
+    detectPortalClassChanges,
+    getAffectedClassCodes,
+    getPortalClassChangeKey,
+    getSchoolDate,
+    getSchoolWeekType,
+    normalizePortalClassCode,
+    type PortalClassChange,
+} from '@/lib/portal-class-changes';
+import { currentHomepageTimetable, getTodayClasses } from '@/lib/portal-today';
 
 // Tabler icons
 import {
@@ -464,7 +473,8 @@ type HomeToolbarAction = HomeCanvasTool | 'image';
 type HomeCanvasSelection = { kind: 'element'; id: string } | null;
 type SyncReviewDialog =
     | { type: 'unenroll'; item: ClassInsight }
-    | { type: 'room-change'; item: RoomChangeReviewItem };
+    | { type: 'room-change'; item: RoomChangeReviewItem }
+    | { type: 'daily-change'; item: PortalClassChange };
 /** Matches `--space-lg`: the gap the home grid fakes through spanned 1px rows. */
 const HOME_ROW_GAP = 16;
 const HOME_DEFAULT_ACCENT = '#6b7280';
@@ -544,6 +554,7 @@ function readStringListFromStorage(key: string): string[] {
 }
 
 function getSyncReviewDialogKey(dialog: SyncReviewDialog): string {
+    if (dialog.type === 'daily-change') return getPortalClassChangeKey(dialog.item);
     if (dialog.type === 'unenroll') {
         return `unenroll:${getClassReviewKey(dialog.item)}`;
     }
@@ -559,14 +570,8 @@ function getSyncReviewDialogKey(dialog: SyncReviewDialog): string {
     ].join(':').toLowerCase();
 }
 
-function getPortalDataReviewSignature(data: Pick<PortalData, 'classes' | 'timetable' | 'lastUpdated'>): string {
-    const timetable = normalizeFullTimetable(data.timetable);
-    return [
-        data.lastUpdated || '',
-        data.classes?.length || 0,
-        timetable.weekA.length,
-        timetable.weekB.length,
-    ].join(':');
+function getPortalDataReviewSignature(data: PortalData): string {
+    return JSON.stringify([data.lastUpdated, data.classes, data.timetable, data.todayTimetable, data.timetableReferences]);
 }
 
 // Dynamically import heavy components for code splitting
@@ -1020,11 +1025,6 @@ export default function Dashboard() {
     } = useDashboardData(isPreviewMode);
 
     const classroom = useGoogleClassroom(session?.userId, !isPreviewMode && Boolean(session?.loggedIn));
-
-    const {
-        changes: teacherChanges,
-        dismiss: dismissTeacherChanges,
-    } = useTeacherChanges(!isPreviewMode && Boolean(session?.loggedIn));
 
     const {
         homeSettings,
@@ -1488,7 +1488,7 @@ export default function Dashboard() {
     }, [acknowledgeSyncReview, locallyUnenrolledClassKeys, updateHomeSettings]);
 
     useEffect(() => {
-        if (!portalData?.lastUpdated) return;
+        if (!portalData?.lastUpdated || portalData.sync?.liveAttendanceOnly) return;
 
         const signature = getPortalDataReviewSignature(portalData);
         if (lastReviewSignatureRef.current === signature) return;
@@ -1498,9 +1498,17 @@ export default function Dashboard() {
         lastReviewSignatureRef.current = signature;
 
         const review = detectSyncReviewItems(previous, portalData);
+        const changes = currentHomepageTimetable(portalData.todayTimetable)
+            ? detectPortalClassChanges(portalData, previous) : [];
+        const replacedCodes = getAffectedClassCodes(changes);
+        const dailyRoomCodes = new Set(changes.filter(item => item.type === 'room-change').map(item => normalizePortalClassCode(item.classCode)));
+        // A slot replacement is reviewed as a class change, never also as an unenrolment.
         const nextDialogs: SyncReviewDialog[] = [
-            ...review.roomChanges.map((item): SyncReviewDialog => ({ type: 'room-change', item })),
-            ...review.unenrollCandidates.map((item): SyncReviewDialog => ({ type: 'unenroll', item })),
+            ...changes.map((item): SyncReviewDialog => ({ type: 'daily-change', item })),
+            ...review.roomChanges.filter(item => !dailyRoomCodes.has(normalizePortalClassCode(item.classCode)))
+                .map((item): SyncReviewDialog => ({ type: 'room-change', item })),
+            ...review.unenrollCandidates.filter(item => !replacedCodes.has(normalizePortalClassCode(item.classCode)))
+                .map((item): SyncReviewDialog => ({ type: 'unenroll', item })),
         ].filter(dialog => {
             const reviewKey = getSyncReviewDialogKey(dialog);
             if (ackedSyncReviewKeys.includes(reviewKey)) return false;
@@ -1512,7 +1520,7 @@ export default function Dashboard() {
             setSyncReviewQueue(prev => {
                 const existing = new Set(prev.map(getSyncReviewDialogKey));
                 return [
-                    ...prev,
+                    ...prev.filter(dialog => dialog.type !== 'unenroll' || !replacedCodes.has(normalizePortalClassCode(dialog.item.classCode))),
                     ...nextDialogs.filter(dialog => !existing.has(getSyncReviewDialogKey(dialog))),
                 ];
             });
@@ -5509,42 +5517,14 @@ export default function Dashboard() {
                         }
                         case 'today_classes': {
                             const now = new Date();
-                            const todayKey = toPortalDayKey(now);
+                            const todayKey = getSchoolDate(now);
                             const isHolidayToday = holidayDateKeys.has(todayKey);
-                            const dayIndex = now.getDay();
+                            const dayIndex = new Date(`${todayKey}T12:00:00Z`).getUTCDay();
                             const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
                             const todayName = dayNames[dayIndex - 1] || '';
 
-                            const timetableData = portalData?.timetable;
-                            const isFullTimetable = timetableData &&
-                                typeof timetableData === 'object' &&
-                                !Array.isArray(timetableData) &&
-                                ('weekA' in timetableData || 'weekB' in timetableData);
-
-                            let todayClasses: Array<{ period: string; subject: string; teacher: string; room: string; attendanceStatus?: string }> = [];
-
-                            if (isHolidayToday) {
-                                todayClasses = [];
-                            } else if (Array.isArray(timetableData)) {
-                                todayClasses = timetableData.map(entry => ({
-                                    period: entry.period,
-                                    subject: entry.subject,
-                                    teacher: entry.teacher,
-                                    room: entry.room,
-                                    attendanceStatus: entry.attendanceStatus,
-                                }));
-                            } else if (isFullTimetable && todayName) {
-                                const fullTimetable = timetableData as { weekA: any[]; weekB: any[] };
-                                const entries = fullTimetable[selectedWeek]?.filter(entry =>
-                                    entry.day?.toLowerCase() === todayName.toLowerCase()
-                                ) || [];
-                                todayClasses = entries.map(entry => ({
-                                    period: entry.period,
-                                    subject: entry.course || entry.classCode,
-                                    teacher: entry.teacher,
-                                    room: entry.room,
-                                }));
-                            }
+                            const todayClasses = isHolidayToday && !currentHomepageTimetable(portalData?.todayTimetable, now)
+                                ? [] : getTodayClasses(portalData, now);
 
                             const currentMinutes = now.getHours() * 60 + now.getMinutes();
                             const getClassPeriodState = (period: string) => {
@@ -6262,9 +6242,10 @@ export default function Dashboard() {
                 return (
                     <TimetablePage
                         timetable={portalData?.timetable}
+                        todayTimetable={portalData?.todayTimetable}
                         dataLoading={dataLoading}
                         selectedWeek={selectedWeek}
-                        currentWeek={getAutoWeekType(new Date())}
+                        currentWeek={getSchoolWeekType()}
                         onSelectedWeekChange={setSelectedWeek}
                         mergeConsecutivePeriods={homeSettings.timetableMergeConsecutivePeriods}
                         showBothWeeks={homeSettings.timetableShowBothWeeks}
@@ -6554,6 +6535,7 @@ export default function Dashboard() {
                     <ClassesPage
                         classes={portalData?.classes || []}
                         timetable={portalData?.timetable}
+                        todayTimetable={portalData?.todayTimetable}
                         attendance={portalData?.attendance}
                         dataLoading={dataLoading}
                         locallyUnenrolledClassKeys={locallyUnenrolledClassKeys}
@@ -6845,10 +6827,6 @@ export default function Dashboard() {
                         userId={session.userId || session.portalUid || session.username || null}
                         enabled={!isPreviewMode}
                     />
-                    {/* A changed teacher is news the student has to be told once, so it interrupts
-                        rather than joining the notification list. Preview frames are excluded: they
-                        render against fixture data and have no account to acknowledge against. */}
-                    <TeacherChangeDialog changes={teacherChanges} onDismiss={dismissTeacherChanges} />
                     {/* Waiting reports are shown to every administrator, oldest first. */}
                     <AdminFeedbackQueue enabled={!isPreviewMode && session.role === 'admin'} />
                     <PortalSyncStatusToasts />
@@ -8224,7 +8202,9 @@ export default function Dashboard() {
                     }}
                 >
                     <AlertDialogContent className="border-[var(--border-default)] bg-[var(--bg-elevated)]">
-                        {activeSyncReview?.type === 'room-change' ? (
+                        {activeSyncReview?.type === 'daily-change' ? (
+                            <PortalClassChangeContent change={activeSyncReview.item} onAcknowledge={() => acknowledgeSyncReview(activeSyncReview)} />
+                        ) : activeSyncReview?.type === 'room-change' ? (
                             <>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Room Change Detected</AlertDialogTitle>

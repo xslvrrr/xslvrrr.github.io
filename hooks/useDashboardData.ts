@@ -16,12 +16,8 @@ import { previewPortalData, previewSession } from '../lib/dashboard-preview-data
 import { getDataFetchIntervalMs, isUltraRunClientLocked, readDataSettings, toPortalSyncOptions } from '../lib/data-settings';
 import { notifyPortalSyncError, notifyPortalSyncSuccess } from '../components/PortalSyncStatusToasts';
 import { mergePortalData } from '../lib/portal-data-merge';
-import { PORTAL_DATA_UPDATED_EVENT } from '../lib/portal-sync-status';
-import {
-  emitTeacherChanges,
-  toTeacherChangeSummary,
-  type TeacherChangeSummary,
-} from './useTeacherChanges';
+import { PORTAL_DATA_UPDATED_EVENT, subscribeUltraRunStatus } from '../lib/portal-sync-status';
+import { mergeLiveAttendanceData } from '../lib/live-attendance-polling';
 import { fetchJsonWithTimeout, fetchWithTimeout } from '../lib/http';
 import { disconnectClassroomProfile } from '../lib/desktop/classroom';
 import {
@@ -37,6 +33,7 @@ const SESSION_TIMEOUT_MS = 5_000;
 // Allow serverless cold starts and large durable portal snapshots to complete.
 const DATA_READ_TIMEOUT_MS = 30_000;
 const SYNC_TIMEOUT_MS = 200_000;
+const LIVE_ATTENDANCE_INTERVAL_MS = 60_000;
 let portalDataReadFlight: Promise<PortalData | null> | null = null;
 let portalDataReadVersion: string | null = null;
 
@@ -103,13 +100,13 @@ function randomOwnerId(): string {
   return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function acquireClientLease(ownerId: string): boolean {
+function acquireClientLease(ownerId: string, silent = false): boolean {
   if (typeof window === 'undefined') return true;
   const now = Date.now();
   try {
     const current = JSON.parse(window.localStorage.getItem(CLIENT_SYNC_LEASE_KEY) || 'null');
     if (current?.ownerId !== ownerId && Number(current?.expiresAt) > now) return false;
-    window.localStorage.setItem(CLIENT_SYNC_LEASE_KEY, JSON.stringify({ ownerId, expiresAt: now + CLIENT_SYNC_LEASE_MS }));
+    window.localStorage.setItem(CLIENT_SYNC_LEASE_KEY, JSON.stringify({ ownerId, expiresAt: now + CLIENT_SYNC_LEASE_MS, silent }));
     const confirmed = JSON.parse(window.localStorage.getItem(CLIENT_SYNC_LEASE_KEY) || 'null');
     return confirmed?.ownerId === ownerId;
   } catch {
@@ -127,11 +124,12 @@ function releaseClientLease(ownerId: string) {
   }
 }
 
-function isClientLeaseActive(ownerId: string): boolean {
+function isClientLeaseActive(ownerId: string, includeSilent = true): boolean {
   if (typeof window === 'undefined') return false;
   try {
     const current = JSON.parse(window.localStorage.getItem(CLIENT_SYNC_LEASE_KEY) || 'null');
-    return current?.ownerId !== ownerId && Number(current?.expiresAt) > Date.now();
+    return current?.ownerId !== ownerId && Number(current?.expiresAt) > Date.now()
+      && (includeSilent || current?.silent !== true);
   } catch {
     return false;
   }
@@ -177,6 +175,7 @@ export function useDashboardData(preview = false) {
   const syncFlightRef = useRef<Promise<void> | null>(null);
   const syncAbortRef = useRef<AbortController | null>(null);
   const syncGenerationRef = useRef(0);
+  const liveAttendanceAbortRef = useRef<AbortController | null>(null);
   const ownerIdRef = useRef(randomOwnerId());
   // Tracks whether the snapshot in memory came from a full server read. Sync
   // responses only carry changed sections, so an unverified snapshot must never
@@ -402,8 +401,8 @@ export function useDashboardData(preview = false) {
     };
   }, [checkSession, desktopBoot.refresh, preview, session?.offline]);
 
-  const loadPortalData = useCallback((force = false): Promise<void> => {
-    if (preview) return Promise.resolve();
+  const loadPortalData = useCallback((force = false, liveAttendanceOnly = false): Promise<void> => {
+    if (preview || !sessionRef.current?.loggedIn) return Promise.resolve();
     if (syncFlightRef.current) {
       const currentFlight = syncFlightRef.current;
       return force
@@ -419,15 +418,20 @@ export function useDashboardData(preview = false) {
       // Read the durable database snapshot before starting a much more expensive
       // portal scrape. This also joins the normal post-login hydration path when
       // browser cache is empty or unavailable.
+      // Live deltas require a verified baseline; normal sync owns hydration.
+      if (liveAttendanceOnly && (!current || !snapshotCompleteRef.current)) return;
       if (!current) current = await hydrateSavedPortalData(!sessionRef.current?.offline);
+      if (controller.signal.aborted || generation !== syncGenerationRef.current) return;
       if (sessionRef.current?.offline || isUltraRunClientLocked()) return;
 
       const dataSettings = readDataSettings();
       const intervalMs = getDataFetchIntervalMs(dataSettings);
-      if (!force && isFresh(current, intervalMs)) return;
+      if (liveAttendanceOnly && (!dataSettings.liveAttendanceEnabled || !dataSettings.includeAttendance)) return;
+      if (!liveAttendanceOnly && !force && isFresh(current, intervalMs)) return;
       if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
-      if (!force && Date.now() < nextAttemptAtRef.current) return;
-      if (!acquireClientLease(ownerIdRef.current)) {
+      if (!liveAttendanceOnly && !force && Date.now() < nextAttemptAtRef.current) return;
+      if (!acquireClientLease(ownerIdRef.current, liveAttendanceOnly)) {
+        if (liveAttendanceOnly) return;
         if (!force) {
           nextAttemptAtRef.current = Date.now() + 2_000;
           return;
@@ -443,15 +447,39 @@ export function useDashboardData(preview = false) {
         }
       }
 
-      setDataLoading(true);
+      if (liveAttendanceOnly) liveAttendanceAbortRef.current = controller;
+      else setDataLoading(true);
+      // Keep the cross-tab lease alive throughout long requests, including silent polls.
+      const leaseTimer = window.setInterval(() => {
+        if (!acquireClientLease(ownerIdRef.current, liveAttendanceOnly)) controller.abort();
+      }, CLIENT_SYNC_LEASE_MS / 3);
       try {
         const { response, data } = await fetchJsonWithTimeout<any>('/api/portal/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ syncOptions: toPortalSyncOptions(dataSettings), force }),
+          body: JSON.stringify(liveAttendanceOnly
+            ? { syncOptions: { liveAttendanceOnly: true } }
+            : { syncOptions: toPortalSyncOptions(dataSettings), force }),
           timeout: SYNC_TIMEOUT_MS,
           signal: controller.signal,
         });
+        if (liveAttendanceOnly) {
+          // Poll failures (including locks/auth expiry) are silent and never change
+          // normal sync backoff, freshness, or its status notifications.
+          const latestSettings = readDataSettings();
+          if (!response.ok || !data || controller.signal.aborted
+            || generation !== syncGenerationRef.current
+            || !latestSettings.liveAttendanceEnabled || !latestSettings.includeAttendance
+            || sessionRef.current?.offline || navigator.onLine === false
+            || isUltraRunClientLocked()
+            || !portalDataMatchesSession(data, sessionRef.current)
+            || !portalDataRef.current || !snapshotCompleteRef.current) return;
+          const nextData = mergeLiveAttendanceData(portalDataRef.current, data as PortalData);
+          if (commitPortalData(nextData, { complete: true })) {
+            await writePortalDataCache(nextData, sessionCacheOwner(sessionRef.current), { complete: true });
+          }
+          return;
+        }
         if (response.status === 409 && data?.error?.code === 'PORTAL_SYNC_IN_PROGRESS') {
           nextAttemptAtRef.current = Date.now() + Math.max(1_000, Number(data.retryAfterMs) || 2_000);
           return;
@@ -466,15 +494,6 @@ export function useDashboardData(preview = false) {
         }
 
         if (controller.signal.aborted || generation !== syncGenerationRef.current) return;
-        // Lifted off the payload before anything merges it. It is news about this sync, not a
-        // section of the dashboard, and leaving it on `data` would spread it into the merged
-        // snapshot and then into the offline cache, where it would sit being wrong.
-        if (Array.isArray(data?.teacherChanges)) {
-          emitTeacherChanges(
-            data.teacherChanges.map(toTeacherChangeSummary).filter(Boolean) as TeacherChangeSummary[],
-          );
-          delete data.teacherChanges;
-        }
         const isIncremental = data?.incremental === true;
         // A sync response only carries the sections that changed. Merging one
         // onto a missing or unverified snapshot would publish (and cache) a
@@ -512,29 +531,32 @@ export function useDashboardData(preview = false) {
             : 'Your Millennium data was refreshed in the background.');
         }
       } catch (error) {
-        if (controller.signal.aborted || generation !== syncGenerationRef.current) return;
+        if (liveAttendanceOnly || controller.signal.aborted || generation !== syncGenerationRef.current) return;
         consecutiveFailuresRef.current += 1;
         const backoffMs = Math.min(5 * 60_000, 5_000 * (2 ** (consecutiveFailuresRef.current - 1)));
         nextAttemptAtRef.current = Date.now() + backoffMs + Math.floor(Math.random() * 1_000);
         notifyPortalSyncError(friendlySyncError(error));
         console.error('[Dashboard] Portal sync failed', error);
       } finally {
+        window.clearInterval(leaseTimer);
         if (syncAbortRef.current === controller) syncAbortRef.current = null;
+        if (liveAttendanceAbortRef.current === controller) liveAttendanceAbortRef.current = null;
         releaseClientLease(ownerIdRef.current);
-        setDataLoading(false);
+        if (!liveAttendanceOnly) setDataLoading(false);
       }
     })();
 
-    syncFlightRef.current = flight.finally(() => {
-      if (syncFlightRef.current === flight || syncFlightRef.current) syncFlightRef.current = null;
+    const trackedFlight = flight.finally(() => {
+      if (syncFlightRef.current === trackedFlight) syncFlightRef.current = null;
     });
-    return syncFlightRef.current;
+    syncFlightRef.current = trackedFlight;
+    return trackedFlight;
   }, [commitPortalData, hydrateSavedPortalData, preview]);
 
   useEffect(() => {
     if (preview || typeof window === 'undefined') return;
     const updateExternalSyncState = () => {
-      setIsExternalSyncRunning(isClientLeaseActive(ownerIdRef.current));
+      setIsExternalSyncRunning(isClientLeaseActive(ownerIdRef.current, false));
     };
     updateExternalSyncState();
     const intervalId = window.setInterval(updateExternalSyncState, 1_000);
@@ -588,6 +610,33 @@ export function useDashboardData(preview = false) {
       window.removeEventListener('millennium-data-settings-change', schedule);
       window.removeEventListener('online', handleWake);
       document.removeEventListener('visibilitychange', handleWake);
+    };
+  }, [loadPortalData, preview, session?.loggedIn, session?.offline]);
+
+  useEffect(() => {
+    if (preview || !session?.loggedIn || session.offline || typeof window === 'undefined') return;
+    const canPoll = () => {
+      const settings = readDataSettings();
+      return settings.liveAttendanceEnabled && settings.includeAttendance
+        && navigator.onLine !== false && !isUltraRunClientLocked();
+    };
+    const cancelIfPaused = () => {
+      if (!canPoll()) liveAttendanceAbortRef.current?.abort();
+    };
+    const timerId = window.setInterval(() => {
+      if (canPoll() && !syncFlightRef.current) void loadPortalData(false, true);
+    }, LIVE_ATTENDANCE_INTERVAL_MS);
+    const unsubscribeUltraRun = subscribeUltraRunStatus(cancelIfPaused);
+    window.addEventListener('millennium-data-settings-change', cancelIfPaused);
+    window.addEventListener('storage', cancelIfPaused);
+    window.addEventListener('offline', cancelIfPaused);
+    return () => {
+      window.clearInterval(timerId);
+      unsubscribeUltraRun();
+      window.removeEventListener('millennium-data-settings-change', cancelIfPaused);
+      window.removeEventListener('storage', cancelIfPaused);
+      window.removeEventListener('offline', cancelIfPaused);
+      liveAttendanceAbortRef.current?.abort();
     };
   }, [loadPortalData, preview, session?.loggedIn, session?.offline]);
 
